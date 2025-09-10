@@ -32,6 +32,150 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          level: number
+          points: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          level?: number
+          points?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          level?: number
+          points?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      study_materials: {
+        Row: {
+          corrected_text: string | null
+          created_at: string
+          flashcards: Json | null
+          id: string
+          key_concepts: string[] | null
+          original_content: string | null
+          points_earned: number | null
+          quiz: Json | null
+          source_type: string
+          sources: string[] | null
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          corrected_text?: string | null
+          created_at?: string
+          flashcards?: Json | null
+          id?: string
+          key_concepts?: string[] | null
+          original_content?: string | null
+          points_earned?: number | null
+          quiz?: Json | null
+          source_type: string
+          sources?: string[] | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          corrected_text?: string | null
+          created_at?: string
+          flashcards?: Json | null
+          id?: string
+          key_concepts?: string[] | null
+          original_content?: string | null
+          points_earned?: number | null
+          quiz?: Json | null
+          source_type?: string
+          sources?: string[] | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          duration_minutes: number
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          duration_minutes: number
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          duration_minutes?: number
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
