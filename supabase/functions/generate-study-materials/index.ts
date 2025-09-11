@@ -31,7 +31,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini-2025-04-14',
+        model: 'gpt-5-mini-2025-08-07',
         messages: [
           {
             role: 'system',
@@ -73,8 +73,7 @@ Return ONLY the JSON object, no other text.`
             content: `Text to analyze: "${corrected_text}"`
           }
         ],
-        max_tokens: 3000,
-        temperature: 0.4
+        max_completion_tokens: 3000
       }),
     });
 

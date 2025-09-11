@@ -64,10 +64,9 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini-2025-04-14',
+        model: 'gpt-5-mini-2025-08-07',
         messages: messages,
-        max_tokens: 500,
-        temperature: 0.7
+        max_completion_tokens: 500
       }),
     });
 
