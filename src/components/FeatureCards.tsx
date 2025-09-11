@@ -32,7 +32,7 @@ const FeatureCards = () => {
       color: "text-red-500",
       bgColor: "bg-red-500/10",
       borderColor: "border-red-500/20",
-      action: () => handleComingSoon("Video summarization"),
+      action: () => navigate('/video-summarizer'),
     },
     {
       title: "Study Hub",

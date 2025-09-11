@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AITutor from "./pages/AITutor";
 import StudyMaterials from "./pages/StudyMaterials";
+import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
 import NotFound from "./pages/NotFound";
 
@@ -21,6 +22,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/ai-tutor" element={<AITutor />} />
           <Route path="/study-materials" element={<StudyMaterials />} />
+          <Route path="/video-summarizer" element={<VideoSummarizer />} />
           <Route path="/study-hub" element={<StudyHub />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
