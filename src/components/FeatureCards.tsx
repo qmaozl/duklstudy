@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Camera, Youtube, Book, MessageCircle, Upload, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const FeatureCards = () => {
+  const navigate = useNavigate();
+  
   const handleComingSoon = (feature: string) => {
     toast({
       title: "Coming Soon!",
@@ -14,13 +17,13 @@ const FeatureCards = () => {
 
   const features = [
     {
-      title: "Scan Notes",
-      description: "Upload photos of your notes and let AI transform them into interactive study materials",
-      icon: <Camera className="h-8 w-8" />,
+      title: "Generate Materials",
+      description: "Input your study text and let AI create summaries, flashcards, and quizzes instantly",
+      icon: <Upload className="h-8 w-8" />,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
       borderColor: "border-blue-500/20",
-      action: () => handleComingSoon("Note scanning"),
+      action: () => navigate('/study-materials'),
     },
     {
       title: "Summarize Video",
@@ -38,7 +41,7 @@ const FeatureCards = () => {
       color: "text-green-500",
       bgColor: "bg-green-500/10",
       borderColor: "border-green-500/20",
-      action: () => handleComingSoon("Study Hub"),
+      action: () => navigate('/study-hub'),
     },
     {
       title: "AI Tutor",
@@ -47,7 +50,7 @@ const FeatureCards = () => {
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
       borderColor: "border-purple-500/20",
-      action: () => handleComingSoon("AI Tutor"),
+      action: () => navigate('/ai-tutor'),
     },
   ];
 

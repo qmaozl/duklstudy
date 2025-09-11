@@ -6,6 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AITutor from "./pages/AITutor";
+import StudyMaterials from "./pages/StudyMaterials";
+import StudyHub from "./pages/StudyHub";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -20,7 +23,9 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/ai-tutor" element={<AITutor />} />
+            <Route path="/study-materials" element={<StudyMaterials />} />
+            <Route path="/study-hub" element={<StudyHub />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
