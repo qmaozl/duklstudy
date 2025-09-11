@@ -77,49 +77,68 @@ function extractVideoId(url: string): string | null {
 
 async function getYouTubeTranscript(videoId: string) {
   try {
-    // Use a different approach - directly call YouTube's internal API
-    // This is more reliable than third-party services
-    const transcriptUrl = `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}`;
+    console.log(`Attempting to fetch transcript for video ID: ${videoId}`);
     
-    const response = await fetch(transcriptUrl);
+    // Try multiple methods to get transcript
+    const methods = [
+      // Method 1: Try different language codes and formats
+      `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&fmt=srv3`,
+      `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&fmt=vtt`,
+      `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}`,
+      `https://www.youtube.com/api/timedtext?lang=en-US&v=${videoId}`,
+      `https://www.youtube.com/api/timedtext?lang=en-GB&v=${videoId}`,
+      // Try auto-generated captions
+      `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&kind=asr`,
+      `https://www.youtube.com/api/timedtext?lang=en-US&v=${videoId}&kind=asr`,
+    ];
     
-    if (!response.ok) {
-      console.error('YouTube API response not ok:', response.status);
-      // Try alternative approach with auto-generated captions
-      const altUrl = `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&tlang=en`;
-      const altResponse = await fetch(altUrl);
-      
-      if (!altResponse.ok) {
-        throw new Error('No transcript available for this video');
+    for (const url of methods) {
+      try {
+        console.log(`Trying transcript URL: ${url}`);
+        const response = await fetch(url);
+        
+        if (response.ok) {
+          const xmlText = await response.text();
+          console.log(`Got response, length: ${xmlText.length}`);
+          
+          if (xmlText && xmlText.includes('<text')) {
+            const result = await parseTranscriptXML(xmlText, videoId);
+            if (result.transcript && result.transcript.length > 50) {
+              console.log(`Successfully extracted transcript: ${result.transcript.substring(0, 100)}...`);
+              return result;
+            }
+          }
+        }
+      } catch (methodError) {
+        console.log(`Method failed: ${methodError.message}`);
+        continue;
       }
-      
-      const altText = await altResponse.text();
-      return await parseTranscriptXML(altText, videoId);
     }
     
-    const xmlText = await response.text();
-    return await parseTranscriptXML(xmlText, videoId);
+    // If all methods fail, throw an error to stop processing
+    throw new Error('No transcript available for this video. Please try a different video that has closed captions or subtitles enabled.');
     
   } catch (error) {
     console.error('Error fetching YouTube transcript:', error);
-    // Fallback: create a mock transcript for demo purposes
-    return {
-      title: 'YouTube Video (Transcript unavailable)',
-      transcript: 'This video does not have an available transcript. Please try with a different video that has closed captions enabled, or paste the video content manually in the Study Materials generator.',
-      duration: null
-    };
+    throw error; // Don't continue processing, let the error bubble up
   }
 }
 
 async function parseTranscriptXML(xmlText: string, videoId: string) {
   try {
-    // Parse XML and extract text content
-    const textMatches = xmlText.match(/>([^<]+)</g);
+    console.log('Parsing transcript XML...');
+    
+    // Extract text content from XML tags
+    const textMatches = xmlText.match(/<text[^>]*>([^<]*)<\/text>/g);
     let transcript = '';
     
-    if (textMatches) {
+    if (textMatches && textMatches.length > 0) {
       transcript = textMatches
-        .map(match => match.slice(1, -1)) // Remove > and <
+        .map(match => {
+          // Extract text content between tags
+          const textContent = match.replace(/<text[^>]*>/, '').replace(/<\/text>/, '');
+          return textContent;
+        })
         .join(' ')
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
@@ -130,11 +149,31 @@ async function parseTranscriptXML(xmlText: string, videoId: string) {
         .trim();
     }
     
+    // Also try alternative parsing method for different XML formats
     if (!transcript) {
-      throw new Error('No transcript text found in XML');
+      const altMatches = xmlText.match(/>([^<]+)</g);
+      if (altMatches) {
+        transcript = altMatches
+          .map(match => match.slice(1, -1).trim())
+          .filter(text => text.length > 0)
+          .join(' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
     }
     
-    // Get video metadata using oEmbed API (free, no API key required)
+    if (!transcript || transcript.length < 50) {
+      throw new Error('Transcript text is too short or empty');
+    }
+    
+    console.log(`Parsed transcript length: ${transcript.length}`);
+    
+    // Get video metadata using oEmbed API
     let title = 'YouTube Video';
     
     try {

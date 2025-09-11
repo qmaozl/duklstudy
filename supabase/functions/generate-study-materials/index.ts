@@ -16,7 +16,7 @@ serve(async (req) => {
   try {
     console.log('Processing study materials generation request');
     
-    const { corrected_text } = await req.json();
+    const { corrected_text, num_questions } = await req.json();
     
     if (!corrected_text) {
       throw new Error('No corrected text provided for processing');
@@ -70,7 +70,7 @@ Return ONLY the JSON object, no other text.`
           },
           {
             role: 'user',
-            content: `Text to analyze: "${corrected_text}"`
+            content: `Text to analyze: "${corrected_text}"${num_questions ? `\n\nGenerate exactly ${num_questions} quiz questions.` : ''}`
           }
         ],
         max_tokens: 3000,

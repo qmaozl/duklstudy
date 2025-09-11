@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -32,6 +33,95 @@ interface VideoData {
   duration?: string;
 }
 
+interface QuizQuestionProps {
+  question: {
+    question: string;
+    options: { a: string; b: string; c: string; d: string };
+    correct_answer: string;
+  };
+  questionNumber: number;
+}
+
+const QuizQuestion: React.FC<QuizQuestionProps> = ({ question, questionNumber }) => {
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
+
+  const handleAnswerSelect = (key: string) => {
+    setSelectedAnswer(key);
+    setShowResult(true);
+  };
+
+  const resetQuestion = () => {
+    setSelectedAnswer(null);
+    setShowResult(false);
+  };
+
+  return (
+    <Card className="border-l-4 border-l-secondary">
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          <div className="flex justify-between items-start">
+            <p className="font-medium text-sm flex-1">
+              {questionNumber}. {question.question}
+            </p>
+            {showResult && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={resetQuestion}
+                className="ml-2 text-xs"
+              >
+                Try Again
+              </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {Object.entries(question.options).map(([key, value]) => {
+              let buttonClass = 'p-2 rounded text-xs text-left border transition-colors ';
+              
+              if (!showResult) {
+                buttonClass += 'bg-gray-50 border-gray-200 hover:bg-gray-100 cursor-pointer';
+              } else {
+                if (key === question.correct_answer) {
+                  buttonClass += 'bg-green-100 border-green-300 text-green-800';
+                } else if (key === selectedAnswer && key !== question.correct_answer) {
+                  buttonClass += 'bg-red-100 border-red-300 text-red-800';
+                } else {
+                  buttonClass += 'bg-gray-50 border-gray-200';
+                }
+              }
+
+              return (
+                <div 
+                  key={key} 
+                  className={buttonClass}
+                  onClick={() => !showResult && handleAnswerSelect(key)}
+                >
+                  <span className="font-medium">{key.toUpperCase()}.</span> {value}
+                  {showResult && key === question.correct_answer && (
+                    <span className="ml-2 text-green-600">✓ Correct</span>
+                  )}
+                  {showResult && key === selectedAnswer && key !== question.correct_answer && (
+                    <span className="ml-2 text-red-600">✗ Your Answer</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {showResult && (
+            <div className="text-xs text-muted-foreground">
+              {selectedAnswer === question.correct_answer 
+                ? "Correct! Well done." 
+                : `Incorrect. The correct answer is ${question.correct_answer.toUpperCase()}.`
+              }
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const VideoSummarizer = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -40,6 +130,7 @@ const VideoSummarizer = () => {
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [currentStep, setCurrentStep] = useState<string>('');
+  const [numQuestions, setNumQuestions] = useState<string>('5');
 
   const processVideo = async () => {
     if (!youtubeUrl.trim()) {
@@ -88,6 +179,11 @@ const VideoSummarizer = () => {
       
       setVideoData(extractedVideoData);
 
+      // Check if transcript is meaningful (not just error message)
+      if (extractedVideoData.transcript.includes('does not have an available transcript')) {
+        throw new Error('No transcript available for this video. Please try a different video that has closed captions enabled.');
+      }
+
       // Step 2: Correct and enhance the transcript
       setCurrentStep('Processing transcript content...');
       const { data: correctedData, error: correctionError } = await supabase.functions.invoke('correct-enhance-text', {
@@ -109,7 +205,10 @@ const VideoSummarizer = () => {
       // Step 4: Generate study materials
       setCurrentStep('Generating study materials...');
       const { data: materialsData, error: materialsError } = await supabase.functions.invoke('generate-study-materials', {
-        body: { corrected_text }
+        body: { 
+          corrected_text,
+          num_questions: parseInt(numQuestions)
+        }
       });
 
       if (materialsError) throw materialsError;
@@ -200,6 +299,25 @@ const VideoSummarizer = () => {
                   disabled={isProcessing}
                   className="font-mono text-sm"
                 />
+                
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-muted-foreground">Quiz Questions:</span>
+                  <Select 
+                    value={numQuestions} 
+                    onValueChange={setNumQuestions}
+                    disabled={isProcessing}
+                  >
+                    <SelectTrigger className="w-16 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="3">3</SelectItem>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="7">7</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 {videoData && (
                   <Card className="border-l-4 border-l-red-500">
@@ -326,32 +444,11 @@ const VideoSummarizer = () => {
                       <ScrollArea className="h-[400px]">
                         <div className="space-y-4">
                           {studyMaterial.quiz.questions.map((question, index) => (
-                            <Card key={index} className="border-l-4 border-l-secondary">
-                              <CardContent className="p-4">
-                                <div className="space-y-3">
-                                  <p className="font-medium text-sm">
-                                    {index + 1}. {question.question}
-                                  </p>
-                                  <div className="grid grid-cols-1 gap-2">
-                                    {Object.entries(question.options).map(([key, value]) => (
-                                      <div 
-                                        key={key} 
-                                        className={`p-2 rounded text-xs ${
-                                          key === question.correct_answer 
-                                            ? 'bg-green-100 border border-green-300 text-green-800' 
-                                            : 'bg-gray-50 border border-gray-200'
-                                        }`}
-                                      >
-                                        <span className="font-medium">{key.toUpperCase()}.</span> {value}
-                                        {key === question.correct_answer && (
-                                          <span className="ml-2 text-green-600">✓ Correct</span>
-                                        )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
+                            <QuizQuestion 
+                              key={index} 
+                              question={question} 
+                              questionNumber={index + 1}
+                            />
                           ))}
                         </div>
                       </ScrollArea>
