@@ -16,6 +16,10 @@ serve(async (req) => {
   try {
     console.log('Processing study materials generation request');
     
+    if (!deepseekApiKey) {
+      throw new Error('DeepSeek API key not found');
+    }
+    
     const { corrected_text, num_questions } = await req.json();
     
     if (!corrected_text) {
@@ -40,7 +44,7 @@ serve(async (req) => {
 **Steps:**
 1. **Create a Summary:** Generate a concise, easy-to-understand summary of the key points in the text (approx. 150 words).
 2. **Create Flashcards:** Generate 5-10 flashcards. For each flashcard, provide a clear question and a concise answer based directly on the text.
-3. **Create a Quiz:** Generate a quiz with 5 multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer. Provide the answer key.
+3. **Create a Quiz:** Generate a quiz with ${num_questions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer. Provide the answer key.
 
 **Output Format Rules:** 
 - You MUST output a valid JSON object with the following structure. Do not add any other text.
@@ -73,7 +77,7 @@ Return ONLY the JSON object, no other text.`
             content: `Text to analyze: "${corrected_text}"${num_questions ? `\n\nGenerate exactly ${num_questions} quiz questions.` : ''}`
           }
         ],
-        max_tokens: 3000,
+        max_tokens: 6000,
         temperature: 0.4
       }),
     });

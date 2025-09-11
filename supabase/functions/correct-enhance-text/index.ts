@@ -14,12 +14,16 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Processing text correction and enhancement request');
+    console.log('Processing text correction request');
+    
+    if (!deepseekApiKey) {
+      throw new Error('DeepSeek API key not found');
+    }
     
     const { raw_text } = await req.json();
     
     if (!raw_text) {
-      throw new Error('No text provided for processing');
+      throw new Error('No raw text provided for correction');
     }
 
     console.log('Input text length:', raw_text.length);
@@ -43,15 +47,17 @@ serve(async (req) => {
 3. **Identify Key Concepts:** Briefly analyze the corrected text to identify 3-5 main topics or key terms. This will be used for sourcing later.
 
 **Output Format Rules:** 
-- Return a JSON object with two keys:
-  - "corrected_text": The cleaned-up and corrected version of the input text.
-  - "key_concepts": An array of the main topics you identified (e.g., ["Photosynthesis", "Cellular Respiration", "Chloroplast"]).
+- You MUST output a valid JSON object with the following structure. Do not add any other text.
+{
+  "corrected_text": "The corrected and enhanced text goes here...",
+  "key_concepts": ["concept1", "concept2", "concept3", "concept4", "concept5"]
+}
 
 Return ONLY the JSON object, no other text.`
           },
           {
             role: 'user',
-            content: `Raw text to process: "${raw_text}"`
+            content: `Raw text to correct and enhance: "${raw_text}"`
           }
         ],
         max_tokens: 2000,
@@ -72,7 +78,7 @@ Return ONLY the JSON object, no other text.`
     
     try {
       const parsedResult = JSON.parse(result);
-      console.log('Successfully parsed result:', parsedResult);
+      console.log('Successfully parsed correction result');
       
       return new Response(JSON.stringify(parsedResult), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -83,8 +89,8 @@ Return ONLY the JSON object, no other text.`
       
       // Fallback response
       return new Response(JSON.stringify({
-        corrected_text: raw_text,
-        key_concepts: ["General Study Material"]
+        corrected_text: raw_text, // Return original text if parsing fails
+        key_concepts: ["General Topic", "Study Material", "Learning Content", "Educational Text"]
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

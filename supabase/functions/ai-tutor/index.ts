@@ -16,6 +16,10 @@ serve(async (req) => {
   try {
     console.log('Processing AI tutor request');
     
+    if (!deepseekApiKey) {
+      throw new Error('DeepSeek API key not found');
+    }
+    
     const { user_message, current_topic, conversation_history } = await req.json();
     
     if (!user_message) {

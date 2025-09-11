@@ -16,6 +16,10 @@ serve(async (req) => {
   try {
     console.log('Processing relevant sources request');
     
+    if (!deepseekApiKey) {
+      throw new Error('DeepSeek API key not found');
+    }
+    
     const { key_concepts } = await req.json();
     
     if (!key_concepts || !Array.isArray(key_concepts)) {
