@@ -17,13 +17,25 @@ serve(async (req) => {
     console.log('Processing text correction request');
     
     if (!deepseekApiKey) {
-      throw new Error('DeepSeek API key not found');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'DeepSeek API key not found'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     const { raw_text } = await req.json();
     
     if (!raw_text) {
-      throw new Error('No raw text provided for correction');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'No raw text provided for correction'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('Input text length:', raw_text.length);
@@ -99,11 +111,10 @@ Return ONLY the JSON object, no other text.`
   } catch (error) {
     console.error('Error in correct-enhance-text function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
-      corrected_text: "",
-      key_concepts: []
+      success: false,
+      error: error.message
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

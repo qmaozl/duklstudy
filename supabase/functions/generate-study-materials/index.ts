@@ -17,16 +17,32 @@ serve(async (req) => {
     console.log('Processing study materials generation request');
     
     if (!deepseekApiKey) {
-      throw new Error('DeepSeek API key not found');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'DeepSeek API key not found'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
-    const { corrected_text, num_questions } = await req.json();
+    const { corrected_text, num_questions = 5 } = await req.json();
     
     if (!corrected_text) {
-      throw new Error('No corrected text provided for processing');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'No corrected text provided for processing'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
+    // Sanitize and clamp num_questions
+    const clampedQuestions = Math.max(1, Math.min(30, parseInt(num_questions) || 5));
+
     console.log('Input text length:', corrected_text.length);
+    console.log('Number of questions requested:', clampedQuestions);
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -44,7 +60,7 @@ serve(async (req) => {
 **Steps:**
 1. **Create a Summary:** Generate a concise, easy-to-understand summary of the key points in the text (approx. 150 words).
 2. **Create Flashcards:** Generate 5-10 flashcards. For each flashcard, provide a clear question and a concise answer based directly on the text.
-3. **Create a Quiz:** Generate a quiz with ${num_questions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer. Provide the answer key.
+3. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer. Provide the answer key.
 
 **Output Format Rules:** 
 - You MUST output a valid JSON object with the following structure. Do not add any other text.
@@ -74,7 +90,7 @@ Return ONLY the JSON object, no other text.`
           },
           {
             role: 'user',
-            content: `Text to analyze: "${corrected_text}"${num_questions ? `\n\nGenerate exactly ${num_questions} quiz questions.` : ''}`
+            content: `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`
           }
         ],
         max_tokens: 6000,
@@ -135,12 +151,10 @@ Return ONLY the JSON object, no other text.`
   } catch (error) {
     console.error('Error in generate-study-materials function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
-      summary: "",
-      flashcards: [],
-      quiz: { questions: [] }
+      success: false,
+      error: error.message
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

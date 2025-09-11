@@ -192,6 +192,10 @@ const VideoSummarizer = () => {
 
       if (correctionError) throw correctionError;
       
+      if (!correctedData.success) {
+        throw new Error(correctedData.error || 'Failed to process transcript content');
+      }
+      
       const { corrected_text, key_concepts } = correctedData;
 
       // Step 3: Find relevant sources
@@ -201,6 +205,10 @@ const VideoSummarizer = () => {
       });
 
       if (sourcesError) throw sourcesError;
+
+      if (!sourcesData.success) {
+        throw new Error(sourcesData.error || 'Failed to find relevant sources');
+      }
 
       // Step 4: Generate study materials
       setCurrentStep('Generating study materials...');
@@ -212,6 +220,10 @@ const VideoSummarizer = () => {
       });
 
       if (materialsError) throw materialsError;
+
+      if (!materialsData.success) {
+        throw new Error(materialsData.error || 'Failed to generate study materials');
+      }
 
       // Combine all the results
       const fullStudyMaterial: StudyMaterial = {

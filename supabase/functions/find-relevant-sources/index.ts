@@ -17,13 +17,25 @@ serve(async (req) => {
     console.log('Processing relevant sources request');
     
     if (!deepseekApiKey) {
-      throw new Error('DeepSeek API key not found');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'DeepSeek API key not found'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
     
     const { key_concepts } = await req.json();
     
     if (!key_concepts || !Array.isArray(key_concepts)) {
-      throw new Error('No key concepts provided or invalid format');
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'No key concepts provided or invalid format'
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('Key concepts:', key_concepts);
@@ -99,10 +111,10 @@ Return ONLY the JSON object, no other text.`
   } catch (error) {
     console.error('Error in find-relevant-sources function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
-      sources: []
+      success: false,
+      error: error.message
     }), {
-      status: 500,
+      status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
