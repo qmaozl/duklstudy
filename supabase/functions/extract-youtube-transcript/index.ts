@@ -1,7 +1,4 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// @deno-types="npm:@types/youtube-transcript@1.0.0"
-import { YoutubeTranscript } from "npm:youtube-transcript@1.2.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,7 +13,23 @@ serve(async (req) => {
   try {
     console.log('Processing YouTube transcript extraction request');
     
-    const { youtube_url, lang = 'en' } = await req.json();
+    let requestBody;
+    try {
+      const text = await req.text();
+      console.log('Raw request body:', text);
+      requestBody = text ? JSON.parse(text) : {};
+    } catch (parseError) {
+      console.error('JSON parsing error:', parseError);
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid JSON in request body' 
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const { youtube_url, lang = 'en' } = requestBody;
     
     if (!youtube_url) {
       return new Response(JSON.stringify({ 
@@ -48,36 +61,12 @@ serve(async (req) => {
     let transcript = '';
     let title = 'YouTube Video';
 
-    // Method 1: Try youtube-transcript library with multiple language attempts
-    const languagesToTry = [lang, 'en', 'en-US', 'en-GB', 'en-CA', 'en-AU'];
+    // Method 1: Direct HTML parsing approach (more reliable)
+    console.log('Attempting direct HTML parsing method');
     let librarySuccess = false;
 
-    for (const tryLang of languagesToTry) {
-      try {
-        console.log(`Attempting transcript fetch with language: ${tryLang}`);
-        const transcriptChunks = await YoutubeTranscript.fetchTranscript(videoId, [tryLang]);
-        
-        if (transcriptChunks && transcriptChunks.length > 0) {
-          transcript = transcriptChunks
-            .map(chunk => chunk.text)
-            .join(' ')
-            .replace(/\s+/g, ' ')
-            .trim();
-          
-          console.log(`Successfully extracted transcript using language ${tryLang}, length:`, transcript.length);
-          librarySuccess = true;
-          break;
-        }
-      } catch (langError) {
-        console.log(`Failed to fetch transcript for language ${tryLang}:`, langError.message);
-      }
-    }
-
-    // Method 2: Fallback - Direct HTML parsing if library fails
-    if (!librarySuccess) {
-      console.log('Library method failed, attempting direct HTML parsing fallback');
-      
-      try {
+    // Try direct HTML parsing method
+    try {
         const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
         const response = await fetch(watchUrl, {
           headers: {
@@ -181,22 +170,22 @@ serve(async (req) => {
         }
 
         if (transcript.length > 0) {
-          console.log(`Successfully extracted transcript using fallback method, length:`, transcript.length);
+          console.log(`Successfully extracted transcript using HTML parsing method, length:`, transcript.length);
+          librarySuccess = true;
         } else {
           throw new Error('No transcript text could be extracted');
         }
 
-      } catch (fallbackError) {
-        console.error('Fallback method also failed:', fallbackError.message);
+      } catch (htmlError) {
+        console.error('HTML parsing method failed:', htmlError.message);
         return new Response(JSON.stringify({ 
           success: false,
-          error: `Unable to extract transcript: ${fallbackError.message}. This video may not have captions available.`
+          error: `Unable to extract transcript: ${htmlError.message}. This video may not have captions available or may be restricted.`
         }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-    }
 
     // Get video metadata using oEmbed API if we don't have title yet
     if (title === 'YouTube Video') {
