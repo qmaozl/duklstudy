@@ -113,7 +113,11 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
   };
 
   const timePercentage = (timeLeft / 30) * 100;
-  const timeColor = timeLeft > 10 ? 'text-green-600' : timeLeft > 5 ? 'text-yellow-600' : 'text-red-600';
+  const getTimerStyle = () => {
+    if (timeLeft > 10) return 'text-green-100 bg-green-600/80';
+    if (timeLeft > 5) return 'text-yellow-100 bg-yellow-600/80';
+    return 'text-red-100 bg-red-600/80 animate-pulse';
+  };
 
   return (
     <Card className="border-2 border-primary/20 overflow-hidden">
@@ -134,7 +138,7 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
                 </Badge>
               )}
               
-              <div className={`flex items-center gap-2 ${timeColor} bg-white/20 px-3 py-1 rounded-full`}>
+              <div className={`flex items-center gap-2 ${getTimerStyle()} px-3 py-1 rounded-full font-bold`}>
                 <Clock className="h-4 w-4" />
                 <span className="font-bold text-lg">{timeLeft}s</span>
               </div>
