@@ -30,9 +30,10 @@ interface DashboardStats {
 
 interface VideosDashboardProps {
   onSelectVideo: (material: any) => void;
+  refreshTrigger?: number; // Add a trigger to refresh data
 }
 
-const VideosDashboard: React.FC<VideosDashboardProps> = ({ onSelectVideo }) => {
+const VideosDashboard: React.FC<VideosDashboardProps> = ({ onSelectVideo, refreshTrigger }) => {
   const { user } = useAuth();
   const [materials, setMaterials] = useState<StudyMaterial[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
@@ -48,7 +49,15 @@ const VideosDashboard: React.FC<VideosDashboardProps> = ({ onSelectVideo }) => {
       fetchUserMaterials();
       fetchUserStats();
     }
-  }, [user]);
+  }, [user, refreshTrigger]); // Add refreshTrigger to dependencies
+
+  // Add a refresh function that can be called from parent
+  const refreshDashboard = () => {
+    if (user) {
+      fetchUserMaterials();
+      fetchUserStats();
+    }
+  };
 
   const fetchUserMaterials = async () => {
     try {

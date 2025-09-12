@@ -62,6 +62,7 @@ const VideoSummarizer = () => {
   const [totalPointsEarned, setTotalPointsEarned] = useState(0);
   const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
   const [currentStudyMaterialId, setCurrentStudyMaterialId] = useState<string>('');
+  const [dashboardRefreshTrigger, setDashboardRefreshTrigger] = useState<number>(0);
 
   const processVideo = async () => {
     if (!youtubeUrl.trim()) {
@@ -208,31 +209,56 @@ const VideoSummarizer = () => {
 
       // Save to database
       if (user) {
-        const { data: savedMaterial, error: saveError } = await supabase
-          .from('study_materials')
-          .insert({
-            user_id: user.id,
-            title: `Video Study: ${extractedVideoData.title}`,
-            source_type: 'youtube_video',
-            original_content: youtubeUrl,
-            corrected_text,
-            key_concepts,
-            summary: fullStudyMaterial.summary,
-            flashcards: fullStudyMaterial.flashcards,
-            quiz: fullStudyMaterial.quiz,
-            sources: fullStudyMaterial.sources,
-            points_earned: 15 // Extra points for video processing
-          })
-          .select()
-          .single();
+        try {
+          const { data: savedMaterial, error: saveError } = await supabase
+            .from('study_materials')
+            .insert({
+              user_id: user.id,
+              title: `Video Study: ${extractedVideoData.title}`,
+              source_type: 'youtube_video',
+              original_content: youtubeUrl,
+              corrected_text,
+              key_concepts,
+              summary: fullStudyMaterial.summary,
+              flashcards: fullStudyMaterial.flashcards,
+              quiz: fullStudyMaterial.quiz,
+              sources: fullStudyMaterial.sources,
+              points_earned: 15 // Extra points for video processing
+            })
+            .select()
+            .single();
 
-        if (!saveError && savedMaterial) {
-          setCurrentStudyMaterialId(savedMaterial.id);
+          if (saveError) {
+            console.error('Error saving study material:', saveError);
+            toast({
+              title: "Warning",
+              description: "Study materials generated but not saved to database. Please try again.",
+              variant: "destructive",
+            });
+          } else if (savedMaterial) {
+            setCurrentStudyMaterialId(savedMaterial.id);
+            console.log('Study material saved successfully:', savedMaterial.id);
+            // Trigger dashboard refresh
+            setDashboardRefreshTrigger(prev => prev + 1);
+            toast({
+              title: "Success!",
+              description: "Video processed and saved to your dashboard successfully!",
+            });
+          }
+        } catch (saveError) {
+          console.error('Database save failed:', saveError);
           toast({
-            title: "Success!",
-            description: "Video transcript processed and study materials generated successfully!",
+            title: "Warning",
+            description: "Study materials generated but not saved. Please check your connection.",
+            variant: "destructive",
           });
         }
+      } else {
+        toast({
+          title: "Warning",
+          description: "Please log in to save your study materials permanently.",
+          variant: "destructive",
+        });
       }
 
     } catch (error) {
@@ -313,7 +339,10 @@ const VideoSummarizer = () => {
 
           {/* Dashboard Tab */}
           <TabsContent value="dashboard" className="space-y-6">
-            <VideosDashboard onSelectVideo={handleVideoSelect} />
+            <VideosDashboard 
+              onSelectVideo={handleVideoSelect} 
+              refreshTrigger={dashboardRefreshTrigger}
+            />
           </TabsContent>
 
           {/* New Video Tab */}
