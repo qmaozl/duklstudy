@@ -88,7 +88,10 @@ Return ONLY the JSON object, no other text.`
       const parsedResult = JSON.parse(result);
       console.log('Successfully parsed sources:', parsedResult);
       
-      return new Response(JSON.stringify(parsedResult), {
+      return new Response(JSON.stringify({
+        success: true,
+        ...parsedResult
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
@@ -102,6 +105,7 @@ Return ONLY the JSON object, no other text.`
       ]).flat();
       
       return new Response(JSON.stringify({
+        success: true,
         sources: fallbackSources
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
