@@ -234,9 +234,9 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
       }
     }
 
-    // Move to next question or finish quiz
-    // Much shorter delay for timeouts, normal delay for answered questions
-    const delay = selectedAnswer === 'timeout' ? 400 : 1500;
+    // Move to next question or finish quiz  
+    // Different delays based on answer type
+    const delay = selectedAnswer === 'timeout' ? 200 : 800; // Very short for timeout, short for answers
     setTimeout(() => {
       if (currentQuestionIndex + 1 >= shuffledQuestions.length) {
         completeQuiz();

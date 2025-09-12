@@ -49,29 +49,26 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
   const [showResult, setShowResult] = useState(false);
   const [answerTime, setAnswerTime] = useState(0);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [timerRef, setTimerRef] = useState<NodeJS.Timeout | null>(null);
+  const [timerActive, setTimerActive] = useState(true);
 
   useEffect(() => {
-    // Clear any existing timer
-    if (timerRef) {
-      clearInterval(timerRef);
-    }
-    
+    // Reset state for new question
     setTimeLeft(30);
     setSelectedAnswer(null);
     setShowResult(false);
     setAnswerTime(0);
     setIsAnswered(false);
+    setTimerActive(true);
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
-        // Stop timer completely if showing results
-        if (showResult) {
+        // Only count down if timer is active and not showing results
+        if (!timerActive || showResult) {
           return prevTime;
         }
         
         if (prevTime <= 1) {
-          // Time up - auto submit no answer if not already answered
+          // Time up - auto submit if not already answered
           if (!isAnswered) {
             handleTimeUp();
           }
@@ -80,41 +77,36 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
         return prevTime - 1;
       });
       
-      // Only increment answer time if not showing results and not answered
-      if (!showResult && !isAnswered) {
+      // Only increment answer time if timer is active and not showing results
+      if (timerActive && !showResult) {
         setAnswerTime((prev) => prev + 1);
       }
     }, 1000);
 
-    setTimerRef(timer);
     return () => clearInterval(timer);
-  }, [question, showResult, isAnswered]);
+  }, [question]);
 
-  // Clear timer when showing results
+  // Stop timer when showing results
   useEffect(() => {
-    if (showResult && timerRef) {
-      clearInterval(timerRef);
-      setTimerRef(null);
+    if (showResult) {
+      setTimerActive(false);
     }
-  }, [showResult, timerRef]);
+  }, [showResult]);
 
   const handleTimeUp = () => {
     if (isAnswered || showResult) return;
     
     setIsAnswered(true);
     setSelectedAnswer('timeout');
+    setTimerActive(false); // Stop timer
+    
+    // Show results immediately for timeout
     setShowResult(true);
     
-    // Clear timer when time is up
-    if (timerRef) {
-      clearInterval(timerRef);
-      setTimerRef(null);
-    }
-    
-    // Call onAnswer for timeout
+    // Call onAnswer for timeout with short delay
     setTimeout(() => {
       onAnswer(false, 30, 'timeout');
-    }, 200);
+    }, 800); // Short delay for timeout
   };
 
   const handleAnswerSelect = (key: string) => {
@@ -123,24 +115,20 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
 
     setIsAnswered(true);
     setSelectedAnswer(key);
+    setTimerActive(false); // Stop timer when answer is selected
     
-    // Clear timer when answer is selected
-    if (timerRef) {
-      clearInterval(timerRef);
-      setTimerRef(null);
-    }
-    
-    // Show immediate feedback after a short delay
+    // Show result after short delay to show selection first
     setTimeout(() => {
       setShowResult(true);
-    }, 500);
+    }, 300);
 
     const isCorrect = key === question.correct_answer;
     const finalAnswerTime = 30 - timeLeft;
 
+    // Move to next question after showing result
     setTimeout(() => {
       onAnswer(isCorrect, finalAnswerTime, key);
-    }, 1500);
+    }, 1800); // Longer delay for user to see result
   };
 
   const getButtonStyle = (key: string) => {
