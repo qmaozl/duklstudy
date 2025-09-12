@@ -88,7 +88,11 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
 
     setIsAnswered(true);
     setSelectedAnswer(key);
-    setShowResult(true);
+    
+    // Show immediate feedback
+    setTimeout(() => {
+      setShowResult(true);
+    }, 300); // Short delay to show selection first
 
     const isCorrect = key === question.correct_answer;
     const finalAnswerTime = 30 - timeLeft;
@@ -99,16 +103,22 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
   };
 
   const getButtonStyle = (key: string) => {
+    // If answer is selected but result not shown yet, highlight the selected answer
+    if (isAnswered && !showResult && key === selectedAnswer) {
+      return `${ANSWER_COLORS[key as keyof typeof ANSWER_COLORS]} text-white font-bold ring-4 ring-white/50 animate-pulse`;
+    }
+    
     if (!showResult) {
       return `${ANSWER_COLORS[key as keyof typeof ANSWER_COLORS]} text-white font-bold transition-all duration-200 transform hover:scale-105 active:scale-95`;
     }
 
+    // Show results
     if (key === question.correct_answer) {
-      return `${ANSWER_COLORS_CORRECT[key as keyof typeof ANSWER_COLORS_CORRECT]} text-white font-bold`;
+      return `${ANSWER_COLORS_CORRECT[key as keyof typeof ANSWER_COLORS_CORRECT]} text-white font-bold ring-4 ring-green-300`;
     }
 
-    if (key === selectedAnswer) {
-      return `bg-red-600 border-red-700 text-white font-bold animate-shake`;
+    if (key === selectedAnswer && selectedAnswer !== question.correct_answer) {
+      return `bg-red-600 border-red-700 text-white font-bold ring-4 ring-red-300 animate-shake`;
     }
 
     return `${ANSWER_COLORS_WRONG[key as keyof typeof ANSWER_COLORS_WRONG]} text-white font-bold`;
@@ -180,12 +190,14 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
                     <p className="text-sm md:text-base leading-tight">{value}</p>
                   </div>
                   
-                  {showResult && (
+                  {(showResult || (isAnswered && key === selectedAnswer)) && (
                     <div className="flex-shrink-0 ml-4">
                       {key === question.correct_answer ? (
                         <CheckCircle className="h-6 w-6 text-white animate-bounce" />
-                      ) : key === selectedAnswer ? (
-                        <XCircle className="h-6 w-6 text-white" />
+                      ) : key === selectedAnswer && showResult ? (
+                        <XCircle className="h-6 w-6 text-white animate-pulse" />
+                      ) : isAnswered && key === selectedAnswer && !showResult ? (
+                        <div className="h-6 w-6 border-2 border-white rounded-full animate-spin border-t-transparent" />
                       ) : null}
                     </div>
                   )}
