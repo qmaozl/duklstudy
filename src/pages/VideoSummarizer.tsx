@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import VideosDashboard from '@/components/VideosDashboard';
 import EnhancedQuizQuestion from '@/components/EnhancedQuizQuestion';
 import WrongAnswersReview from '@/components/WrongAnswersReview';
+import { YouTubeApiHelper } from '@/components/YouTubeApiHelper';
 
 interface StudyMaterial {
   id?: string;
@@ -275,6 +276,12 @@ const VideoSummarizer = () => {
 
           {/* New Video Tab */}
           <TabsContent value="new-video" className="space-y-6">
+            {/* YouTube Search Helper */}
+            <Card>
+              <CardContent className="p-6">
+                <YouTubeApiHelper />
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Input Section */}

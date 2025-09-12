@@ -200,56 +200,102 @@ async function getTranscriptViaAPI(videoId: string) {
   
   console.log('Using YouTube Data API v3 for video:', videoId);
   
-  // Get video details
-  const videoResponse = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${youtubeApiKey}`
-  );
-  
-  if (!videoResponse.ok) {
-    throw new Error(`YouTube API error: ${videoResponse.status}`);
+  try {
+    // Get video details with more comprehensive data
+    const videoResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoId}&key=${youtubeApiKey}`
+    );
+    
+    if (!videoResponse.ok) {
+      const errorData = await videoResponse.json().catch(() => ({}));
+      throw new Error(`YouTube API error: ${videoResponse.status}. ${errorData.error?.message || ''}`);
+    }
+    
+    const videoData = await videoResponse.json();
+    
+    if (!videoData.items || videoData.items.length === 0) {
+      throw new Error('Video not found or is private/unavailable');
+    }
+    
+    const video = videoData.items[0];
+    
+    // Check if video is available and not restricted
+    if (video.snippet.liveBroadcastContent === 'live') {
+      throw new Error('Cannot extract transcript from live streams');
+    }
+    
+    if (video.contentDetails?.regionRestriction?.blocked?.includes('US')) {
+      throw new Error('Video is region-blocked and may not have accessible captions');
+    }
+    
+    const metadata = {
+      title: video.snippet.title,
+      duration: convertDuration(video.contentDetails.duration),
+      author: video.snippet.channelTitle,
+      views: video.statistics?.viewCount || null,
+      publishedAt: video.snippet.publishedAt,
+      description: video.snippet.description?.substring(0, 500) || '',
+      tags: video.snippet.tags || []
+    };
+    
+    console.log(`Video found: "${metadata.title}" by ${metadata.author}`);
+    
+    // Get captions list
+    const captionsResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${youtubeApiKey}`
+    );
+    
+    if (!captionsResponse.ok) {
+      const errorData = await captionsResponse.json().catch(() => ({}));
+      console.log(`Captions API error: ${captionsResponse.status}. ${errorData.error?.message || ''}`);
+      throw new Error(`No captions available for this video. The video may not have subtitles or they may be disabled.`);
+    }
+    
+    const captionsData = await captionsResponse.json();
+    
+    if (!captionsData.items || captionsData.items.length === 0) {
+      throw new Error('This video does not have any captions available. Please try a video with subtitles.');
+    }
+    
+    // Find the best caption track
+    let selectedCaption = captionsData.items.find((item: any) => 
+      item.snippet.language === 'en' && item.snippet.trackKind !== 'asr'
+    ) || captionsData.items.find((item: any) => 
+      item.snippet.language.startsWith('en')
+    ) || captionsData.items[0];
+    
+    const availableLanguages = captionsData.items.map((item: any) => 
+      `${item.snippet.name} (${item.snippet.language})`
+    ).join(', ');
+    
+    console.log(`Found ${captionsData.items.length} caption tracks: ${availableLanguages}`);
+    console.log(`Selected: ${selectedCaption.snippet.name} (${selectedCaption.snippet.language})`);
+    
+    // Return video metadata and caption info (actual transcript extraction still requires direct method)
+    throw new Error(
+      `Video found with captions available: ${availableLanguages}. ` +
+      `However, YouTube Data API requires OAuth2 authentication to download caption content. ` +
+      `The video "${metadata.title}" appears to have captions, but they cannot be accessed programmatically without user authorization.`
+    );
+    
+  } catch (error) {
+    if (error.message.includes('quotaExceeded')) {
+      throw new Error('YouTube API quota exceeded. Please try again later.');
+    }
+    throw error;
   }
+}
+
+// Helper function to convert ISO 8601 duration to seconds
+function convertDuration(duration: string): number {
+  const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
   
-  const videoData = await videoResponse.json();
+  const hours = parseInt(match[1] || '0');
+  const minutes = parseInt(match[2] || '0');
+  const seconds = parseInt(match[3] || '0');
   
-  if (!videoData.items || videoData.items.length === 0) {
-    throw new Error('Video not found via YouTube API');
-  }
-  
-  const video = videoData.items[0];
-  const metadata = {
-    title: video.snippet.title,
-    duration: video.contentDetails.duration,
-    author: video.snippet.channelTitle,
-    views: null
-  };
-  
-  // Get captions list
-  const captionsResponse = await fetch(
-    `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${youtubeApiKey}`
-  );
-  
-  if (!captionsResponse.ok) {
-    throw new Error(`YouTube Captions API error: ${captionsResponse.status}`);
-  }
-  
-  const captionsData = await captionsResponse.json();
-  
-  if (!captionsData.items || captionsData.items.length === 0) {
-    throw new Error('No captions available via YouTube API');
-  }
-  
-  // Find the best caption track
-  let selectedCaption = captionsData.items.find((item: any) => 
-    item.snippet.language === 'en' && item.snippet.trackKind !== 'asr'
-  ) || captionsData.items.find((item: any) => 
-    item.snippet.language.startsWith('en')
-  ) || captionsData.items[0];
-  
-  console.log(`Selected caption via API: ${selectedCaption.snippet.language}`);
-  
-  // Note: Getting actual caption content via API requires OAuth2 authentication
-  // This is a limitation of the YouTube Data API v3
-  throw new Error('YouTube Data API requires OAuth2 for caption content access');
+  return hours * 3600 + minutes * 60 + seconds;
 }
 
 function compareTracks(track1: any, track2: any) {
