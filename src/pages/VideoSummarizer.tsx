@@ -63,6 +63,7 @@ const VideoSummarizer = () => {
   const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
   const [currentStudyMaterialId, setCurrentStudyMaterialId] = useState<string>('');
   const [dashboardRefreshTrigger, setDashboardRefreshTrigger] = useState<number>(0);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
 
   const processVideo = async () => {
     if (!youtubeUrl.trim()) {
@@ -286,6 +287,48 @@ const VideoSummarizer = () => {
 
   const handleWrongAnswer = (questionData: any, selectedAnswer: string) => {
     setWrongAnswers(prev => [...prev, { questionData, selectedAnswer }]);
+  };
+
+  const generateCustomQuestions = async () => {
+    if (!studyMaterial) return;
+    
+    setIsGeneratingQuestions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-custom-questions', {
+        body: {
+          content: studyMaterial.summary + " " + studyMaterial.key_concepts.join(" "),
+          topic: studyMaterial.key_concepts[0] || "General Knowledge",
+          numQuestions: 15 // Generate 15 additional questions
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.questions && data.questions.length > 0) {
+        // Add the new questions to existing ones
+        setStudyMaterial(prev => prev ? {
+          ...prev,
+          quiz: {
+            ...prev.quiz,
+            questions: [...prev.quiz.questions, ...data.questions]
+          }
+        } : null);
+
+        toast({
+          title: "Success!",
+          description: `Generated ${data.questions.length} additional custom questions based on the topic.`,
+        });
+      }
+    } catch (error) {
+      console.error('Error generating custom questions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate custom questions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingQuestions(false);
+    }
   };
 
   return (
@@ -554,6 +597,28 @@ const VideoSummarizer = () => {
                     </TabsContent>
 
                       <TabsContent value="quiz" className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">
+                              {studyMaterial.quiz.questions.length} Questions Available
+                            </Badge>
+                          </div>
+                          <Button
+                            onClick={generateCustomQuestions}
+                            disabled={isGeneratingQuestions}
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                          >
+                            {isGeneratingQuestions ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Sparkles className="h-4 w-4" />
+                            )}
+                            {isGeneratingQuestions ? 'Generating...' : 'Generate More Questions'}
+                          </Button>
+                        </div>
+                        
                         <KahootStyleQuiz
                           questions={studyMaterial.quiz.questions}
                           studyMaterialId={currentStudyMaterialId}
