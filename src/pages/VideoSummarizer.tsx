@@ -15,6 +15,7 @@ import VideosDashboard from '@/components/VideosDashboard';
 import EnhancedQuizQuestion from '@/components/EnhancedQuizQuestion';
 import WrongAnswersReview from '@/components/WrongAnswersReview';
 import { YouTubeApiHelper } from '@/components/YouTubeApiHelper';
+import FlashCard from '@/components/FlashCard';
 
 interface StudyMaterial {
   id?: string;
@@ -513,22 +514,14 @@ const VideoSummarizer = () => {
 
                     <TabsContent value="flashcards" className="space-y-4">
                       <ScrollArea className="h-[400px]">
-                        <div className="space-y-3">
+                        <div className="grid gap-4 md:grid-cols-2">
                           {studyMaterial.flashcards.map((card, index) => (
-                            <Card key={index} className="border-l-4 border-l-primary">
-                              <CardContent className="p-4">
-                                <div className="space-y-2">
-                                  <div>
-                                    <span className="text-xs font-medium text-muted-foreground">QUESTION</span>
-                                    <p className="text-sm font-medium">{card.question}</p>
-                                  </div>
-                                  <div>
-                                    <span className="text-xs font-medium text-muted-foreground">ANSWER</span>
-                                    <p className="text-sm">{card.answer}</p>
-                                  </div>
-                                </div>
-                              </CardContent>
-                            </Card>
+                            <FlashCard
+                              key={index}
+                              question={card.question}
+                              answer={card.answer}
+                              cardNumber={index + 1}
+                            />
                           ))}
                         </div>
                       </ScrollArea>
