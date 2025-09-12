@@ -88,16 +88,57 @@ const VideoSummarizer = () => {
     setVideoData(null);
     
     try {
-      // Step 1: Extract YouTube transcript
+      // Step 1: Extract YouTube transcript with fallback methods
       setCurrentStep('Extracting video transcript...');
-      const { data: transcriptData, error: transcriptError } = await supabase.functions.invoke('extract-youtube-transcript', {
-        body: { youtube_url: youtubeUrl }
-      });
-
-      if (transcriptError) throw transcriptError;
       
-      if (!transcriptData.success) {
-        throw new Error(transcriptData.error || 'Failed to extract transcript');
+      let transcriptData = null;
+      let transcriptError = null;
+
+      // Try primary method first
+      try {
+        const { data, error } = await supabase.functions.invoke('extract-youtube-transcript', {
+          body: { youtube_url: youtubeUrl }
+        });
+
+        if (error) throw error;
+        if (data?.success) {
+          transcriptData = data;
+        } else {
+          throw new Error(data?.error || 'Primary method failed');
+        }
+      } catch (primaryError) {
+        console.log('Primary transcript method failed:', primaryError);
+        transcriptError = primaryError;
+        
+        // Try alternative method
+        try {
+          setCurrentStep('Trying alternative transcript extraction...');
+          console.log('Trying alternative transcript extraction method...');
+          const { data: altData, error: altError } = await supabase.functions.invoke('youtube-transcript-alternative', {
+            body: { youtube_url: youtubeUrl }
+          });
+
+          if (altError) throw altError;
+          if (altData?.success) {
+            transcriptData = altData;
+            toast({
+              title: "Using Alternative Method",
+              description: altData.isDescriptionFallback 
+                ? "Transcript unavailable, using video description instead"
+                : "Successfully extracted using alternative method",
+              duration: 3000,
+            });
+          } else {
+            throw new Error(altData?.error || 'Alternative method failed');
+          }
+        } catch (altError) {
+          console.log('Alternative method also failed:', altError);
+          throw transcriptError; // Throw the original error
+        }
+      }
+
+      if (!transcriptData?.success) {
+        throw new Error('No transcript data received from any method');
       }
 
       const extractedVideoData: VideoData = {
@@ -110,8 +151,8 @@ const VideoSummarizer = () => {
       setVideoData(extractedVideoData);
 
       // Check if transcript is meaningful (not just error message)
-      if (extractedVideoData.transcript.includes('does not have an available transcript')) {
-        throw new Error('No transcript available for this video. Please try a different video that has closed captions enabled.');
+      if (extractedVideoData.transcript.length < 50) {
+        throw new Error('Transcript too short or invalid. Please try a different video that has closed captions enabled.');
       }
 
       // Step 2: Correct and enhance the transcript

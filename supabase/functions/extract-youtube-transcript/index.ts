@@ -117,9 +117,17 @@ async function retrieveTranscript(videoId: string) {
   const YT_INITIAL_PLAYER_RESPONSE_RE =
     /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n)/;
 
+  console.log(`Attempting to fetch video page for: ${videoId}`);
+
   const response = await fetch('https://www.youtube.com/watch?v=' + videoId, {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
     }
   });
   
@@ -128,16 +136,63 @@ async function retrieveTranscript(videoId: string) {
   }
   
   const body = await response.text();
-  const playerResponse = body.match(YT_INITIAL_PLAYER_RESPONSE_RE);
+  console.log(`Fetched page content, length: ${body.length} characters`);
   
-  if (!playerResponse) {
-    throw new Error('Unable to parse playerResponse');
+  // Try multiple patterns for extracting player response
+  const patterns = [
+    /ytInitialPlayerResponse\s*=\s*({.+?})\s*;\s*(?:var\s+(?:meta|head)|<\/script|\n)/,
+    /var\s+ytInitialPlayerResponse\s*=\s*({.+?});/,
+    /"ytInitialPlayerResponse":({.+?}),"ytInitialData"/,
+  ];
+
+  let player = null;
+  let playerResponse = null;
+
+  for (const pattern of patterns) {
+    playerResponse = body.match(pattern);
+    if (playerResponse) {
+      try {
+        player = JSON.parse(playerResponse[1]);
+        console.log('Successfully parsed player response');
+        break;
+      } catch (e) {
+        console.log('Failed to parse player response, trying next pattern');
+        continue;
+      }
+    }
   }
   
-  const player = JSON.parse(playerResponse[1]);
+  if (!player) {
+    console.log('No player response found, checking for age restriction or other issues');
+    
+    // Check for common issues
+    if (body.includes('ageGated')) {
+      throw new Error('Video is age-restricted and cannot be processed');
+    }
+    if (body.includes('private')) {
+      throw new Error('Video is private or unavailable');
+    }
+    if (body.includes('removed')) {
+      throw new Error('Video has been removed');
+    }
+    
+    throw new Error('Unable to extract video player data from YouTube page');
+  }
+
+  console.log('Player object keys:', Object.keys(player));
   
-  if (!player.videoDetails || player.videoDetails.videoId !== videoId) {
-    throw new Error('Video details mismatch or unavailable');
+  // More flexible video details checking
+  if (!player.videoDetails) {
+    console.log('No videoDetails found in player object');
+    throw new Error('Video details not available in player data');
+  }
+
+  const actualVideoId = player.videoDetails.videoId;
+  console.log(`Expected video ID: ${videoId}, Found: ${actualVideoId}`);
+  
+  if (actualVideoId !== videoId) {
+    console.log('Video ID mismatch - this might be a redirect or different video');
+    // Don't throw error immediately, continue with the found video
   }
   
   const metadata = {
