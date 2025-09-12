@@ -92,7 +92,10 @@ Return ONLY the JSON object, no other text.`
       const parsedResult = JSON.parse(result);
       console.log('Successfully parsed correction result');
       
-      return new Response(JSON.stringify(parsedResult), {
+      return new Response(JSON.stringify({
+        success: true,
+        ...parsedResult
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
@@ -101,6 +104,7 @@ Return ONLY the JSON object, no other text.`
       
       // Fallback response
       return new Response(JSON.stringify({
+        success: true,
         corrected_text: raw_text, // Return original text if parsing fails
         key_concepts: ["General Topic", "Study Material", "Learning Content", "Educational Text"]
       }), {
