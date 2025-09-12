@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Youtube, Sparkles, Loader2, FileText, Download, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Youtube, Sparkles, Loader2, Trophy, BookX, Plus, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import VideosDashboard from '@/components/VideosDashboard';
+import EnhancedQuizQuestion from '@/components/EnhancedQuizQuestion';
+import WrongAnswersReview from '@/components/WrongAnswersReview';
 
 interface StudyMaterial {
+  id?: string;
   summary: string;
   flashcards: Array<{ question: string; answer: string }>;
   quiz: {
@@ -42,85 +46,6 @@ interface QuizQuestionProps {
   questionNumber: number;
 }
 
-const QuizQuestion: React.FC<QuizQuestionProps> = ({ question, questionNumber }) => {
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showResult, setShowResult] = useState(false);
-
-  const handleAnswerSelect = (key: string) => {
-    setSelectedAnswer(key);
-    setShowResult(true);
-  };
-
-  const resetQuestion = () => {
-    setSelectedAnswer(null);
-    setShowResult(false);
-  };
-
-  return (
-    <Card className="border-l-4 border-l-secondary">
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div className="flex justify-between items-start">
-            <p className="font-medium text-sm flex-1">
-              {questionNumber}. {question.question}
-            </p>
-            {showResult && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={resetQuestion}
-                className="ml-2 text-xs"
-              >
-                Try Again
-              </Button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 gap-2">
-            {Object.entries(question.options).map(([key, value]) => {
-              let buttonClass = 'p-2 rounded text-xs text-left border transition-colors ';
-              
-              if (!showResult) {
-                buttonClass += 'bg-gray-50 border-gray-200 hover:bg-gray-100 cursor-pointer';
-              } else {
-                if (key === question.correct_answer) {
-                  buttonClass += 'bg-green-100 border-green-300 text-green-800';
-                } else if (key === selectedAnswer && key !== question.correct_answer) {
-                  buttonClass += 'bg-red-100 border-red-300 text-red-800';
-                } else {
-                  buttonClass += 'bg-gray-50 border-gray-200';
-                }
-              }
-
-              return (
-                <div 
-                  key={key} 
-                  className={buttonClass}
-                  onClick={() => !showResult && handleAnswerSelect(key)}
-                >
-                  <span className="font-medium">{key.toUpperCase()}.</span> {value}
-                  {showResult && key === question.correct_answer && (
-                    <span className="ml-2 text-green-600">✓ Correct</span>
-                  )}
-                  {showResult && key === selectedAnswer && key !== question.correct_answer && (
-                    <span className="ml-2 text-red-600">✗ Your Answer</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          {showResult && (
-            <div className="text-xs text-muted-foreground">
-              {selectedAnswer === question.correct_answer 
-                ? "Correct! Well done." 
-                : `Incorrect. The correct answer is ${question.correct_answer.toUpperCase()}.`
-              }
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
 
 const VideoSummarizer = () => {
   const navigate = useNavigate();
@@ -131,6 +56,10 @@ const VideoSummarizer = () => {
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [numQuestions, setNumQuestions] = useState<string>('5');
+  const [activeTab, setActiveTab] = useState<string>('new-video');
+  const [totalPointsEarned, setTotalPointsEarned] = useState(0);
+  const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
+  const [currentStudyMaterialId, setCurrentStudyMaterialId] = useState<string>('');
 
   const processVideo = async () => {
     if (!youtubeUrl.trim()) {
@@ -236,7 +165,7 @@ const VideoSummarizer = () => {
 
       // Save to database
       if (user) {
-        const { error: saveError } = await supabase
+        const { data: savedMaterial, error: saveError } = await supabase
           .from('study_materials')
           .insert({
             user_id: user.id,
@@ -250,9 +179,12 @@ const VideoSummarizer = () => {
             quiz: fullStudyMaterial.quiz,
             sources: fullStudyMaterial.sources,
             points_earned: 15 // Extra points for video processing
-          });
+          })
+          .select()
+          .single();
 
-        if (!saveError) {
+        if (!saveError && savedMaterial) {
+          setCurrentStudyMaterialId(savedMaterial.id);
           toast({
             title: "Success!",
             description: "Video transcript processed and study materials generated successfully!",
@@ -273,35 +205,87 @@ const VideoSummarizer = () => {
     }
   };
 
+  const handleVideoSelect = (material: StudyMaterial) => {
+    setStudyMaterial(material);
+    setCurrentStudyMaterialId(material.id);
+    setActiveTab('study');
+  };
+
+  const handlePointsEarned = (points: number) => {
+    setTotalPointsEarned(prev => prev + points);
+  };
+
+  const handleWrongAnswer = (questionData: any, selectedAnswer: string) => {
+    setWrongAnswers(prev => [...prev, { questionData, selectedAnswer }]);
+  };
+
   return (
     <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div className="flex items-center gap-2">
-            <Youtube className="h-6 w-6 text-red-500" />
-            <h1 className="text-2xl font-bold">YouTube Video Summarizer</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div className="flex items-center gap-2">
+              <Youtube className="h-6 w-6 text-red-500" />
+              <h1 className="text-2xl font-bold">AI Video Study Hub</h1>
+            </div>
           </div>
+          
+          {totalPointsEarned > 0 && (
+            <Badge className="bg-yellow-500 text-white">
+              <Trophy className="h-4 w-4 mr-1" />
+              Session Points: +{totalPointsEarned}
+            </Badge>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Input Section */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Youtube className="h-5 w-5 text-red-500" />
-                  Enter YouTube URL
-                </CardTitle>
-              </CardHeader>
+        {/* Main Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <Youtube className="h-4 w-4" />
+              My Videos
+            </TabsTrigger>
+            <TabsTrigger value="new-video" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              New Video
+            </TabsTrigger>
+            <TabsTrigger value="study" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Study Materials
+            </TabsTrigger>
+            <TabsTrigger value="review" className="flex items-center gap-2">
+              <BookX className="h-4 w-4" />
+              Review Mistakes
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Dashboard Tab */}
+          <TabsContent value="dashboard" className="space-y-6">
+            <VideosDashboard onSelectVideo={handleVideoSelect} />
+          </TabsContent>
+
+          {/* New Video Tab */}
+          <TabsContent value="new-video" className="space-y-6">
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Input Section */}
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Youtube className="h-5 w-5 text-red-500" />
+                      Process New YouTube Video
+                    </CardTitle>
+                  </CardHeader>
               <CardContent className="space-y-4">
                 <Input
                   type="url"
@@ -354,7 +338,10 @@ const VideoSummarizer = () => {
                     Paste any YouTube video URL
                   </span>
                   <Button 
-                    onClick={processVideo}
+                    onClick={() => {
+                      processVideo();
+                      setActiveTab('study');
+                    }}
                     disabled={isProcessing || !youtubeUrl.trim()}
                     className="gap-2"
                   >
@@ -391,24 +378,67 @@ const VideoSummarizer = () => {
             </Card>
           </div>
 
-          {/* Results Section */}
-          <div className="space-y-4">
+            {/* Processing Preview */}
+            <div className="space-y-4">
+              {studyMaterial ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      New Study Materials Generated
+                      <Badge variant="secondary">Ready to Study</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-6">
+                      <p className="text-lg font-medium mb-2">🎉 Materials Ready!</p>
+                      <p className="text-muted-foreground mb-4">
+                        Your video has been processed and study materials are ready.
+                      </p>
+                      <Button 
+                        onClick={() => setActiveTab('study')}
+                        className="gap-2"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Start Studying
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="p-8">
+                    <div className="text-center text-muted-foreground">
+                      <Youtube className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
+                      <p>Enter a YouTube URL above to generate AI-powered study materials.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+            </div>
+          </TabsContent>
+
+          {/* Study Materials Tab */}
+          <TabsContent value="study" className="space-y-6">
             {studyMaterial ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Generated Study Materials
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Tabs defaultValue="summary" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="summary">Summary</TabsTrigger>
-                      <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-                      <TabsTrigger value="quiz">Quiz</TabsTrigger>
-                      <TabsTrigger value="sources">Sources</TabsTrigger>
-                    </TabsList>
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      Study Materials
+                      <Badge variant="secondary">Interactive Learning</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Tabs defaultValue="summary" className="w-full">
+                      <TabsList className="grid w-full grid-cols-4">
+                        <TabsTrigger value="summary">Summary</TabsTrigger>
+                        <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                        <TabsTrigger value="quiz">Quiz</TabsTrigger>
+                        <TabsTrigger value="sources">Sources</TabsTrigger>
+                      </TabsList>
 
                     <TabsContent value="summary" className="space-y-4">
                       <ScrollArea className="h-[400px]">
@@ -456,19 +486,32 @@ const VideoSummarizer = () => {
                       </ScrollArea>
                     </TabsContent>
 
-                    <TabsContent value="quiz" className="space-y-4">
-                      <ScrollArea className="h-[400px]">
-                        <div className="space-y-4">
-                          {studyMaterial.quiz.questions.map((question, index) => (
-                            <QuizQuestion 
-                              key={index} 
-                              question={question} 
-                              questionNumber={index + 1}
-                            />
-                          ))}
+                      <TabsContent value="quiz" className="space-y-4">
+                        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-lg border">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Trophy className="h-5 w-5 text-yellow-500" />
+                            <h4 className="font-semibold">Interactive Quiz</h4>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Earn 10 points for each correct answer. Wrong answers will be saved for review!
+                          </p>
                         </div>
-                      </ScrollArea>
-                    </TabsContent>
+                        
+                        <ScrollArea className="h-[400px]">
+                          <div className="space-y-4">
+                            {studyMaterial.quiz.questions.map((question, index) => (
+                              <EnhancedQuizQuestion 
+                                key={`${currentStudyMaterialId}-${index}`}
+                                question={question} 
+                                questionNumber={index + 1}
+                                studyMaterialId={currentStudyMaterialId}
+                                onPointsEarned={handlePointsEarned}
+                                onWrongAnswer={handleWrongAnswer}
+                              />
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      </TabsContent>
 
                     <TabsContent value="sources" className="space-y-4">
                       <ScrollArea className="h-[400px]">
@@ -491,18 +534,38 @@ const VideoSummarizer = () => {
                   </Tabs>
                 </CardContent>
               </Card>
-            ) : (
+            </div>
+          ) : (
               <Card>
                 <CardContent className="p-8">
                   <div className="text-center text-muted-foreground">
-                    <Youtube className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
-                    <p>Generated study materials will appear here after processing your YouTube video.</p>
+                    <Sparkles className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <h3 className="text-lg font-medium mb-2">No Study Material Selected</h3>
+                    <p>Select a video from your dashboard or process a new one to start studying.</p>
+                    <div className="flex gap-2 justify-center mt-4">
+                      <Button 
+                        variant="outline"
+                        onClick={() => setActiveTab('dashboard')}
+                      >
+                        View My Videos
+                      </Button>
+                      <Button 
+                        onClick={() => setActiveTab('new-video')}
+                      >
+                        Process New Video
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             )}
-          </div>
-        </div>
+          </TabsContent>
+
+          {/* Review Mistakes Tab */}
+          <TabsContent value="review" className="space-y-6">
+            <WrongAnswersReview onPointsEarned={handlePointsEarned} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

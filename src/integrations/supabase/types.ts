@@ -68,6 +68,42 @@ export type Database = {
         }
         Relationships: []
       }
+      quiz_results: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          points_earned: number | null
+          question_index: number
+          selected_answer: string
+          study_material_id: string
+          user_id: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          points_earned?: number | null
+          question_index: number
+          selected_answer: string
+          study_material_id: string
+          user_id: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          points_earned?: number | null
+          question_index?: number
+          selected_answer?: string
+          study_material_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_materials: {
         Row: {
           corrected_text: string | null
@@ -176,6 +212,45 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      wrong_answers: {
+        Row: {
+          correct_answer: string
+          created_at: string
+          id: string
+          mastered: boolean | null
+          question_data: Json
+          retry_count: number | null
+          selected_answer: string
+          study_material_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          correct_answer: string
+          created_at?: string
+          id?: string
+          mastered?: boolean | null
+          question_data: Json
+          retry_count?: number | null
+          selected_answer: string
+          study_material_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          correct_answer?: string
+          created_at?: string
+          id?: string
+          mastered?: boolean | null
+          question_data?: Json
+          retry_count?: number | null
+          selected_answer?: string
+          study_material_id?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
