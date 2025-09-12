@@ -28,6 +28,7 @@ const WrongAnswersReview: React.FC<WrongAnswersReviewProps> = ({ onPointsEarned 
   const [wrongAnswers, setWrongAnswers] = useState<WrongAnswer[]>([]);
   const [loading, setLoading] = useState(true);
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [retryAttempts, setRetryAttempts] = useState<{ [key: string]: { attempted: boolean; selectedAnswer: string } }>({});
 
   useEffect(() => {
     if (user) {
@@ -59,83 +60,99 @@ const WrongAnswersReview: React.FC<WrongAnswersReviewProps> = ({ onPointsEarned 
   };
 
   const handleRetryAnswer = async (wrongAnswer: WrongAnswer, selectedAnswer: string) => {
+    // First, update UI to show the attempt
+    setRetryAttempts(prev => ({
+      ...prev,
+      [wrongAnswer.id]: { attempted: true, selectedAnswer }
+    }));
+
     setRetryingId(wrongAnswer.id);
     
     const isCorrect = selectedAnswer === wrongAnswer.correct_answer;
     const points = isCorrect ? 15 : 0; // Extra points for correcting mistakes
     
-    try {
-      if (isCorrect) {
-        // Mark as mastered
-        const { error: updateError } = await supabase
-          .from('wrong_answers')
-          .update({ 
-            mastered: true, 
-            retry_count: wrongAnswer.retry_count + 1 
-          })
-          .eq('id', wrongAnswer.id);
+    // Short delay to show the result
+    setTimeout(async () => {
+      try {
+        if (isCorrect) {
+          // Mark as mastered
+          const { error: updateError } = await supabase
+            .from('wrong_answers')
+            .update({ 
+              mastered: true, 
+              retry_count: wrongAnswer.retry_count + 1 
+            })
+            .eq('id', wrongAnswer.id);
 
-        if (updateError) throw updateError;
+          if (updateError) throw updateError;
 
-        // Award points
-        if (user) {
-          const { data: currentProfile } = await supabase
-            .from('profiles')
-            .select('points')
-            .eq('user_id', user.id)
-            .single();
-
-          if (currentProfile) {
-            const { error: pointsError } = await supabase
+          // Award points
+          if (user) {
+            const { data: currentProfile } = await supabase
               .from('profiles')
-              .update({ points: (currentProfile.points || 0) + points })
-              .eq('user_id', user.id);
+              .select('points')
+              .eq('user_id', user.id)
+              .single();
 
-            if (!pointsError) {
-              onPointsEarned(points);
+            if (currentProfile) {
+              const { error: pointsError } = await supabase
+                .from('profiles')
+                .update({ points: (currentProfile.points || 0) + points })
+                .eq('user_id', user.id);
+
+              if (!pointsError) {
+                onPointsEarned(points);
+              }
             }
           }
+
+          toast({
+            title: "Excellent! 🎉",
+            description: `Correct! You earned ${points} points for mastering this question.`,
+          });
+
+          // Remove from list after a delay
+          setTimeout(() => {
+            setWrongAnswers(prev => prev.filter(wa => wa.id !== wrongAnswer.id));
+            setRetryAttempts(prev => {
+              const newAttempts = { ...prev };
+              delete newAttempts[wrongAnswer.id];
+              return newAttempts;
+            });
+          }, 2000);
+        } else {
+          // Increment retry count
+          const { error: updateError } = await supabase
+            .from('wrong_answers')
+            .update({ retry_count: wrongAnswer.retry_count + 1 })
+            .eq('id', wrongAnswer.id);
+
+          if (updateError) throw updateError;
+
+          toast({
+            title: "Not quite right",
+            description: "The correct answer is now revealed. Study it and try again later!",
+            variant: "destructive",
+          });
+
+          // Update retry count in local state
+          setWrongAnswers(prev => prev.map(wa => 
+            wa.id === wrongAnswer.id 
+              ? { ...wa, retry_count: wa.retry_count + 1 }
+              : wa
+          ));
         }
-
+      } catch (error) {
+        console.error('Error processing retry:', error);
         toast({
-          title: "Excellent! 🎉",
-          description: `Correct! You earned ${points} points for mastering this question.`,
-        });
-
-        // Remove from list
-        setWrongAnswers(prev => prev.filter(wa => wa.id !== wrongAnswer.id));
-      } else {
-        // Increment retry count
-        const { error: updateError } = await supabase
-          .from('wrong_answers')
-          .update({ retry_count: wrongAnswer.retry_count + 1 })
-          .eq('id', wrongAnswer.id);
-
-        if (updateError) throw updateError;
-
-        toast({
-          title: "Not quite right",
-          description: "Keep trying! You'll get it next time.",
+          title: "Error",
+          description: "Something went wrong. Please try again.",
           variant: "destructive",
         });
-
-        // Update retry count in local state
-        setWrongAnswers(prev => prev.map(wa => 
-          wa.id === wrongAnswer.id 
-            ? { ...wa, retry_count: wa.retry_count + 1 }
-            : wa
-        ));
+      } finally {
+        setRetryingId(null);
       }
-    } catch (error) {
-      console.error('Error processing retry:', error);
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setRetryingId(null);
-    }
+    }, 300);
   };
 
   if (loading) {
@@ -184,31 +201,56 @@ const WrongAnswersReview: React.FC<WrongAnswersReviewProps> = ({ onPointsEarned 
 
                       <div className="grid grid-cols-1 gap-2">
                         {Object.entries(wrongAnswer.question_data.options).map(([key, value]) => {
+                          const retryAttempt = retryAttempts[wrongAnswer.id];
+                          const hasAttempted = retryAttempt?.attempted;
+                          const isSelected = retryAttempt?.selectedAnswer === key;
+                          const isCorrectAnswer = key === wrongAnswer.correct_answer;
+                          const isOriginalWrongAnswer = key === wrongAnswer.selected_answer;
+
                           let buttonClass = 'p-2 rounded text-sm text-left border transition-colors cursor-pointer ';
                           
-                          if (key === wrongAnswer.selected_answer) {
-                            buttonClass += 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200';
-                          } else if (key === wrongAnswer.correct_answer) {
-                            buttonClass += 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200';
+                          // Show results only AFTER retry attempt
+                          if (hasAttempted) {
+                            if (isSelected && isCorrectAnswer) {
+                              buttonClass += 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200';
+                            } else if (isSelected && !isCorrectAnswer) {
+                              buttonClass += 'bg-red-50 dark:bg-red-950 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200';
+                            } else if (isCorrectAnswer) {
+                              buttonClass += 'bg-green-50 dark:bg-green-950 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200';
+                            } else {
+                              buttonClass += 'bg-card border-border opacity-60';
+                            }
                           } else {
-                            buttonClass += 'bg-card border-border hover:bg-accent';
+                            // Before retry - only highlight original wrong answer as hint
+                            if (isOriginalWrongAnswer) {
+                              buttonClass += 'bg-orange-50 dark:bg-orange-950 border-orange-300 dark:border-orange-700 text-orange-800 dark:text-orange-200';
+                            } else {
+                              buttonClass += 'bg-card border-border hover:bg-accent';
+                            }
                           }
 
                           return (
                             <div 
                               key={key} 
                               className={buttonClass}
-                              onClick={() => handleRetryAnswer(wrongAnswer, key)}
+                              onClick={() => !hasAttempted ? handleRetryAnswer(wrongAnswer, key) : undefined}
                             >
                               <div className="flex items-center justify-between">
                                 <div>
                                   <span className="font-semibold">{key.toUpperCase()}.</span> {String(value)}
                                 </div>
-                                {key === wrongAnswer.selected_answer && (
-                                  <span className="text-red-600 text-xs">Your Answer</span>
+                                {/* Only show labels AFTER retry attempt */}
+                                {hasAttempted && isSelected && isCorrectAnswer && (
+                                  <span className="text-green-600 text-xs font-bold">✓ Correct!</span>
                                 )}
-                                {key === wrongAnswer.correct_answer && (
-                                  <span className="text-green-600 text-xs">Correct Answer</span>
+                                {hasAttempted && isSelected && !isCorrectAnswer && (
+                                  <span className="text-red-600 text-xs">✗ Wrong</span>
+                                )}
+                                {hasAttempted && !isSelected && isCorrectAnswer && (
+                                  <span className="text-green-600 text-xs">✓ Correct Answer</span>
+                                )}
+                                {!hasAttempted && isOriginalWrongAnswer && (
+                                  <span className="text-orange-600 text-xs">Previous Answer</span>
                                 )}
                               </div>
                             </div>
@@ -217,9 +259,17 @@ const WrongAnswersReview: React.FC<WrongAnswersReviewProps> = ({ onPointsEarned 
                       </div>
 
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>
-                          Click the correct answer to master this question
-                        </span>
+                        {retryAttempts[wrongAnswer.id]?.attempted ? (
+                          <span className="text-blue-600">
+                            {retryAttempts[wrongAnswer.id]?.selectedAnswer === wrongAnswer.correct_answer ? 
+                              "Mastered! This question will be removed shortly." :
+                              "Correct answer revealed. Study and try again later!"}
+                          </span>
+                        ) : (
+                          <span>
+                            Choose the correct answer (your previous wrong answer is highlighted)
+                          </span>
+                        )}
                         <div className="flex items-center gap-1 text-yellow-600">
                           <Trophy className="h-3 w-3" />
                           <span>+15 points</span>
