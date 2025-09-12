@@ -39,14 +39,60 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
   onWrongAnswer,
 }) => {
   const { user } = useAuth();
+  const [shuffledQuestions, setShuffledQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
   const [isQuizStarted, setIsQuizStarted] = useState(false);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
   const [showResults, setShowResults] = useState(false);
 
+  // Shuffle array function
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Shuffle answer choices for a question
+  const shuffleAnswerChoices = (question: QuizQuestion): QuizQuestion => {
+    const choices = [
+      { key: 'a', value: question.options.a },
+      { key: 'b', value: question.options.b },
+      { key: 'c', value: question.options.c },
+      { key: 'd', value: question.options.d },
+    ];
+    
+    const shuffledChoices = shuffleArray(choices);
+    const correctOriginalKey = question.correct_answer;
+    const correctChoice = choices.find(choice => choice.key === correctOriginalKey);
+    const newCorrectKey = shuffledChoices.find(choice => choice.value === correctChoice?.value)?.key;
+
+    return {
+      ...question,
+      options: {
+        a: shuffledChoices[0].value,
+        b: shuffledChoices[1].value,
+        c: shuffledChoices[2].value,
+        d: shuffledChoices[3].value,
+      },
+      correct_answer: newCorrectKey || 'a',
+    };
+  };
+
+  // Initialize shuffled questions when component mounts or questions change
+  useEffect(() => {
+    if (questions.length > 0) {
+      const questionsWithShuffledChoices = questions.map(shuffleAnswerChoices);
+      const shuffledQuestionsOrder = shuffleArray(questionsWithShuffledChoices);
+      setShuffledQuestions(shuffledQuestionsOrder);
+    }
+  }, [questions]);
+
   const streakMultiplier = Math.min(1 + (quizSession?.current_streak || 0) * 0.2, 3); // Max 3x multiplier
-  const progress = ((currentQuestionIndex) / questions.length) * 100;
+  const progress = ((currentQuestionIndex) / shuffledQuestions.length) * 100;
 
   useEffect(() => {
     if (user && isQuizStarted && !quizSession) {
@@ -63,7 +109,7 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
         .insert({
           user_id: user.id,
           study_material_id: studyMaterialId,
-          questions_total: questions.length,
+          questions_total: shuffledQuestions.length,
         })
         .select()
         .single();
@@ -130,7 +176,7 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
             study_material_id: studyMaterialId,
             question_index: currentQuestionIndex,
             selected_answer: selectedAnswer,
-            correct_answer: questions[currentQuestionIndex].correct_answer,
+            correct_answer: shuffledQuestions[currentQuestionIndex].correct_answer,
             is_correct: isCorrect,
             points_earned: totalPoints,
             answer_time_seconds: answerTime,
@@ -145,13 +191,13 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
             .upsert({
               user_id: user.id,
               study_material_id: studyMaterialId,
-              question_data: questions[currentQuestionIndex] as any,
+              question_data: shuffledQuestions[currentQuestionIndex] as any,
               selected_answer: selectedAnswer,
-              correct_answer: questions[currentQuestionIndex].correct_answer,
+              correct_answer: shuffledQuestions[currentQuestionIndex].correct_answer,
               retry_count: 0,
             });
           
-          onWrongAnswer(questions[currentQuestionIndex], selectedAnswer);
+          onWrongAnswer(shuffledQuestions[currentQuestionIndex], selectedAnswer);
         }
 
         // Update user points
@@ -176,7 +222,7 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
 
     // Move to next question or finish quiz
     setTimeout(() => {
-      if (currentQuestionIndex + 1 >= questions.length) {
+      if (currentQuestionIndex + 1 >= shuffledQuestions.length) {
         completeQuiz();
       } else {
         setCurrentQuestionIndex(prev => prev + 1);
@@ -260,7 +306,7 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
     );
   }
 
-  if (!isQuizStarted) {
+  if (!isQuizStarted || shuffledQuestions.length === 0) {
     return (
       <Card className="border-2 border-primary/20 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
         <CardContent className="p-8 text-center">
@@ -358,12 +404,14 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
       </Card>
 
       {/* Current Question */}
-      <KahootQuizQuestion
-        question={questions[currentQuestionIndex]}
-        questionNumber={currentQuestionIndex + 1}
-        onAnswer={handleQuestionAnswer}
-        streakMultiplier={streakMultiplier}
-      />
+      {shuffledQuestions[currentQuestionIndex] && (
+        <KahootQuizQuestion
+          question={shuffledQuestions[currentQuestionIndex]}
+          questionNumber={currentQuestionIndex + 1}
+          onAnswer={handleQuestionAnswer}
+          streakMultiplier={streakMultiplier}
+        />
+      )}
     </div>
   );
 };
