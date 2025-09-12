@@ -72,14 +72,33 @@ serve(async (req) => {
       });
       
     } catch (error) {
-      console.error('Transcript extraction failed:', error.message);
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: `Unable to extract transcript: ${error.message}. This video may not have captions available or may be restricted.`
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      console.error('Primary method failed:', error.message);
+      
+      // Fallback to YouTube API if available
+      try {
+        console.log('Attempting YouTube API fallback method');
+        const apiResult = await getTranscriptViaAPI(videoId);
+        
+        return new Response(JSON.stringify({
+          success: true,
+          video_id: videoId,
+          title: apiResult.title,
+          transcript: apiResult.transcript,
+          duration: apiResult.duration
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+        
+      } catch (apiError) {
+        console.error('YouTube API fallback also failed:', apiError.message);
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: `Unable to extract transcript: ${error.message}. This video may not have captions available or may be restricted.`
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
   } catch (error) {
@@ -116,6 +135,10 @@ async function retrieveTranscript(videoId: string) {
   }
   
   const player = JSON.parse(playerResponse[1]);
+  
+  if (!player.videoDetails || player.videoDetails.videoId !== videoId) {
+    throw new Error('Video details mismatch or unavailable');
+  }
   
   const metadata = {
     title: player.videoDetails.title,
@@ -166,6 +189,67 @@ async function retrieveTranscript(videoId: string) {
     transcript: parsedTranscript, 
     metadata: metadata 
   };
+}
+
+async function getTranscriptViaAPI(videoId: string) {
+  const youtubeApiKey = Deno.env.get('YOUTUBE_API_KEY');
+  
+  if (!youtubeApiKey) {
+    throw new Error('YouTube API key not configured');
+  }
+  
+  console.log('Using YouTube Data API v3 for video:', videoId);
+  
+  // Get video details
+  const videoResponse = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${youtubeApiKey}`
+  );
+  
+  if (!videoResponse.ok) {
+    throw new Error(`YouTube API error: ${videoResponse.status}`);
+  }
+  
+  const videoData = await videoResponse.json();
+  
+  if (!videoData.items || videoData.items.length === 0) {
+    throw new Error('Video not found via YouTube API');
+  }
+  
+  const video = videoData.items[0];
+  const metadata = {
+    title: video.snippet.title,
+    duration: video.contentDetails.duration,
+    author: video.snippet.channelTitle,
+    views: null
+  };
+  
+  // Get captions list
+  const captionsResponse = await fetch(
+    `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${youtubeApiKey}`
+  );
+  
+  if (!captionsResponse.ok) {
+    throw new Error(`YouTube Captions API error: ${captionsResponse.status}`);
+  }
+  
+  const captionsData = await captionsResponse.json();
+  
+  if (!captionsData.items || captionsData.items.length === 0) {
+    throw new Error('No captions available via YouTube API');
+  }
+  
+  // Find the best caption track
+  let selectedCaption = captionsData.items.find((item: any) => 
+    item.snippet.language === 'en' && item.snippet.trackKind !== 'asr'
+  ) || captionsData.items.find((item: any) => 
+    item.snippet.language.startsWith('en')
+  ) || captionsData.items[0];
+  
+  console.log(`Selected caption via API: ${selectedCaption.snippet.language}`);
+  
+  // Note: Getting actual caption content via API requires OAuth2 authentication
+  // This is a limitation of the YouTube Data API v3
+  throw new Error('YouTube Data API requires OAuth2 for caption content access');
 }
 
 function compareTracks(track1: any, track2: any) {
