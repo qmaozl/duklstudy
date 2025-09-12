@@ -221,13 +221,15 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
     }
 
     // Move to next question or finish quiz
+    // Shorter delay for timeouts, longer for answered questions
+    const delay = selectedAnswer === 'timeout' ? 800 : 2000;
     setTimeout(() => {
       if (currentQuestionIndex + 1 >= shuffledQuestions.length) {
         completeQuiz();
       } else {
         setCurrentQuestionIndex(prev => prev + 1);
       }
-    }, 2000);
+    }, delay);
   };
 
   const completeQuiz = async () => {

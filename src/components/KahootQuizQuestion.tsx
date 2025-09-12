@@ -77,10 +77,10 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
     setIsAnswered(true);
     setSelectedAnswer('timeout');
     setShowResult(true);
-    // Immediately call onAnswer when time runs out
+    // Immediately call onAnswer when time runs out with minimal delay
     setTimeout(() => {
       onAnswer(false, 30, 'timeout');
-    }, 500); // Reduced delay to move faster
+    }, 200); // Very short delay for timeout
   };
 
   const handleAnswerSelect = (key: string) => {
