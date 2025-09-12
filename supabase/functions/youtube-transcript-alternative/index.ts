@@ -71,8 +71,10 @@ async function getTranscriptAlternative(videoId: string) {
     const captionUrl = `https://www.youtube.com/api/timedtext?lang=en&v=${videoId}&fmt=json3&name=`;
     const response = await fetch(captionUrl);
     
-    if (response.ok) {
-      const data = await response.json();
+    if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+      const text = await response.text();
+      if (text && text.trim()) {
+        const data = JSON.parse(text);
       console.log('Found auto-generated captions');
       
       const transcript = data.events
@@ -90,6 +92,7 @@ async function getTranscriptAlternative(videoId: string) {
           title: `Video ${videoId}`,
           duration: 'Unknown'
         };
+      }
       }
     }
   } catch (e) {

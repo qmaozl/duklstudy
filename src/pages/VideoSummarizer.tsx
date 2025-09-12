@@ -138,7 +138,7 @@ const VideoSummarizer = () => {
       }
 
       if (!transcriptData?.success) {
-        throw new Error('No transcript data received from any method');
+        throw new Error('Unable to extract transcript from this video. This may be because:\n• The video has no captions or transcripts\n• The video is private or restricted\n• The video uses non-standard caption formats\n\nPlease try a different video that has closed captions enabled.');
       }
 
       const extractedVideoData: VideoData = {
