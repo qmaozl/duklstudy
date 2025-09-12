@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import VideosDashboard from '@/components/VideosDashboard';
-import EnhancedQuizQuestion from '@/components/EnhancedQuizQuestion';
+import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 import WrongAnswersReview from '@/components/WrongAnswersReview';
 import { YouTubeApiHelper } from '@/components/YouTubeApiHelper';
 import FlashCard from '@/components/FlashCard';
@@ -554,30 +554,12 @@ const VideoSummarizer = () => {
                     </TabsContent>
 
                       <TabsContent value="quiz" className="space-y-4">
-                        <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-lg border">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Trophy className="h-5 w-5 text-yellow-500" />
-                            <h4 className="font-semibold">Interactive Quiz</h4>
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            Earn 10 points for each correct answer. Wrong answers will be saved for review!
-                          </p>
-                        </div>
-                        
-                        <ScrollArea className="h-[400px]">
-                          <div className="space-y-4">
-                            {studyMaterial.quiz.questions.map((question, index) => (
-                              <EnhancedQuizQuestion 
-                                key={`${currentStudyMaterialId}-${index}`}
-                                question={question} 
-                                questionNumber={index + 1}
-                                studyMaterialId={currentStudyMaterialId}
-                                onPointsEarned={handlePointsEarned}
-                                onWrongAnswer={handleWrongAnswer}
-                              />
-                            ))}
-                          </div>
-                        </ScrollArea>
+                        <KahootStyleQuiz
+                          questions={studyMaterial.quiz.questions}
+                          studyMaterialId={currentStudyMaterialId}
+                          onPointsEarned={handlePointsEarned}
+                          onWrongAnswer={handleWrongAnswer}
+                        />
                       </TabsContent>
 
                     <TabsContent value="sources" className="space-y-4">

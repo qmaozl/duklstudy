@@ -70,6 +70,8 @@ export type Database = {
       }
       quiz_results: {
         Row: {
+          answer_time_seconds: number | null
+          bonus_points: number | null
           correct_answer: string
           created_at: string
           id: string
@@ -77,10 +79,13 @@ export type Database = {
           points_earned: number | null
           question_index: number
           selected_answer: string
+          streak_count: number | null
           study_material_id: string
           user_id: string
         }
         Insert: {
+          answer_time_seconds?: number | null
+          bonus_points?: number | null
           correct_answer: string
           created_at?: string
           id?: string
@@ -88,10 +93,13 @@ export type Database = {
           points_earned?: number | null
           question_index: number
           selected_answer: string
+          streak_count?: number | null
           study_material_id: string
           user_id: string
         }
         Update: {
+          answer_time_seconds?: number | null
+          bonus_points?: number | null
           correct_answer?: string
           created_at?: string
           id?: string
@@ -99,7 +107,56 @@ export type Database = {
           points_earned?: number | null
           question_index?: number
           selected_answer?: string
+          streak_count?: number | null
           study_material_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quiz_sessions: {
+        Row: {
+          created_at: string
+          current_question: number | null
+          current_streak: number | null
+          id: string
+          max_streak: number | null
+          questions_correct: number | null
+          questions_total: number | null
+          session_completed_at: string | null
+          session_started_at: string
+          study_material_id: string
+          total_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_question?: number | null
+          current_streak?: number | null
+          id?: string
+          max_streak?: number | null
+          questions_correct?: number | null
+          questions_total?: number | null
+          session_completed_at?: string | null
+          session_started_at?: string
+          study_material_id: string
+          total_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_question?: number | null
+          current_streak?: number | null
+          id?: string
+          max_streak?: number | null
+          questions_correct?: number | null
+          questions_total?: number | null
+          session_completed_at?: string | null
+          session_started_at?: string
+          study_material_id?: string
+          total_score?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
