@@ -130,20 +130,26 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
       return `${ANSWER_COLORS[key as keyof typeof ANSWER_COLORS]} text-white font-bold ring-4 ring-white/50 animate-pulse`;
     }
     
+    // During answering phase - no hints about correct answer
     if (!showResult) {
       return `${ANSWER_COLORS[key as keyof typeof ANSWER_COLORS]} text-white font-bold transition-all duration-200 transform hover:scale-105 active:scale-95`;
     }
 
-    // Show results
-    if (key === question.correct_answer) {
+    // ONLY show results after user has made selection and showResult is true
+    if (showResult && key === question.correct_answer) {
       return `${ANSWER_COLORS_CORRECT[key as keyof typeof ANSWER_COLORS_CORRECT]} text-white font-bold ring-4 ring-green-300`;
     }
 
-    if (key === selectedAnswer && selectedAnswer !== question.correct_answer) {
+    if (showResult && key === selectedAnswer && selectedAnswer !== question.correct_answer) {
       return `bg-red-600 border-red-700 text-white font-bold ring-4 ring-red-300 animate-shake`;
     }
 
-    return `${ANSWER_COLORS_WRONG[key as keyof typeof ANSWER_COLORS_WRONG]} text-white font-bold`;
+    // Gray out non-selected options after showing results
+    if (showResult) {
+      return `${ANSWER_COLORS_WRONG[key as keyof typeof ANSWER_COLORS_WRONG]} text-white font-bold`;
+    }
+
+    return `${ANSWER_COLORS[key as keyof typeof ANSWER_COLORS]} text-white font-bold transition-all duration-200 transform hover:scale-105 active:scale-95`;
   };
 
   const timePercentage = (timeLeft / 30) * 100;
@@ -214,15 +220,21 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
                     <p className="text-sm md:text-base leading-tight">{value}</p>
                   </div>
                   
-                  {(showResult || (isAnswered && key === selectedAnswer)) && (
+                  {/* Only show indicators AFTER user has made selection AND results are being shown */}
+                  {showResult && (
                     <div className="flex-shrink-0 ml-4">
                       {key === question.correct_answer ? (
                         <CheckCircle className="h-6 w-6 text-white animate-bounce" />
-                      ) : key === selectedAnswer && showResult ? (
+                      ) : key === selectedAnswer ? (
                         <XCircle className="h-6 w-6 text-white animate-pulse" />
-                      ) : isAnswered && key === selectedAnswer && !showResult ? (
-                        <div className="h-6 w-6 border-2 border-white rounded-full animate-spin border-t-transparent" />
                       ) : null}
+                    </div>
+                  )}
+                  
+                  {/* Show loading spinner only when answer is selected but results not yet shown */}
+                  {isAnswered && key === selectedAnswer && !showResult && (
+                    <div className="flex-shrink-0 ml-4">
+                      <div className="h-6 w-6 border-2 border-white rounded-full animate-spin border-t-transparent" />
                     </div>
                   )}
                 </div>
@@ -235,8 +247,8 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
             ))}
           </div>
 
-          {/* Result Feedback */}
-          {showResult && (
+          {/* Result Feedback - Only shown AFTER user selection */}
+          {showResult && selectedAnswer && (
             <div className="mt-6 text-center animate-fade-in">
               {selectedAnswer === question.correct_answer ? (
                 <div className="bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-800 rounded-lg p-4">
@@ -255,7 +267,7 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
                     <span className="text-lg font-bold">Time's Up!</span>
                   </div>
                   <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">
-                    The correct answer was <strong>{question.correct_answer.toUpperCase()}</strong>
+                    The correct answer was <strong>{question.correct_answer.toUpperCase()}</strong>: {question.options[question.correct_answer]}
                   </p>
                 </div>
               ) : (
@@ -265,7 +277,7 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
                     <span className="text-lg font-bold">Incorrect</span>
                   </div>
                   <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-                    The correct answer was <strong>{question.correct_answer.toUpperCase()}</strong>
+                    The correct answer was <strong>{question.correct_answer.toUpperCase()}</strong>: {question.options[question.correct_answer]}
                   </p>
                 </div>
               )}
