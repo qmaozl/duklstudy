@@ -149,7 +149,10 @@ Return ONLY the JSON object, no other text.`
       const parsedResult = JSON.parse(result);
       console.log('Successfully parsed study materials');
       
-      return new Response(JSON.stringify(parsedResult), {
+      return new Response(JSON.stringify({
+        success: true,
+        ...parsedResult
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
@@ -158,6 +161,7 @@ Return ONLY the JSON object, no other text.`
       
       // Fallback response
       return new Response(JSON.stringify({
+        success: true,
         summary: "Unable to generate summary at this time.",
         flashcards: [
           {

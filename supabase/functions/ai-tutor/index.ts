@@ -87,6 +87,7 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
     const botResponse = data.choices[0].message.content;
     
     return new Response(JSON.stringify({
+      success: true,
       message: botResponse,
       timestamp: new Date().toISOString()
     }), {
@@ -96,6 +97,7 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
   } catch (error) {
     console.error('Error in ai-tutor function:', error);
     return new Response(JSON.stringify({ 
+      success: false,
       error: error.message,
       message: "I'm sorry, I'm having trouble responding right now. Please try again in a moment!",
       timestamp: new Date().toISOString()
