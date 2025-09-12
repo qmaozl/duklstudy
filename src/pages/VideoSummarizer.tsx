@@ -57,7 +57,7 @@ const VideoSummarizer = () => {
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [currentStep, setCurrentStep] = useState<string>('');
-  const [numQuestions, setNumQuestions] = useState<string>('5');
+  const [numQuestions, setNumQuestions] = useState<string>('25');
   const [activeTab, setActiveTab] = useState<string>('new-video');
   const [totalPointsEarned, setTotalPointsEarned] = useState(0);
   const [wrongAnswers, setWrongAnswers] = useState<any[]>([]);
@@ -385,14 +385,11 @@ const VideoSummarizer = () => {
                       <SelectValue />
                     </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="5">5</SelectItem>
-                          <SelectItem value="7">7</SelectItem>
-                          <SelectItem value="10">10</SelectItem>
-                          <SelectItem value="15">15</SelectItem>
-                          <SelectItem value="20">20</SelectItem>
                           <SelectItem value="25">25</SelectItem>
                           <SelectItem value="30">30</SelectItem>
+                          <SelectItem value="35">35</SelectItem>
+                          <SelectItem value="40">40</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
                         </SelectContent>
                   </Select>
                 </div>
