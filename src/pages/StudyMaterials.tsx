@@ -430,11 +430,11 @@ const StudyMaterials = () => {
                           <div>
                             <h4 className="font-semibold mb-2">Key Concepts</h4>
                             <div className="flex flex-wrap gap-2">
-                              {studyMaterial.key_concepts.map((concept, index) => (
+                              {studyMaterial.key_concepts?.map((concept, index) => (
                                 <Badge key={index} variant="secondary">
                                   {concept}
                                 </Badge>
-                              ))}
+                              )) || []}
                             </div>
                           </div>
                           <div>
@@ -450,7 +450,7 @@ const StudyMaterials = () => {
                     <TabsContent value="flashcards" className="space-y-4">
                       <ScrollArea className="h-[400px]">
                         <div className="space-y-3">
-                          {studyMaterial.flashcards.map((card, index) => (
+                          {studyMaterial.flashcards?.map((card, index) => (
                             <Card key={index} className="border-l-4 border-l-primary">
                               <CardContent className="p-4">
                                 <div className="space-y-2">
@@ -473,7 +473,7 @@ const StudyMaterials = () => {
                     <TabsContent value="quiz" className="space-y-4">
                       <ScrollArea className="h-[400px]">
                         <div className="space-y-4">
-                          {studyMaterial.quiz.questions.map((question, index) => (
+                          {studyMaterial.quiz?.questions?.map((question, index) => (
                             <QuizQuestion 
                               key={index} 
                               question={question} 
@@ -487,7 +487,7 @@ const StudyMaterials = () => {
                     <TabsContent value="sources" className="space-y-4">
                       <ScrollArea className="h-[400px]">
                         <div className="space-y-3">
-                          {studyMaterial.sources.map((source, index) => (
+                          {studyMaterial.sources?.map((source, index) => (
                             <Card key={index} className="border-l-4 border-l-accent">
                               <CardContent className="p-4">
                                 <div className="flex items-center justify-between">
