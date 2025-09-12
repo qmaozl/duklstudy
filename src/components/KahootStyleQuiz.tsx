@@ -58,6 +58,8 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
 
   // Shuffle answer choices for a question
   const shuffleAnswerChoices = (question: QuizQuestion): QuizQuestion => {
+    console.log('Original question:', question);
+    
     const choices = [
       { key: 'a', value: question.options.a },
       { key: 'b', value: question.options.b },
@@ -70,7 +72,16 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
     const correctChoice = choices.find(choice => choice.key === correctOriginalKey);
     const newCorrectKey = shuffledChoices.find(choice => choice.value === correctChoice?.value)?.key;
 
-    return {
+    console.log('Correct original key:', correctOriginalKey);
+    console.log('Correct choice:', correctChoice);
+    console.log('New correct key:', newCorrectKey);
+    
+    if (!newCorrectKey) {
+      console.error('Failed to find new correct key, using original');
+      return question; // Return original if mapping fails
+    }
+
+    const shuffledQuestion = {
       ...question,
       options: {
         a: shuffledChoices[0].value,
@@ -78,8 +89,11 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
         c: shuffledChoices[2].value,
         d: shuffledChoices[3].value,
       },
-      correct_answer: newCorrectKey || 'a',
+      correct_answer: newCorrectKey,
     };
+    
+    console.log('Shuffled question:', shuffledQuestion);
+    return shuffledQuestion;
   };
 
   // Initialize shuffled questions when component mounts or questions change
@@ -221,8 +235,8 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
     }
 
     // Move to next question or finish quiz
-    // Shorter delay for timeouts, longer for answered questions
-    const delay = selectedAnswer === 'timeout' ? 800 : 2000;
+    // Much shorter delay for timeouts, normal delay for answered questions
+    const delay = selectedAnswer === 'timeout' ? 400 : 1500;
     setTimeout(() => {
       if (currentQuestionIndex + 1 >= shuffledQuestions.length) {
         completeQuiz();
