@@ -49,8 +49,14 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
   const [showResult, setShowResult] = useState(false);
   const [answerTime, setAnswerTime] = useState(0);
   const [isAnswered, setIsAnswered] = useState(false);
+  const [timerRef, setTimerRef] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Clear any existing timer
+    if (timerRef) {
+      clearInterval(timerRef);
+    }
+    
     setTimeLeft(30);
     setSelectedAnswer(null);
     setShowResult(false);
@@ -58,50 +64,73 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
     setIsAnswered(false);
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        // Stop timer if answer is selected or results are being shown
+      setTimeLeft((prevTime) => {
+        setAnswerTime((prevAnswerTime) => {
+          // Stop everything if answered or showing results
+          if (isAnswered || showResult) {
+            return prevAnswerTime;
+          }
+          
+          if (prevTime <= 1) {
+            // Time up - auto submit no answer
+            handleTimeUp();
+            return prevAnswerTime;
+          }
+          
+          return prevAnswerTime + 1;
+        });
+        
+        // Stop timer if answered or showing results
         if (isAnswered || showResult) {
-          return prev;
+          return prevTime;
         }
         
-        if (prev <= 1) {
-          // Time up - auto submit no answer
-          handleTimeUp();
+        if (prevTime <= 1) {
           return 0;
         }
-        return prev - 1;
+        
+        return prevTime - 1;
       });
-      
-      // Only increment answer time if not answered and not showing results
-      if (!isAnswered && !showResult) {
-        setAnswerTime((prev) => prev + 1);
-      }
     }, 1000);
 
+    setTimerRef(timer);
     return () => clearInterval(timer);
-  }, [question, isAnswered, showResult]);
+  }, [question]);
 
   const handleTimeUp = () => {
     if (isAnswered) return;
+    
+    // Clear the timer immediately
+    if (timerRef) {
+      clearInterval(timerRef);
+    }
+    
     setIsAnswered(true);
     setSelectedAnswer('timeout');
     setShowResult(true);
-    // Immediately call onAnswer when time runs out with minimal delay
+    
+    // Call onAnswer for timeout
     setTimeout(() => {
       onAnswer(false, 30, 'timeout');
-    }, 200); // Very short delay for timeout
+    }, 200);
   };
 
   const handleAnswerSelect = (key: string) => {
+    // Prevent double clicks and clicks during results
     if (isAnswered || showResult) return;
 
     setIsAnswered(true);
     setSelectedAnswer(key);
     
-    // Show immediate feedback
+    // Clear the timer immediately
+    if (timerRef) {
+      clearInterval(timerRef);
+    }
+    
+    // Show immediate feedback after a short delay
     setTimeout(() => {
       setShowResult(true);
-    }, 300); // Short delay to show selection first
+    }, 500);
 
     const isCorrect = key === question.correct_answer;
     const finalAnswerTime = 30 - timeLeft;
@@ -188,8 +217,10 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
               <Button
                 key={key}
                 onClick={() => handleAnswerSelect(key)}
-                disabled={isAnswered}
-                className={`h-auto p-6 text-left justify-start min-h-[80px] relative overflow-hidden ${getButtonStyle(key)}`}
+                disabled={isAnswered || showResult}
+                className={`h-auto p-6 text-left justify-start min-h-[80px] relative overflow-hidden ${getButtonStyle(key)} ${
+                  (isAnswered || showResult) ? 'cursor-not-allowed' : ''
+                }`}
               >
                 <div className="flex items-center w-full">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4">
