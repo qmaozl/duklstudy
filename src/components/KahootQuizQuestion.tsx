@@ -65,32 +65,18 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
-        setAnswerTime((prevAnswerTime) => {
-          // Stop everything if answered or showing results
-          if (isAnswered || showResult) {
-            return prevAnswerTime;
-          }
-          
-          if (prevTime <= 1) {
-            // Time up - auto submit no answer
-            handleTimeUp();
-            return prevAnswerTime;
-          }
-          
-          return prevAnswerTime + 1;
-        });
-        
-        // Stop timer if answered or showing results
-        if (isAnswered || showResult) {
-          return prevTime;
-        }
-        
         if (prevTime <= 1) {
+          // Time up - auto submit no answer if not already answered
+          if (!isAnswered) {
+            handleTimeUp();
+          }
           return 0;
         }
-        
         return prevTime - 1;
       });
+      
+      // Always increment answer time unless time is up
+      setAnswerTime((prev) => prev + 1);
     }, 1000);
 
     setTimerRef(timer);
@@ -100,16 +86,11 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
   const handleTimeUp = () => {
     if (isAnswered) return;
     
-    // Clear the timer immediately
-    if (timerRef) {
-      clearInterval(timerRef);
-    }
-    
     setIsAnswered(true);
     setSelectedAnswer('timeout');
     setShowResult(true);
     
-    // Call onAnswer for timeout
+    // Call onAnswer for timeout (timer continues to 0)
     setTimeout(() => {
       onAnswer(false, 30, 'timeout');
     }, 200);
@@ -122,12 +103,7 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
     setIsAnswered(true);
     setSelectedAnswer(key);
     
-    // Clear the timer immediately
-    if (timerRef) {
-      clearInterval(timerRef);
-    }
-    
-    // Show immediate feedback after a short delay
+    // Show immediate feedback after a short delay (timer continues running)
     setTimeout(() => {
       setShowResult(true);
     }, 500);
