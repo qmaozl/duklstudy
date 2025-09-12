@@ -26,12 +26,12 @@ serve(async (req) => {
       });
     }
     
-    const { corrected_text, num_questions = 5 } = await req.json();
+    const { corrected_text, images, num_questions = 5 } = await req.json();
     
-    if (!corrected_text) {
+    if (!corrected_text && !images?.length) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'No corrected text provided for processing'
+        error: 'No content (text or images) provided for processing'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -41,8 +41,36 @@ serve(async (req) => {
     // Sanitize and clamp num_questions
     const clampedQuestions = Math.max(1, Math.min(30, parseInt(num_questions) || 5));
 
-    console.log('Input text length:', corrected_text.length);
+    console.log('Input text length:', corrected_text?.length || 0);
+    console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
+
+    // Choose model based on content type
+    const hasImages = images && images.length > 0;
+    const model = hasImages ? 'deepseek-vl-7b-chat' : 'deepseek-chat';
+    
+    // Build messages for multimodal or text-only content
+    const userContent = [];
+    
+    if (corrected_text) {
+      userContent.push({ type: 'text', text: `Text to analyze: "${corrected_text}"` });
+    }
+    
+    if (hasImages) {
+      images.forEach((imageData: string) => {
+        userContent.push({ 
+          type: 'image_url', 
+          image_url: { url: imageData }
+        });
+      });
+    }
+    
+    if (clampedQuestions) {
+      userContent.push({ 
+        type: 'text', 
+        text: `\n\nGenerate exactly ${clampedQuestions} quiz questions.` 
+      });
+    }
 
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -51,16 +79,24 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model,
         messages: [
           {
             role: 'system',
-            content: `You are an expert educational content creator. Your task is to generate multiple study aids from the provided text.
+            content: `You are an expert educational content creator. Your task is to generate study materials from the provided content (text and/or images).
 
-**Steps:**
-1. **Create a Summary:** Generate a concise, easy-to-understand summary of the key points in the text (approx. 150 words).
-2. **Create Flashcards:** Generate 5-10 flashcards. For each flashcard, provide a clear question and a concise answer based directly on the text.
-3. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer. Provide the answer key.
+**Your Tasks:**
+1. **Analyze Content:** If images are provided, extract and analyze all visible text, diagrams, charts, formulas, and educational content. If text is provided, use it as the primary content.
+2. **Create a Summary:** Generate a concise, easy-to-understand summary of the key points from all content (approx. 150-200 words).
+3. **Create Flashcards:** Generate 5-10 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information visible in images or text.
+4. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer.
+
+**For Images:** Pay special attention to:
+- Text within images (OCR and understanding)
+- Diagrams, charts, and visual data
+- Mathematical formulas and equations
+- Tables and structured information
+- Educational diagrams and illustrations
 
 **Output Format Rules:** 
 - You MUST output a valid JSON object with the following structure. Do not add any other text.
@@ -90,7 +126,7 @@ Return ONLY the JSON object, no other text.`
           },
           {
             role: 'user',
-            content: `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`
+            content: hasImages ? userContent : `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`
           }
         ],
         max_tokens: 6000,

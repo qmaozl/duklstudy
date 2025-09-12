@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, Sparkles, Loader2, FileText, Download, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Upload, Sparkles, Loader2, FileText, Download, ExternalLink, Image, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -119,16 +119,63 @@ const StudyMaterials = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [inputText, setInputText] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<Array<{ file: File; preview: string; base64: string }>>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [numQuestions, setNumQuestions] = useState<string>('5');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const processText = async () => {
-    if (!inputText.trim()) {
+  const handleFileUpload = async (files: FileList) => {
+    const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+    
+    if (imageFiles.length === 0) {
       toast({
         title: "Error",
-        description: "Please enter some text to process.",
+        description: "Please select valid image files.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newImages = [];
+    for (const file of imageFiles) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        toast({
+          title: "Error",
+          description: `File ${file.name} is too large. Maximum size is 10MB.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      const preview = URL.createObjectURL(file);
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      
+      newImages.push({ file, preview, base64 });
+    }
+    
+    setUploadedImages(prev => [...prev, ...newImages]);
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages(prev => {
+      const newImages = [...prev];
+      URL.revokeObjectURL(newImages[index].preview);
+      newImages.splice(index, 1);
+      return newImages;
+    });
+  };
+
+  const processContent = async () => {
+    if (!inputText.trim() && uploadedImages.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please enter some text or upload images to process.",
         variant: "destructive",
       });
       return;
@@ -156,11 +203,12 @@ const StudyMaterials = () => {
 
       if (sourcesError) throw sourcesError;
 
-      // Step 3: Generate study materials
+      // Step 3: Generate study materials (with images if available)
       setCurrentStep('Generating study materials...');
       const { data: materialsData, error: materialsError } = await supabase.functions.invoke('generate-study-materials', {
         body: { 
           corrected_text,
+          images: uploadedImages.map(img => img.base64),
           num_questions: parseInt(numQuestions)
         }
       });
@@ -245,13 +293,68 @@ const StudyMaterials = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Paste your study notes, textbook excerpts, or any educational content here. The AI will correct any errors, create flashcards, generate quizzes, and find relevant sources for you!"
-                  className="min-h-[300px] resize-none"
-                  disabled={isProcessing}
-                />
+                <div className="space-y-4">
+                  <Textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder="Paste your study notes, textbook excerpts, or any educational content here..."
+                    className="min-h-[200px] resize-none"
+                    disabled={isProcessing}
+                  />
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Upload Images</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isProcessing}
+                        className="gap-2"
+                      >
+                        <Image className="h-4 w-4" />
+                        Add Images
+                      </Button>
+                    </div>
+                    
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+                    />
+                    
+                    {uploadedImages.length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {uploadedImages.map((image, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={image.preview}
+                              alt={`Upload ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-md border"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeImage(index)}
+                              disabled={isProcessing}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="text-xs text-muted-foreground">
+                      Drag & drop images or click "Add Images" to upload textbook pages, diagrams, charts, or any educational visual content.
+                    </div>
+                  </div>
+                </div>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground">
@@ -280,9 +383,9 @@ const StudyMaterials = () => {
                       </Select>
                     </div>
                   </div>
-                  <Button 
-                    onClick={processText}
-                    disabled={isProcessing || !inputText.trim()}
+                   <Button 
+                    onClick={processContent}
+                    disabled={isProcessing || (!inputText.trim() && uploadedImages.length === 0)}
                     className="gap-2"
                   >
                     {isProcessing ? (
