@@ -59,39 +59,32 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
     setAnswerTime(0);
     setIsAnswered(false);
     setTimerActive(true);
+  }, [question]);
+
+  // Timer effect - separate from state initialization
+  useEffect(() => {
+    if (!timerActive) return;
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
-        // Only count down if timer is active and not showing results
-        if (!timerActive || showResult) {
-          return prevTime;
-        }
-        
         if (prevTime <= 1) {
           // Time up - auto submit if not already answered
-          if (!isAnswered) {
-            handleTimeUp();
-          }
+          setIsAnswered(prev => {
+            if (!prev) {
+              handleTimeUp();
+            }
+            return true;
+          });
           return 0;
         }
         return prevTime - 1;
       });
       
-      // Only increment answer time if timer is active and not showing results
-      if (timerActive && !showResult) {
-        setAnswerTime((prev) => prev + 1);
-      }
+      setAnswerTime((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [question]);
-
-  // Stop timer when showing results
-  useEffect(() => {
-    if (showResult) {
-      setTimerActive(false);
-    }
-  }, [showResult]);
+  }, [timerActive, question]);
 
   const handleTimeUp = () => {
     if (isAnswered || showResult) return;
