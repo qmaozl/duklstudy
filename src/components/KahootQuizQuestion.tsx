@@ -65,6 +65,11 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
 
     const timer = setInterval(() => {
       setTimeLeft((prevTime) => {
+        // Stop timer completely if showing results
+        if (showResult) {
+          return prevTime;
+        }
+        
         if (prevTime <= 1) {
           // Time up - auto submit no answer if not already answered
           if (!isAnswered) {
@@ -75,22 +80,38 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
         return prevTime - 1;
       });
       
-      // Always increment answer time unless time is up
-      setAnswerTime((prev) => prev + 1);
+      // Only increment answer time if not showing results and not answered
+      if (!showResult && !isAnswered) {
+        setAnswerTime((prev) => prev + 1);
+      }
     }, 1000);
 
     setTimerRef(timer);
     return () => clearInterval(timer);
-  }, [question]);
+  }, [question, showResult, isAnswered]);
+
+  // Clear timer when showing results
+  useEffect(() => {
+    if (showResult && timerRef) {
+      clearInterval(timerRef);
+      setTimerRef(null);
+    }
+  }, [showResult, timerRef]);
 
   const handleTimeUp = () => {
-    if (isAnswered) return;
+    if (isAnswered || showResult) return;
     
     setIsAnswered(true);
     setSelectedAnswer('timeout');
     setShowResult(true);
     
-    // Call onAnswer for timeout (timer continues to 0)
+    // Clear timer when time is up
+    if (timerRef) {
+      clearInterval(timerRef);
+      setTimerRef(null);
+    }
+    
+    // Call onAnswer for timeout
     setTimeout(() => {
       onAnswer(false, 30, 'timeout');
     }, 200);
@@ -103,7 +124,13 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
     setIsAnswered(true);
     setSelectedAnswer(key);
     
-    // Show immediate feedback after a short delay (timer continues running)
+    // Clear timer when answer is selected
+    if (timerRef) {
+      clearInterval(timerRef);
+      setTimerRef(null);
+    }
+    
+    // Show immediate feedback after a short delay
     setTimeout(() => {
       setShowResult(true);
     }, 500);
