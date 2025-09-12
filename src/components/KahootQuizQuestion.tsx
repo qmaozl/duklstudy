@@ -70,15 +70,17 @@ const KahootQuizQuestion: React.FC<KahootQuizQuestionProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [question]);
+  }, [question, isAnswered]);
 
   const handleTimeUp = () => {
     if (isAnswered) return;
     setIsAnswered(true);
+    setSelectedAnswer('timeout');
     setShowResult(true);
+    // Immediately call onAnswer when time runs out
     setTimeout(() => {
       onAnswer(false, 30, 'timeout');
-    }, 1500);
+    }, 500); // Reduced delay to move faster
   };
 
   const handleAnswerSelect = (key: string) => {
