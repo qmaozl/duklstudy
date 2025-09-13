@@ -18,6 +18,8 @@ interface Subscription {
   subscription_tier: 'free' | 'pro' | 'premium';
   subscribed: boolean;
   subscription_end?: string;
+  generation_limit: number;
+  generations_used: number;
 }
 
 interface AuthContextType {
@@ -62,10 +64,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (subError) throw subError;
 
       setProfile(profileData);
+      
+      // Set generation limits based on subscription tier
+      const tier = (subscriptionData.subscription_tier as 'free' | 'pro' | 'premium') || 'free';
+      const limits = {
+        free: { limit: 5, used: 0 },
+        pro: { limit: 1500, used: 0 },
+        premium: { limit: 1500, used: 0 }
+      };
+      
       setSubscription({
-        subscription_tier: (subscriptionData.subscription_tier as 'free' | 'pro' | 'premium') || 'free',
+        subscription_tier: tier,
         subscribed: subscriptionData.subscribed,
-        subscription_end: subscriptionData.subscription_end
+        subscription_end: subscriptionData.subscription_end,
+        generation_limit: limits[tier].limit,
+        generations_used: limits[tier].used
       });
     } catch (error) {
       console.error('Error fetching profile:', error);

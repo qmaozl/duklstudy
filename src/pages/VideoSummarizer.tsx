@@ -51,7 +51,7 @@ interface QuizQuestionProps {
 
 const VideoSummarizer = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
@@ -70,6 +70,16 @@ const VideoSummarizer = () => {
       toast({
         title: "Error",
         description: "Please enter a YouTube URL.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check subscription limits
+    if (subscription?.subscription_tier === 'free' && subscription?.generations_used >= subscription?.generation_limit) {
+      toast({
+        title: "Generation Limit Reached",
+        description: "Upgrade to Pro or Premium to continue generating study materials.",
         variant: "destructive",
       });
       return;
@@ -680,6 +690,26 @@ const VideoSummarizer = () => {
             <WrongAnswersReview onPointsEarned={handlePointsEarned} />
           </TabsContent>
         </Tabs>
+
+        {/* Subscription Information */}
+        <div className="mt-8 p-4 bg-muted/50 rounded-lg border">
+          <div className="text-center space-y-2">
+            <h3 className="text-sm font-semibold">Subscription Plan</h3>
+            <div className="flex items-center justify-center gap-4 text-sm">
+              <Badge variant={subscription?.subscription_tier === 'free' ? 'default' : 'secondary'}>
+                {subscription?.subscription_tier?.toUpperCase() || 'FREE'}
+              </Badge>
+              <span className="text-muted-foreground">
+                Generations: {subscription?.generations_used || 0} / {subscription?.generation_limit || 5}
+              </span>
+            </div>
+            {subscription?.subscription_tier === 'free' && (
+              <p className="text-xs text-muted-foreground">
+                <strong>Pro and Premium plans</strong> unlock 1500 generation limit for comprehensive study materials
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
