@@ -87,7 +87,7 @@ serve(async (req) => {
 
 **Your Tasks:**
 1. **Analyze Content:** If images are provided, extract and analyze all visible text, diagrams, charts, formulas, and educational content. If text is provided, use it as the primary content.
-2. **Create a Summary:** Generate a concise, easy-to-understand summary of the key points from all content (approx. 150-200 words).
+2. **Create Detailed Notes:** Generate comprehensive, detailed notes that cover ALL important concepts, explanations, examples, and information from the content. These notes should be thorough enough that someone could learn the entire subject matter just by reading them and successfully answer quiz questions. Include definitions, step-by-step explanations, examples, formulas, and any other relevant details (aim for 800-1500 words depending on content complexity).
 3. **Create Flashcards:** Generate 5-10 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information visible in images or text.
 4. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer.
 
