@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 
 export const SubscriptionButton = () => {
   const { user, subscription } = useAuth();
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubscribe = async () => {
@@ -17,30 +16,8 @@ export const SubscriptionButton = () => {
       return;
     }
 
-    if (subscription?.subscribed) {
-      navigate('/subscription');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Error creating checkout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start subscription process. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Always redirect to subscription page for comparison
+    navigate('/subscription');
   };
 
   const generationsUsed = subscription?.generations_used || 0;
@@ -78,15 +55,10 @@ export const SubscriptionButton = () => {
       {/* Subscription Button */}
       <Button 
         onClick={handleSubscribe}
-        disabled={loading}
         variant={isSubscribed ? "secondary" : "default"}
         className={`flex items-center gap-2 ${!isSubscribed ? 'bg-primary hover:bg-primary/90' : ''}`}
       >
-        {loading ? (
-          <div className="h-4 w-4 animate-spin border-2 border-white border-t-transparent rounded-full" />
-        ) : (
-          <Crown className="h-4 w-4" />
-        )}
+        <Crown className="h-4 w-4" />
         {isSubscribed ? 'Pro' : 'Upgrade'}
         {!isSubscribed && <ExternalLink className="h-4 w-4" />}
       </Button>

@@ -18,9 +18,10 @@ export const checkGenerationLimit = async (): Promise<boolean> => {
     if (data?.error) {
       if (data.error === "Generation limit exceeded") {
         toast({
-          title: "Generation Limit Reached",
-          description: "You've reached your generation limit. Upgrade to Dukl Pro for 1,500+ generations per month!",
-          variant: "destructive"
+          title: "🚫 Free Tier Limit Reached",
+          description: "You've used all 5 free generations! Upgrade to Dukl Pro for unlimited generations and premium features.",
+          variant: "destructive",
+          className: "border-red-500 bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-100"
         });
         // Redirect to subscription page
         setTimeout(() => {
