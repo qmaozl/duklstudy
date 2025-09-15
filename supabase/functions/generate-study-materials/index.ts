@@ -146,7 +146,25 @@ Return ONLY the JSON object, no other text.`
     const result = data.choices[0].message.content;
     
     try {
-      const parsedResult = JSON.parse(result);
+      // Clean the response by removing markdown code blocks if present
+      let cleanedResult = result.trim();
+      console.log('Raw AI response length:', cleanedResult.length);
+      
+      // Check if the response is wrapped in markdown code blocks
+      if (cleanedResult.startsWith('```json')) {
+        console.log('Detected JSON markdown blocks, cleaning...');
+        // Remove ```json from the beginning and ``` from the end
+        cleanedResult = cleanedResult.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      } else if (cleanedResult.startsWith('```')) {
+        console.log('Detected generic markdown blocks, cleaning...');
+        // Remove ``` from the beginning and end
+        cleanedResult = cleanedResult.replace(/^```\s*/, '').replace(/\s*```$/, '');
+      }
+      
+      console.log('Cleaned response length:', cleanedResult.length);
+      console.log('First 200 characters of cleaned response:', cleanedResult.substring(0, 200));
+      
+      const parsedResult = JSON.parse(cleanedResult);
       console.log('Successfully parsed study materials');
       
       return new Response(JSON.stringify({
@@ -158,6 +176,7 @@ Return ONLY the JSON object, no other text.`
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
       console.error('Raw AI response:', result);
+      console.error('Cleaned response:', cleanedResult);
       
       // Fallback response
       return new Response(JSON.stringify({
