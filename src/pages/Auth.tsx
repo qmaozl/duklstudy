@@ -66,11 +66,11 @@ const Auth = () => {
             <div className="flex items-center justify-center lg:justify-start gap-2">
               <Brain className="h-10 w-10 text-primary" />
               <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
-                StudyGenius
+                Dukl
               </h1>
             </div>
             <p className="text-xl text-muted-foreground">
-              Transform your learning with AI-powered study tools
+              Dukl, your gamify study partner
             </p>
           </div>
 
@@ -93,7 +93,7 @@ const Auth = () => {
         {/* Right Side - Auth Forms */}
         <Card className="w-full max-w-md mx-auto shadow-glow">
           <CardHeader className="text-center">
-            <CardTitle>Welcome to StudyGenius</CardTitle>
+            <CardTitle>Welcome to Dukl</CardTitle>
             <CardDescription>Sign in to start your learning journey</CardDescription>
           </CardHeader>
           <CardContent>

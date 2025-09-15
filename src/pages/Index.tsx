@@ -26,11 +26,18 @@ const Index = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header */}
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <Brain className="h-8 w-8 md:h-10 md:w-10 text-primary" />
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-primary bg-clip-text text-transparent">
-            StudyGenius
-          </h1>
+        <div className="text-center space-y-2 mb-8">
+          <div className="flex items-center justify-center gap-3">
+            <Brain className="h-8 w-8 md:h-10 md:w-10 text-primary" />
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-primary bg-clip-text text-transparent">
+              Dukl
+            </h1>
+          </div>
+          <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-2 inline-block">
+            <p className="text-primary font-medium text-sm md:text-base">
+              Dukl, your gamify study partner
+            </p>
+          </div>
         </div>
 
         {/* Main Dashboard Layout */}
@@ -72,7 +79,7 @@ const Index = () => {
 
         {/* Footer */}
         <div className="text-center py-8 text-sm text-muted-foreground">
-          <p>© 2024 StudyGenius - Powered by AI for smarter learning</p>
+          <p>© 2024 Dukl - Powered by AI for smarter learning</p>
         </div>
       </div>
     </div>
