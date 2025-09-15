@@ -145,25 +145,38 @@ Return ONLY the JSON object, no other text.`
 
     const result = data.choices[0].message.content;
     
+    let cleanedResult = '';
     try {
-      // Clean the response by removing markdown code blocks if present
-      let cleanedResult = result.trim();
+      // Clean the response by removing markdown code blocks if present and extract valid JSON
+      cleanedResult = result.trim();
       console.log('Raw AI response length:', cleanedResult.length);
-      
-      // Check if the response is wrapped in markdown code blocks
-      if (cleanedResult.startsWith('```json')) {
-        console.log('Detected JSON markdown blocks, cleaning...');
-        // Remove ```json from the beginning and ``` from the end
-        cleanedResult = cleanedResult.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      } else if (cleanedResult.startsWith('```')) {
-        console.log('Detected generic markdown blocks, cleaning...');
-        // Remove ``` from the beginning and end
-        cleanedResult = cleanedResult.replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+      // If wrapped in fenced code blocks, extract the inner content
+      const fencedMatch = cleanedResult.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+      if (fencedMatch) {
+        console.log('Detected fenced code block, extracting JSON...');
+        cleanedResult = fencedMatch[1].trim();
+      } else {
+        // Remove any stray opening/closing fences just in case
+        cleanedResult = cleanedResult
+          .replace(/^```(?:json)?/i, '')
+          .replace(/```$/i, '')
+          .trim();
       }
-      
+
+      // If still not a pure JSON object, slice between the first '{' and last '}'
+      if (!(cleanedResult.startsWith('{') && cleanedResult.endsWith('}'))) {
+        const firstBrace = cleanedResult.indexOf('{');
+        const lastBrace = cleanedResult.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          console.log('Slicing content between outermost braces...');
+          cleanedResult = cleanedResult.slice(firstBrace, lastBrace + 1).trim();
+        }
+      }
+
       console.log('Cleaned response length:', cleanedResult.length);
       console.log('First 200 characters of cleaned response:', cleanedResult.substring(0, 200));
-      
+
       const parsedResult = JSON.parse(cleanedResult);
       console.log('Successfully parsed study materials');
       
