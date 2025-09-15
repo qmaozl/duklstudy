@@ -17,6 +17,8 @@ import WrongAnswersReview from '@/components/WrongAnswersReview';
 import { YouTubeApiHelper } from '@/components/YouTubeApiHelper';
 import FlashCard from '@/components/FlashCard';
 import { SubscriptionButton } from '@/components/SubscriptionButton';
+import { checkGenerationLimit } from '@/utils/generationLimits';
+import SummarySection from '@/components/SummarySection';
 
 interface StudyMaterial {
   id?: string;
@@ -76,13 +78,9 @@ const VideoSummarizer = () => {
       return;
     }
 
-    // Check subscription limits
-    if (subscription?.subscription_tier === 'free' && subscription?.generations_used >= subscription?.generation_limit) {
-      toast({
-        title: "Generation Limit Reached",
-        description: "Upgrade to Pro or Premium to continue generating study materials.",
-        variant: "destructive",
-      });
+    // Check generation limits
+    const canGenerate = await checkGenerationLimit();
+    if (!canGenerate) {
       return;
     }
 
@@ -302,6 +300,12 @@ const VideoSummarizer = () => {
 
   const generateCustomQuestions = async () => {
     if (!studyMaterial) return;
+    
+    // Check generation limits
+    const canGenerate = await checkGenerationLimit();
+    if (!canGenerate) {
+      return;
+    }
     
     setIsGeneratingQuestions(true);
     try {
@@ -587,9 +591,7 @@ const VideoSummarizer = () => {
                           </div>
                           <div>
                             <h4 className="font-semibold mb-2">Summary</h4>
-                            <p className="text-sm leading-relaxed">
-                              {studyMaterial.summary}
-                            </p>
+                            <SummarySection summary={studyMaterial.summary} />
                           </div>
                         </div>
                       </ScrollArea>
