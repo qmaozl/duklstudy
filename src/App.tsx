@@ -9,6 +9,7 @@ import AITutor from "./pages/AITutor";
 import StudyMaterials from "./pages/StudyMaterials";
 import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
+import Subscription from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/study-materials" element={<StudyMaterials />} />
           <Route path="/video-summarizer" element={<VideoSummarizer />} />
           <Route path="/study-hub" element={<StudyHub />} />
+          <Route path="/subscription" element={<Subscription />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

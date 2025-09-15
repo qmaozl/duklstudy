@@ -34,6 +34,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  refreshSubscription: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -54,34 +55,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (profileError) throw profileError;
-
-      const { data: subscriptionData, error: subError } = await supabase
-        .from('subscribers')
-        .select('subscription_tier, subscribed, subscription_end')
-        .eq('user_id', userId)
-        .single();
-
-      if (subError) throw subError;
-
       setProfile(profileData);
       
-      // Set generation limits based on subscription tier
-      const tier = (subscriptionData.subscription_tier as 'free' | 'pro' | 'premium') || 'free';
-      const limits = {
-        free: { limit: 5, used: 0 },
-        pro: { limit: 1500, used: 0 },
-        premium: { limit: 1500, used: 0 }
-      };
-      
-      setSubscription({
-        subscription_tier: tier,
-        subscribed: subscriptionData.subscribed,
-        subscription_end: subscriptionData.subscription_end,
-        generation_limit: limits[tier].limit,
-        generations_used: limits[tier].used
-      });
+      // Fetch subscription data via edge function for accurate Stripe sync
+      await fetchSubscriptionData();
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchSubscriptionData = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      
+      if (error) {
+        console.error('Error checking subscription:', error);
+        // Fallback to local data if edge function fails
+        return;
+      }
+      
+      if (data) {
+        setSubscription({
+          subscription_tier: data.subscription_tier || 'free',
+          subscribed: data.subscribed || false,
+          subscription_end: data.subscription_end,
+          generation_limit: data.generation_limit || 5,
+          generations_used: data.generations_used || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching subscription data:', error);
     }
   };
 
@@ -228,6 +231,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshSubscription = async () => {
+    await fetchSubscriptionData();
+  };
+
   const value = {
     user,
     session,
@@ -239,7 +246,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signInWithGoogle,
     signOut,
     updateProfile,
-    refreshProfile
+    refreshProfile,
+    refreshSubscription
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

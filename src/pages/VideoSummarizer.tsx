@@ -16,6 +16,7 @@ import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 import WrongAnswersReview from '@/components/WrongAnswersReview';
 import { YouTubeApiHelper } from '@/components/YouTubeApiHelper';
 import FlashCard from '@/components/FlashCard';
+import { SubscriptionButton } from '@/components/SubscriptionButton';
 
 interface StudyMaterial {
   id?: string;
@@ -361,12 +362,15 @@ const VideoSummarizer = () => {
             </div>
           </div>
           
-          {totalPointsEarned > 0 && (
-            <Badge className="bg-yellow-500 text-white">
-              <Trophy className="h-4 w-4 mr-1" />
-              Session Points: +{totalPointsEarned}
-            </Badge>
-          )}
+          <div className="flex items-center gap-3">
+            {totalPointsEarned > 0 && (
+              <Badge className="bg-yellow-500 text-white">
+                <Trophy className="h-4 w-4 mr-1" />
+                {totalPointsEarned} Total Points Earned
+              </Badge>
+            )}
+            <SubscriptionButton />
+          </div>
         </div>
 
         {/* Main Tabs */}

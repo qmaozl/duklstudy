@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { SubscriptionButton } from '@/components/SubscriptionButton';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -19,7 +20,7 @@ const AITutor = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: "Hi! I'm StudyBot, your AI tutor. I'm here to help you learn and understand any topic. What would you like to study today?",
+      content: "Hi! I'm your AI tutor. I'm here to help you learn and understand any topic. What would you like to study today?",
       timestamp: new Date().toISOString()
     }
   ]);
@@ -36,6 +37,10 @@ const AITutor = () => {
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
+
+    // Check generation limit before processing
+    const canGenerate = await import('@/utils/generationLimits').then(m => m.checkGenerationLimit());
+    if (!canGenerate) return;
 
     const userMessage: Message = {
       role: 'user',
@@ -108,19 +113,22 @@ const AITutor = () => {
     <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div className="flex items-center gap-2">
-            <Bot className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">AI Tutor Chat</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div className="flex items-center gap-2">
+              <Bot className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold">AI Tutor Chat</h1>
+            </div>
           </div>
+          <SubscriptionButton />
         </div>
 
         {/* Chat Interface */}

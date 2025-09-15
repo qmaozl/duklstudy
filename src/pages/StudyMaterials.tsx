@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { SubscriptionButton } from '@/components/SubscriptionButton';
 
 interface StudyMaterial {
   summary: string;
@@ -267,19 +268,22 @@ const StudyMaterials = () => {
     <div className="min-h-screen p-4 md:p-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          <div className="flex items-center gap-2">
-            <FileText className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Study Materials Generator</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div className="flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold">Study Materials Generator</h1>
+            </div>
           </div>
+          <SubscriptionButton />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

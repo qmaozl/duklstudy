@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import UserProfile from '@/components/UserProfile';
 import StudyTimer from '@/components/StudyTimer';
 import FeatureCards from '@/components/FeatureCards';
+import { SubscriptionButton } from '@/components/SubscriptionButton';
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -25,18 +26,23 @@ const Index = () => {
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header */}
-        <div className="text-center space-y-2 mb-8">
-          <div className="flex items-center justify-center gap-3">
-            <Brain className="h-8 w-8 md:h-10 md:w-10 text-primary" />
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-primary bg-clip-text text-transparent">
-              Dukl
-            </h1>
+        {/* Header with Subscription Button */}
+        <div className="flex justify-between items-start">
+          <div className="text-center flex-1 space-y-2">
+            <div className="flex items-center justify-center gap-3">
+              <Brain className="h-8 w-8 md:h-10 md:w-10 text-primary" />
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold gradient-primary bg-clip-text text-transparent">
+                Dukl
+              </h1>
+            </div>
+            <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-2 inline-block">
+              <p className="text-primary font-medium text-sm md:text-base">
+                Dukl, your gamify study partner
+              </p>
+            </div>
           </div>
-          <div className="bg-primary/10 border border-primary/20 rounded-lg px-4 py-2 inline-block">
-            <p className="text-primary font-medium text-sm md:text-base">
-              Dukl, your gamify study partner
-            </p>
+          <div className="flex-shrink-0">
+            <SubscriptionButton />
           </div>
         </div>
 
