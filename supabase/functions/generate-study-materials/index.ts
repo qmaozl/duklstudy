@@ -45,11 +45,22 @@ serve(async (req) => {
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
 
-    // Choose model based on content type
+    // Choose API based on content type
     const hasImages = images && images.length > 0;
-    const model = hasImages ? 'deepseek-vl-7b-chat' : 'deepseek-chat';
+    const useOpenAI = hasImages; // Use OpenAI for image processing, DeepSeek for text-only
+    const apiKey = useOpenAI ? Deno.env.get('OPENAI_API_KEY') : deepseekApiKey;
+    const baseUrl = useOpenAI ? 'https://api.openai.com' : 'https://api.deepseek.com';
+    const model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-chat';
     
-    // Build messages for multimodal or text-only content (OpenAI-compatible format)
+    if (!apiKey) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: `${useOpenAI ? 'OpenAI' : 'DeepSeek'} API key not found`
+      }), {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     const userContent: Array<{ type: 'text' | 'image_url'; text?: string; image_url?: { url: string } }> = [];
     
     if (corrected_text?.trim()) {
@@ -74,10 +85,10 @@ serve(async (req) => {
       });
     }
 
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -138,12 +149,12 @@ Return ONLY the JSON object, no other text.`
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('DeepSeek API error:', errorData);
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      console.error(`${useOpenAI ? 'OpenAI' : 'DeepSeek'} API error:`, errorData);
+      throw new Error(`${useOpenAI ? 'OpenAI' : 'DeepSeek'} API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('DeepSeek response received');
+    console.log(`${useOpenAI ? 'OpenAI' : 'DeepSeek'} response received`);
 
     const result = data.choices[0].message.content;
     
