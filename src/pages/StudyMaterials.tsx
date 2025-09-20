@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { SubscriptionButton } from '@/components/SubscriptionButton';
+import { checkGenerationLimit } from '@/utils/generationLimits';
 
 interface StudyMaterial {
   summary: string;
@@ -182,33 +183,21 @@ const StudyMaterials = () => {
       return;
     }
 
+    // Check generation limit first
+    const canGenerate = await checkGenerationLimit();
+    if (!canGenerate) {
+      return;
+    }
+
     setIsProcessing(true);
     setStudyMaterial(null);
     
     try {
-      // Step 1: Correct and enhance the text
-      setCurrentStep('Correcting and enhancing text...');
-      const { data: correctedData, error: correctionError } = await supabase.functions.invoke('correct-enhance-text', {
-        body: { raw_text: inputText }
-      });
-
-      if (correctionError) throw correctionError;
-      
-      const { corrected_text, key_concepts } = correctedData;
-
-      // Step 2: Find relevant sources
-      setCurrentStep('Finding relevant learning sources...');
-      const { data: sourcesData, error: sourcesError } = await supabase.functions.invoke('find-relevant-sources', {
-        body: { key_concepts }
-      });
-
-      if (sourcesError) throw sourcesError;
-
-      // Step 3: Generate study materials (with images if available)
-      setCurrentStep('Generating study materials...');
+      // Generate study materials directly with images and text
+      setCurrentStep('Generating comprehensive study materials...');
       const { data: materialsData, error: materialsError } = await supabase.functions.invoke('generate-study-materials', {
         body: { 
-          corrected_text,
+          corrected_text: inputText.trim(),
           images: uploadedImages.map(img => img.base64),
           num_questions: parseInt(numQuestions)
         }
@@ -216,10 +205,24 @@ const StudyMaterials = () => {
 
       if (materialsError) throw materialsError;
 
-      // Combine all the results
+      if (!materialsData.success) {
+        throw new Error(materialsData.error || 'Failed to generate study materials');
+      }
+
+      // Extract key concepts from the generated summary for now
+      // We could enhance this later by extracting them during generation
+      const key_concepts = inputText.trim() 
+        ? inputText.split(/[,.!?;]/)
+            .map(s => s.trim())
+            .filter(s => s.length > 3)
+            .slice(0, 5)
+        : ['Image Analysis'];
+
       const fullStudyMaterial: StudyMaterial = {
-        ...materialsData,
-        sources: sourcesData.sources || [],
+        summary: materialsData.summary,
+        flashcards: materialsData.flashcards,
+        quiz: materialsData.quiz,
+        sources: [], // No external sources for direct processing
         key_concepts
       };
 
@@ -232,9 +235,9 @@ const StudyMaterials = () => {
           .insert({
             user_id: user.id,
             title: `Study Material - ${new Date().toLocaleDateString()}`,
-            source_type: 'text_input',
+            source_type: uploadedImages.length > 0 ? 'image_input' : 'text_input',
             original_content: inputText,
-            corrected_text,
+            corrected_text: inputText.trim(),
             key_concepts,
             summary: fullStudyMaterial.summary,
             flashcards: fullStudyMaterial.flashcards,
@@ -252,10 +255,10 @@ const StudyMaterials = () => {
       }
 
     } catch (error) {
-      console.error('Error processing text:', error);
+      console.error('Error processing content:', error);
       toast({
         title: "Error",
-        description: "Failed to process text. Please try again.",
+        description: "Failed to process content. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -362,7 +365,7 @@ const StudyMaterials = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-muted-foreground">
-                      {inputText.length} characters
+                      {inputText.length} characters (no limit)
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Quiz Questions:</span>
