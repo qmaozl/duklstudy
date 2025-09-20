@@ -49,25 +49,27 @@ serve(async (req) => {
     const hasImages = images && images.length > 0;
     const model = hasImages ? 'deepseek-vl-7b-chat' : 'deepseek-chat';
     
-    // Build messages for multimodal or text-only content (DeepSeek VL expects input_text/input_image blocks)
-    const userContent: Array<{ type: 'input_text' | 'input_image'; text?: string; image_url?: string }> = [];
+    // Build messages for multimodal or text-only content (OpenAI-compatible format)
+    const userContent: Array<{ type: 'text' | 'image_url'; text?: string; image_url?: { url: string } }> = [];
     
     if (corrected_text?.trim()) {
-      userContent.push({ type: 'input_text', text: `Text to analyze: "${corrected_text}"` });
+      userContent.push({ type: 'text', text: `Text to analyze: "${corrected_text}"` });
     }
     
     if (hasImages) {
       (images as string[]).forEach((imageData) => {
         userContent.push({ 
-          type: 'input_image',
-          image_url: imageData
+          type: 'image_url',
+          image_url: {
+            url: imageData
+          }
         });
       });
     }
     
     if (clampedQuestions) {
       userContent.push({ 
-        type: 'input_text', 
+        type: 'text', 
         text: `Generate exactly ${clampedQuestions} quiz questions.` 
       });
     }

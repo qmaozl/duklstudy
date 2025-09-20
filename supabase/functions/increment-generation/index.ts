@@ -51,7 +51,7 @@ serve(async (req) => {
         generation_limit: limit 
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 429,
+        status: 200,
       });
     }
 
