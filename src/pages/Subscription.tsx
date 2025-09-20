@@ -207,7 +207,7 @@ const Subscription = () => {
                 Dukl Pro
               </CardTitle>
               <CardDescription>Unlimited learning potential</CardDescription>
-              <div className="text-4xl font-bold">$9.99</div>
+              <div className="text-4xl font-bold">$4.99</div>
               <div className="text-sm text-muted-foreground">per month</div>
             </CardHeader>
             <CardContent className="space-y-4">
