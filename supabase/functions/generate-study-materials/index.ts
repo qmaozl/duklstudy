@@ -50,6 +50,8 @@ serve(async (req) => {
     console.log('DEBUG: useOpenAI:', hasImages);
     console.log('DEBUG: baseUrl:', hasImages ? 'https://api.openai.com' : 'https://api.deepseek.com');
     console.log('DEBUG: model:', hasImages ? 'gpt-4o-mini' : 'deepseek-chat');
+    console.log('DEBUG: API key present:', !!apiKey);
+    console.log('DEBUG: API key length:', apiKey?.length || 0);
 
     // Choose API based on content type
     const hasImages = images && images.length > 0;
@@ -67,35 +69,45 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    const userContent: Array<{ type: 'text' | 'image_url'; text?: string; image_url?: { url: string } }> = [];
-    
-    if (corrected_text?.trim()) {
-      userContent.push({ type: 'text', text: `Text to analyze: "${corrected_text}"` });
-    }
-    
+    // Create proper multimodal content for OpenAI API
+    let messageContent;
     if (hasImages) {
+      // For images, create a content array with text and image_url objects
+      messageContent = [];
+      
+      if (corrected_text?.trim()) {
+        messageContent.push({
+          type: 'text',
+          text: `Text to analyze: "${corrected_text}"`
+        });
+      }
+      
+      // Add each image
       (images as string[]).forEach((imageData) => {
-        userContent.push({ 
+        messageContent.push({
           type: 'image_url',
           image_url: {
             url: imageData
           }
         });
       });
-    }
-    
-    if (clampedQuestions) {
-      userContent.push({ 
-        type: 'text', 
-        text: `Generate exactly ${clampedQuestions} quiz questions.` 
-      });
+      
+      if (clampedQuestions) {
+        messageContent.push({
+          type: 'text',
+          text: `Generate exactly ${clampedQuestions} quiz questions.`
+        });
+      }
+    } else {
+      // For text-only, use simple string content
+      messageContent = `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`;
     }
 
-    console.log('DEBUG: Request body structure:');
-    console.log('DEBUG: userContent length:', userContent.length);
-    console.log('DEBUG: userContent:', JSON.stringify(userContent, null, 2));
-    if (hasImages) {
-      console.log('DEBUG: First image URL prefix:', (images as string[])[0]?.substring(0, 50));
+    console.log('DEBUG: Request content structure:');
+    console.log('DEBUG: messageContent type:', Array.isArray(messageContent) ? 'array' : 'string');
+    console.log('DEBUG: messageContent length:', Array.isArray(messageContent) ? messageContent.length : messageContent.length);
+    if (hasImages && Array.isArray(messageContent)) {
+      console.log('DEBUG: First image URL prefix:', messageContent.find(item => item.type === 'image_url')?.image_url?.url?.substring(0, 50));
     }
     console.log('DEBUG: Complete request body:');
     const requestBody = {
@@ -146,13 +158,41 @@ Return ONLY the JSON object, no other text.`
         },
         {
           role: 'user',
-          content: hasImages ? userContent : `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`
+          content: messageContent
         }
       ],
       max_tokens: 6000,
       temperature: 0.4
     };
-    console.log('DEBUG: Request body (first 500 chars):', JSON.stringify(requestBody).substring(0, 500));
+    // Test the API key first with a simple text-only request
+    if (hasImages) {
+      console.log('DEBUG: Testing API key with simple request first...');
+      const testResponse = await fetch(`${baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            {
+              role: 'user',
+              content: 'Hello, can you see this message?'
+            }
+          ],
+          max_tokens: 50
+        }),
+      });
+      
+      console.log('DEBUG: Test response status:', testResponse.status);
+      if (!testResponse.ok) {
+        const testError = await testResponse.text();
+        console.error('DEBUG: Test API call failed:', testError);
+      } else {
+        console.log('DEBUG: Test API call succeeded');
+      }
+    }
 
     const response = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: 'POST',
