@@ -44,6 +44,12 @@ serve(async (req) => {
     console.log('Input text length:', corrected_text?.length || 0);
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
+    
+    console.log('DEBUG: About to make API call');
+    console.log('DEBUG: hasImages:', hasImages);
+    console.log('DEBUG: useOpenAI:', hasImages);
+    console.log('DEBUG: baseUrl:', hasImages ? 'https://api.openai.com' : 'https://api.deepseek.com');
+    console.log('DEBUG: model:', hasImages ? 'gpt-4o-mini' : 'deepseek-chat');
 
     // Choose API based on content type
     const hasImages = images && images.length > 0;
@@ -85,18 +91,19 @@ serve(async (req) => {
       });
     }
 
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert educational content creator. Your task is to generate study materials from the provided content (text and/or images).
+    console.log('DEBUG: Request body structure:');
+    console.log('DEBUG: userContent length:', userContent.length);
+    console.log('DEBUG: userContent:', JSON.stringify(userContent, null, 2));
+    if (hasImages) {
+      console.log('DEBUG: First image URL prefix:', (images as string[])[0]?.substring(0, 50));
+    }
+    console.log('DEBUG: Complete request body:');
+    const requestBody = {
+      model,
+      messages: [
+        {
+          role: 'system',
+          content: `You are an expert educational content creator. Your task is to generate study materials from the provided content (text and/or images).
 
 **Your Tasks:**
 1. **Analyze Content:** If images are provided, extract and analyze all visible text, diagrams, charts, formulas, and educational content. If text is provided, use it as the primary content.
@@ -136,15 +143,24 @@ serve(async (req) => {
 }
 
 Return ONLY the JSON object, no other text.`
-          },
-          {
-            role: 'user',
-            content: hasImages ? userContent : `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`
-          }
-        ],
-        max_tokens: 6000,
-        temperature: 0.4
-      }),
+        },
+        {
+          role: 'user',
+          content: hasImages ? userContent : `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`
+        }
+      ],
+      max_tokens: 6000,
+      temperature: 0.4
+    };
+    console.log('DEBUG: Request body (first 500 chars):', JSON.stringify(requestBody).substring(0, 500));
+
+    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
