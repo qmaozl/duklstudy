@@ -44,14 +44,6 @@ serve(async (req) => {
     console.log('Input text length:', corrected_text?.length || 0);
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
-    
-    console.log('DEBUG: About to make API call');
-    console.log('DEBUG: hasImages:', hasImages);
-    console.log('DEBUG: useOpenAI:', hasImages);
-    console.log('DEBUG: baseUrl:', hasImages ? 'https://api.openai.com' : 'https://api.deepseek.com');
-    console.log('DEBUG: model:', hasImages ? 'gpt-4o-mini' : 'deepseek-chat');
-    console.log('DEBUG: API key present:', !!apiKey);
-    console.log('DEBUG: API key length:', apiKey?.length || 0);
 
     // Choose API based on content type
     const hasImages = images && images.length > 0;
@@ -59,6 +51,14 @@ serve(async (req) => {
     const apiKey = useOpenAI ? Deno.env.get('OPENAI_API_KEY') : deepseekApiKey;
     const baseUrl = useOpenAI ? 'https://api.openai.com' : 'https://api.deepseek.com';
     const model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-chat';
+    
+    console.log('DEBUG: About to make API call');
+    console.log('DEBUG: hasImages:', hasImages);
+    console.log('DEBUG: useOpenAI:', useOpenAI);
+    console.log('DEBUG: baseUrl:', baseUrl);
+    console.log('DEBUG: model:', model);
+    console.log('DEBUG: API key present:', !!apiKey);
+    console.log('DEBUG: API key length:', apiKey?.length || 0);
     
     if (!apiKey) {
       return new Response(JSON.stringify({ 
