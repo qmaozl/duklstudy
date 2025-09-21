@@ -39,7 +39,7 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1S9RWPRrrSboS67qqZ1NnOpI", // Dukl Pro price ID - $4.99/month
+          price: "price_1S9RdlRrrSboS67qTUUrwkDF", // Dukl Pro price ID - $4.99/month
           quantity: 1,
         },
       ],
