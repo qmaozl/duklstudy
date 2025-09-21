@@ -40,13 +40,13 @@ serve(async (req) => {
       console.log('No existing customer found, will create new one during checkout');
     }
 
-    console.log('Creating checkout session with price: price_1S9RdlRrrSboS67qTUUrwkDF');
+    console.log('Creating checkout session with price: price_1S9nWWRrrSboS67qSLe52yh0');
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: "price_1S9RdlRrrSboS67qTUUrwkDF", // Dukl Pro price ID - $4.99/month
+          price: "price_1S9nWWRrrSboS67qSLe52yh0", // Dukl Pro price ID - $4.99/month
           quantity: 1,
         },
       ],
