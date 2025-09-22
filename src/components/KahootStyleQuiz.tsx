@@ -214,20 +214,21 @@ const KahootStyleQuiz: React.FC<KahootStyleQuizProps> = ({
           onWrongAnswer(shuffledQuestions[currentQuestionIndex], selectedAnswer);
         }
 
-        // Update user points
-        const { data: currentProfile } = await supabase
-          .from('profiles')
-          .select('points')
-          .eq('user_id', user.id)
-          .single();
-
-        if (currentProfile && totalPoints > 0) {
-          await supabase
-            .from('profiles')
-            .update({ points: (currentProfile.points || 0) + totalPoints })
-            .eq('user_id', user.id);
-
-          onPointsEarned(totalPoints);
+        // Update user points and level using the leveling system
+        if (totalPoints > 0) {
+          const { awardPoints } = await import('@/utils/levelingSystem');
+          const result = await awardPoints(user.id, totalPoints, 'Kahoot quiz answer');
+          
+          if (result.success) {
+            onPointsEarned(totalPoints);
+            
+            if (result.leveledUp) {
+              toast({
+                title: "Level Up! 🎉", 
+                description: `Congratulations! You've reached level ${result.newLevel}!`,
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Error recording quiz result:', error);

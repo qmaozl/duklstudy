@@ -95,13 +95,19 @@ const WrongAnswersReview: React.FC<WrongAnswersReviewProps> = ({ onPointsEarned 
               .single();
 
             if (currentProfile) {
-              const { error: pointsError } = await supabase
-                .from('profiles')
-                .update({ points: (currentProfile.points || 0) + points })
-                .eq('user_id', user.id);
-
-              if (!pointsError) {
+              // Update user points and level using the leveling system
+              const { awardPoints } = await import('@/utils/levelingSystem');
+              const result = await awardPoints(user.id, points, 'Wrong answer mastery');
+              
+              if (result.success) {
                 onPointsEarned(points);
+                
+                if (result.leveledUp) {
+                  toast({
+                    title: "Level Up! 🎉",
+                    description: `Congratulations! You've reached level ${result.newLevel}!`,
+                  });
+                }
               }
             }
           }

@@ -228,31 +228,40 @@ const StudyMaterials = () => {
 
       setStudyMaterial(fullStudyMaterial);
 
-      // Save to database
-      if (user) {
-        const { error: saveError } = await supabase
-          .from('study_materials')
-          .insert({
-            user_id: user.id,
-            title: `Study Material - ${new Date().toLocaleDateString()}`,
-            source_type: uploadedImages.length > 0 ? 'image_input' : 'text_input',
-            original_content: inputText,
-            corrected_text: inputText.trim(),
-            key_concepts,
-            summary: fullStudyMaterial.summary,
-            flashcards: fullStudyMaterial.flashcards,
-            quiz: fullStudyMaterial.quiz,
-            sources: fullStudyMaterial.sources,
-            points_earned: 10
-          });
+        // Save to database and award points
+        if (user) {
+          const { error: saveError } = await supabase
+            .from('study_materials')
+            .insert({
+              user_id: user.id,
+              title: `Study Material - ${new Date().toLocaleDateString()}`,
+              source_type: uploadedImages.length > 0 ? 'image_input' : 'text_input',
+              original_content: inputText,
+              corrected_text: inputText.trim(),
+              key_concepts,
+              summary: fullStudyMaterial.summary,
+              flashcards: fullStudyMaterial.flashcards,
+              quiz: fullStudyMaterial.quiz,
+              sources: fullStudyMaterial.sources,
+              points_earned: 10
+            });
 
-        if (!saveError) {
-          toast({
-            title: "Success!",
-            description: "Study materials generated and saved successfully!",
-          });
+          if (!saveError) {
+            // Award points using the leveling system
+            const { awardPoints } = await import('@/utils/levelingSystem');
+            const result = await awardPoints(user.id, 10, 'Study materials generated');
+            
+            let message = "Study materials generated and saved successfully!";
+            if (result.success && result.leveledUp) {
+              message += ` 🎉 Level up! You've reached level ${result.newLevel}!`;
+            }
+            
+            toast({
+              title: "Success!",
+              description: message,
+            });
+          }
         }
-      }
 
     } catch (error) {
       console.error('Error processing content:', error);

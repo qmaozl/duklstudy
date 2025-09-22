@@ -81,22 +81,19 @@ const EnhancedQuizQuestion: React.FC<EnhancedQuizQuestionProps> = ({
           }
         }
 
-        // Update user points in profiles
+        // Update user points and level using the leveling system
         if (points > 0) {
-          const { data: currentProfile } = await supabase
-            .from('profiles')
-            .select('points')
-            .eq('user_id', user.id)
-            .single();
-
-          if (currentProfile) {
-            const { error: pointsError } = await supabase
-              .from('profiles')
-              .update({ points: (currentProfile.points || 0) + points })
-              .eq('user_id', user.id);
-
-            if (!pointsError) {
-              onPointsEarned(points);
+          const { awardPoints } = await import('@/utils/levelingSystem');
+          const result = await awardPoints(user.id, points, 'Quiz question correct');
+          
+          if (result.success) {
+            onPointsEarned(points);
+            
+            if (result.leveledUp) {
+              toast({
+                title: "Level Up! 🎉",
+                description: `Congratulations! You've reached level ${result.newLevel}!`,
+              });
             }
           }
         }

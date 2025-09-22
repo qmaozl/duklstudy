@@ -82,22 +82,37 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
+    // Check for both active and trialing subscriptions (promo codes create trialing subscriptions)
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "active",
-      limit: 1,
+      status: "all", // Check all statuses to catch trialing subscriptions
+      limit: 10,
     });
-    const hasActiveSub = subscriptions.data.length > 0;
+    
+    // Filter for active or trialing subscriptions
+    const validSubscriptions = subscriptions.data.filter(sub => 
+      sub.status === "active" || sub.status === "trialing"
+    );
+    
+    const hasActiveSub = validSubscriptions.length > 0;
     let productId = null;
     let subscriptionEnd = null;
     let subscriptionTier = 'free';
 
     if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
+      const subscription = validSubscriptions[0];
+      // For trialing subscriptions, use trial_end, for active use current_period_end
+      const endTimestamp = subscription.status === "trialing" && subscription.trial_end 
+        ? subscription.trial_end 
+        : subscription.current_period_end;
+      subscriptionEnd = new Date(endTimestamp * 1000).toISOString();
+      logStep("Active/Trial subscription found", { 
+        subscriptionId: subscription.id, 
+        status: subscription.status,
+        endDate: subscriptionEnd 
+      });
       productId = subscription.items.data[0].price.product as string;
-      subscriptionTier = 'pro'; // Assuming all active subscriptions are pro for now
+      subscriptionTier = 'pro'; // All valid subscriptions are pro
       logStep("Determined subscription tier", { productId, subscriptionTier });
       
       // Update local subscription status
