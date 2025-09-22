@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, Sparkles, Loader2, FileText, Download, ExternalLink, Image, X } from 'lucide-react';
+import { ArrowLeft, Upload, Sparkles, Loader2, FileText, Download, ExternalLink, Image, X, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -126,6 +127,8 @@ const StudyMaterials = () => {
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [currentStep, setCurrentStep] = useState<string>('');
   const [numQuestions, setNumQuestions] = useState<string>('5');
+  const [promoCode, setPromoCode] = useState('');
+  const [isActivatingPromo, setIsActivatingPromo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (files: FileList) => {
@@ -264,6 +267,61 @@ const StudyMaterials = () => {
     } finally {
       setIsProcessing(false);
       setCurrentStep('');
+    }
+  };
+
+  const activatePromoCode = async () => {
+    if (!promoCode.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a promo code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Error", 
+        description: "Please sign in to activate promo codes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsActivatingPromo(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('activate-promo-code', {
+        body: { promo_code: promoCode.trim() }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: "Success! 🎉",
+          description: data.message,
+        });
+        setPromoCode('');
+        // Refresh the page to update subscription status
+        window.location.reload();
+      } else {
+        toast({
+          title: "Invalid Promo Code",
+          description: data.error || "The promo code you entered is not valid.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error activating promo code:', error);
+      toast({
+        title: "Error",
+        description: "Failed to activate promo code. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsActivatingPromo(false);
     }
   };
 
@@ -524,6 +582,44 @@ const StudyMaterials = () => {
             )}
           </div>
         </div>
+        
+        {/* Promotional Code Section */}
+        <Card className="mt-8 border-2 border-dashed border-primary/20">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-primary">
+              <Gift className="h-5 w-5" />
+              Have a Promo Code?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <Input
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Enter promo code (e.g., TESTERSIGMAGRIND)"
+                disabled={isActivatingPromo}
+                className="flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && activatePromoCode()}
+              />
+              <Button 
+                onClick={activatePromoCode}
+                disabled={isActivatingPromo || !promoCode.trim()}
+                className="gap-2 whitespace-nowrap"
+                variant="secondary"
+              >
+                {isActivatingPromo ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                {isActivatingPromo ? 'Activating...' : 'Activate Code'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Special promo codes grant instant access to Dukl Pro features
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
