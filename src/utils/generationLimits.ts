@@ -3,6 +3,18 @@ import { toast } from '@/hooks/use-toast';
 
 export const checkGenerationLimit = async (): Promise<boolean> => {
   try {
+    // 1) Short-circuit for Dukl Pro users based on current subscription status
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session) {
+      const { data: subInfo } = await supabase.functions.invoke('check-subscription');
+      const isPro = (subInfo?.subscription_tier === 'pro') || subInfo?.generation_limit === null;
+      const isSubscribed = !!subInfo?.subscribed;
+      if (isSubscribed && isPro) {
+        return true; // Pro users have unlimited generations
+      }
+    }
+
+    // 2) Fallback to server-enforced counter for free users
     const { data, error } = await supabase.functions.invoke('increment-generation');
     
     if (error) {
@@ -16,6 +28,13 @@ export const checkGenerationLimit = async (): Promise<boolean> => {
     }
 
     if (data?.error) {
+      // Double-check subscription to avoid false negatives
+      const { data: subInfo2 } = await supabase.functions.invoke('check-subscription');
+      const proNow = (subInfo2?.subscription_tier === 'pro') || subInfo2?.generation_limit === null;
+      if (subInfo2?.subscribed && proNow) {
+        return true;
+      }
+
       if (data.error === "Generation limit exceeded") {
         toast({
           title: "🚫 Free Tier Limit Reached",
@@ -38,8 +57,8 @@ export const checkGenerationLimit = async (): Promise<boolean> => {
       return false;
     }
 
-    // Show remaining generations if low
-    if (data?.remaining <= 2 && data?.remaining > 0) {
+    // Show remaining generations if low (free tier only)
+    if (typeof data?.remaining === 'number' && data.remaining <= 2 && data.remaining > 0) {
       toast({
         title: "Generation Limit Warning",
         description: `Only ${data.remaining} generations remaining. Consider upgrading to Dukl Pro!`

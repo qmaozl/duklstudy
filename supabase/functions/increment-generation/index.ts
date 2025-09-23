@@ -40,11 +40,11 @@ serve(async (req) => {
     }
 
     const currentUsed = subData?.generations_used || 0;
-    const tier = subData?.subscription_tier || 'free';
-    const limit = tier === 'pro' ? 1500 : 5;
+    const isPro = (subData?.subscription_tier || 'free') === 'pro';
+    const limit: number | null = isPro ? null : 5;
 
-    // Check if user has exceeded limit
-    if (currentUsed >= limit) {
+    // Check if user has exceeded limit (only for free tier)
+    if (limit !== null && currentUsed >= limit) {
       return new Response(JSON.stringify({ 
         error: "Generation limit exceeded",
         generations_used: currentUsed,
@@ -55,25 +55,26 @@ serve(async (req) => {
       });
     }
 
-    // Increment generation count
+    // Increment generation count (upsert to ensure row exists)
     const { error: updateError } = await supabaseClient
       .from('subscribers')
-      .update({ 
+      .upsert({ 
+        user_id: user.id,
         generations_used: currentUsed + 1,
         updated_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id);
+      });
 
     if (updateError) {
       console.error("Error updating generations:", updateError);
       throw new Error("Could not update generation count");
     }
 
+    const remaining = limit === null ? null : (limit - (currentUsed + 1));
     return new Response(JSON.stringify({
       success: true,
       generations_used: currentUsed + 1,
       generation_limit: limit,
-      remaining: limit - (currentUsed + 1)
+      remaining
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
