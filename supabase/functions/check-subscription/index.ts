@@ -82,18 +82,16 @@ serve(async (req) => {
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // Check for both active and trialing subscriptions (promo codes create trialing subscriptions)
+    // List subscriptions without status filter, then check active/trialing
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
-      status: "all", // Check all statuses to catch trialing subscriptions
-      limit: 10,
+      limit: 20,
     });
-    
-    // Filter for active or trialing subscriptions
-    const validSubscriptions = subscriptions.data.filter(sub => 
+
+    const validSubscriptions = subscriptions.data.filter((sub) =>
       sub.status === "active" || sub.status === "trialing"
     );
-    
+
     const hasActiveSub = validSubscriptions.length > 0;
     let productId = null;
     let subscriptionEnd = null;

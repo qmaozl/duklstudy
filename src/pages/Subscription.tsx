@@ -141,22 +141,31 @@ const Subscription = () => {
             <CardHeader className="text-center">
               <CardTitle className="flex items-center justify-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
-                Current Usage
+                {isSubscribed ? 'Pro Status' : 'Current Usage'}
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-2">
-              <div className="text-2xl font-bold">
-                {generationsUsed} / {generationLimit}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                AI generations {isSubscribed ? 'this month' : 'remaining'}
-              </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div 
-                  className="bg-primary rounded-full h-2 transition-all" 
-                  style={{ width: `${Math.min((generationsUsed / generationLimit) * 100, 100)}%` }}
-                />
-              </div>
+              {isSubscribed ? (
+                <>
+                  <div className="text-2xl font-bold">Unlimited Generations</div>
+                  <div className="text-sm text-muted-foreground">Enjoy unlimited AI generations with Dukl Pro</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-2xl font-bold">
+                    {generationsUsed} / {generationLimit}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    AI generations remaining
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div 
+                      className="bg-primary rounded-full h-2 transition-all" 
+                      style={{ width: `${Math.min((generationsUsed / generationLimit) * 100, 100)}%` }}
+                    />
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         )}

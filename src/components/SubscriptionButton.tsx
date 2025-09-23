@@ -39,18 +39,20 @@ export const SubscriptionButton = () => {
 
   return (
     <div className="flex items-center gap-3">
-      {/* Generation Counter */}
-      <div className="hidden sm:flex items-center gap-2 text-sm">
-        <span className="text-muted-foreground">
-          {generationsUsed}/{generationLimit}
-        </span>
-        <div className="w-16 bg-muted rounded-full h-1.5">
-          <div 
-            className="bg-primary rounded-full h-1.5 transition-all" 
-            style={{ width: `${Math.min((generationsUsed / generationLimit) * 100, 100)}%` }}
-          />
+      {/* Generation Counter - hide for Pro */}
+      {!isSubscribed && (
+        <div className="hidden sm:flex items-center gap-2 text-sm">
+          <span className="text-muted-foreground">
+            {generationsUsed}/{generationLimit}
+          </span>
+          <div className="w-16 bg-muted rounded-full h-1.5">
+            <div 
+              className="bg-primary rounded-full h-1.5 transition-all" 
+              style={{ width: `${Math.min((generationsUsed / generationLimit) * 100, 100)}%` }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Subscription Button */}
       <Button 
