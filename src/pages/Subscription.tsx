@@ -107,6 +107,7 @@ const Subscription = () => {
   const generationsUsed = subscription?.generations_used || 0;
   const generationLimit = subscription?.generation_limit || 5;
   const isSubscribed = subscription?.subscribed || false;
+  const isPro = subscription?.subscription_tier === 'pro';
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -145,7 +146,7 @@ const Subscription = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-2">
-              {isSubscribed ? (
+              {isPro ? (
                 <>
                   <div className="text-2xl font-bold">Unlimited Generations</div>
                   <div className="text-sm text-muted-foreground">Enjoy unlimited AI generations with Dukl Pro</div>

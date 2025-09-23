@@ -18,7 +18,7 @@ interface Subscription {
   subscription_tier: 'free' | 'pro' | 'premium';
   subscribed: boolean;
   subscription_end?: string;
-  generation_limit: number;
+  generation_limit: number | null; // null means unlimited
   generations_used: number;
 }
 
@@ -79,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           subscription_tier: data.subscription_tier || 'free',
           subscribed: data.subscribed || false,
           subscription_end: data.subscription_end,
-          generation_limit: data.generation_limit || 5,
+          generation_limit: data.generation_limit === null ? null : (data.generation_limit || 5),
           generations_used: data.generations_used || 0
         });
       }

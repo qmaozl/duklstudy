@@ -23,6 +23,7 @@ export const SubscriptionButton = () => {
   const generationsUsed = subscription?.generations_used || 0;
   const generationLimit = subscription?.generation_limit || 5;
   const isSubscribed = subscription?.subscribed || false;
+  const isPro = subscription?.subscription_tier === 'pro';
 
   if (!user) {
     return (
@@ -40,7 +41,7 @@ export const SubscriptionButton = () => {
   return (
     <div className="flex items-center gap-3">
       {/* Generation Counter - hide for Pro */}
-      {!isSubscribed && (
+      {!isPro && (
         <div className="hidden sm:flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">
             {generationsUsed}/{generationLimit}

@@ -120,7 +120,7 @@ serve(async (req) => {
           user_id: user.id,
           email: user.email,
           subscribed: true,
-          subscription_tier: subscriptionTier,
+          subscription_tier: 'pro', // Always set to pro for valid subscriptions
           subscription_end: subscriptionEnd,
           product_id: productId,
           updated_at: new Date().toISOString()
@@ -150,8 +150,8 @@ serve(async (req) => {
       .single();
 
     const generationsUsed = subData?.generations_used || 0;
-    const tier = subData?.subscription_tier || subscriptionTier;
-    const generationLimit = tier === 'pro' ? 1500 : 5;
+    const tier = hasActiveSub ? 'pro' : (subData?.subscription_tier || 'free');
+    const generationLimit = tier === 'pro' ? null : 5; // null means unlimited
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
