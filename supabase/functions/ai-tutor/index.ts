@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,8 +16,8 @@ serve(async (req) => {
   try {
     console.log('Processing AI tutor request');
     
-    if (!deepseekApiKey) {
-      throw new Error('DeepSeek API key not found');
+    if (!openaiApiKey) {
+      throw new Error('OpenAI API key not found');
     }
     
     const { user_message, current_topic, conversation_history } = await req.json();
@@ -61,14 +61,14 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
       content: user_message
     });
 
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'gpt-4o-mini',
         messages: messages,
         max_tokens: 500,
         temperature: 0.7
@@ -77,12 +77,12 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('DeepSeek API error:', errorData);
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('DeepSeek response received');
+    console.log('OpenAI response received');
 
     const botResponse = data.choices[0].message.content;
     
