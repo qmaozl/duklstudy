@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,10 +16,10 @@ serve(async (req) => {
   try {
     console.log('Processing study materials generation request');
     
-    if (!openaiApiKey) {
+    if (!deepseekApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'OpenAI API key not found'
+        error: 'DeepSeek API key not found'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -45,14 +45,17 @@ serve(async (req) => {
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
 
-    // Always use OpenAI for consistency
+    // Use DeepSeek API - note: DeepSeek doesn't support vision, so images will be ignored
     const hasImages = images && images.length > 0;
-    const apiKey = openaiApiKey;
-    const baseUrl = 'https://api.openai.com';
-    const model = 'gpt-4o-mini';
+    if (hasImages) {
+      console.log('WARNING: Images detected but DeepSeek does not support vision. Processing text only.');
+    }
+    
+    const apiKey = deepseekApiKey;
+    const baseUrl = 'https://api.deepseek.com';
+    const model = 'deepseek-chat';
     
     console.log('DEBUG: About to make API call');
-    console.log('DEBUG: hasImages:', hasImages);
     console.log('DEBUG: baseUrl:', baseUrl);
     console.log('DEBUG: model:', model);
     console.log('DEBUG: API key present:', !!apiKey);
@@ -61,62 +64,29 @@ serve(async (req) => {
     if (!apiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'OpenAI API key not found'
+        error: 'DeepSeek API key not found'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    // Create proper multimodal content for OpenAI API
-    let messageContent;
-    if (hasImages) {
-      // For images, create a content array with text and image_url objects
-      messageContent = [];
-      
-      if (corrected_text?.trim()) {
-        messageContent.push({
-          type: 'text',
-          text: `Text to analyze: "${corrected_text}"`
-        });
-      }
-      
-      // Add each image
-      (images as string[]).forEach((imageData) => {
-        messageContent.push({
-          type: 'image_url',
-          image_url: {
-            url: imageData
-          }
-        });
-      });
-      
-      if (clampedQuestions) {
-        messageContent.push({
-          type: 'text',
-          text: `Generate exactly ${clampedQuestions} quiz questions.`
-        });
-      }
-    } else {
-      // For text-only, use simple string content
-      messageContent = `Text to analyze: "${corrected_text}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`;
-    }
+    // Create content for DeepSeek API (text-only)
+    const messageContent = `Text to analyze: "${corrected_text || 'No text provided'}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`;
 
     console.log('DEBUG: Request content structure:');
-    console.log('DEBUG: messageContent type:', Array.isArray(messageContent) ? 'array' : 'string');
-    console.log('DEBUG: messageContent length:', Array.isArray(messageContent) ? messageContent.length : messageContent.length);
-    if (hasImages && Array.isArray(messageContent)) {
-      // Remove the debug log line that's causing the type error
-    }
+    console.log('DEBUG: messageContent type:', typeof messageContent);
+    console.log('DEBUG: messageContent length:', messageContent.length);
+    
     console.log('DEBUG: Complete request body:');
     const requestBody = {
       model,
       messages: [
         {
           role: 'system',
-          content: `You are an expert educational content creator. Your task is to generate study materials from the provided content (text and/or images).
+          content: `You are an expert educational content creator. Your task is to generate study materials from the provided text content.
 
 **Your Tasks:**
-1. **Analyze Content:** If images are provided, extract and analyze all visible text, diagrams, charts, formulas, and educational content. If text is provided, use it as the primary content.
+1. **Analyze Content:** Use the provided text as the primary content for analysis.
 
 2. **Create Comprehensive Educational Summary:** Generate a detailed, educational summary that serves as a complete learning resource. Your summary should:
    - Be 2000-3000 words long with substantial educational value
@@ -130,16 +100,9 @@ serve(async (req) => {
    - Include practical applications and implications of the knowledge
    - Format as comprehensive study notes that could replace a textbook chapter
 
-3. **Create Flashcards:** Generate 8-15 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information visible in images or text.
+3. **Create Flashcards:** Generate 8-15 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information from the text.
 
 4. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer with factual accuracy.
-
-**For Images:** Pay special attention to:
-- Text within images (OCR and understanding)
-- Diagrams, charts, and visual data
-- Mathematical formulas and equations
-- Tables and structured information
-- Educational diagrams and illustrations
 
 **Output Format Rules:** 
 - You MUST output a valid JSON object with the following structure. Do not add any other text.
@@ -175,36 +138,6 @@ Return ONLY the JSON object, no other text.`
       max_tokens: 6000,
       temperature: 0.4
     };
-    // Test the API key first with a simple text-only request
-    if (hasImages) {
-      console.log('DEBUG: Testing API key with simple request first...');
-      const testResponse = await fetch(`${baseUrl}/v1/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            {
-              role: 'user',
-              content: 'Hello, can you see this message?'
-            }
-          ],
-          max_tokens: 50
-        }),
-      });
-      
-      console.log('DEBUG: Test response status:', testResponse.status);
-      if (!testResponse.ok) {
-        const testError = await testResponse.text();
-        console.error('DEBUG: Test API call failed:', testError);
-      } else {
-        console.log('DEBUG: Test API call succeeded');
-      }
-    }
-
     const response = await fetch(`${baseUrl}/v1/chat/completions`, {
       method: 'POST',
       headers: {
@@ -216,12 +149,12 @@ Return ONLY the JSON object, no other text.`
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('DeepSeek API error:', errorData);
+      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI response received');
+    console.log('DeepSeek response received');
 
     const result = data.choices[0].message.content;
     
