@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,10 +16,10 @@ serve(async (req) => {
   try {
     console.log('Processing study materials generation request');
     
-    if (!deepseekApiKey) {
+    if (!openaiApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'DeepSeek API key not found'
+        error: 'OpenAI API key not found'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -45,16 +45,14 @@ serve(async (req) => {
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
 
-    // Choose API based on content type
+    // Always use OpenAI for consistency
     const hasImages = images && images.length > 0;
-    const useOpenAI = hasImages; // Use OpenAI for image processing, DeepSeek for text-only
-    const apiKey = useOpenAI ? Deno.env.get('OPENAI_API_KEY') : deepseekApiKey;
-    const baseUrl = useOpenAI ? 'https://api.openai.com' : 'https://api.deepseek.com';
-    const model = useOpenAI ? 'gpt-4o-mini' : 'deepseek-chat';
+    const apiKey = openaiApiKey;
+    const baseUrl = 'https://api.openai.com';
+    const model = 'gpt-4o-mini';
     
     console.log('DEBUG: About to make API call');
     console.log('DEBUG: hasImages:', hasImages);
-    console.log('DEBUG: useOpenAI:', useOpenAI);
     console.log('DEBUG: baseUrl:', baseUrl);
     console.log('DEBUG: model:', model);
     console.log('DEBUG: API key present:', !!apiKey);
@@ -63,7 +61,7 @@ serve(async (req) => {
     if (!apiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: `${useOpenAI ? 'OpenAI' : 'DeepSeek'} API key not found`
+        error: 'OpenAI API key not found'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -218,12 +216,12 @@ Return ONLY the JSON object, no other text.`
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error(`${useOpenAI ? 'OpenAI' : 'DeepSeek'} API error:`, errorData);
-      throw new Error(`${useOpenAI ? 'OpenAI' : 'DeepSeek'} API error: ${response.status}`);
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log(`${useOpenAI ? 'OpenAI' : 'DeepSeek'} response received`);
+    console.log('OpenAI response received');
 
     const result = data.choices[0].message.content;
     
