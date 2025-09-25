@@ -107,7 +107,7 @@ serve(async (req) => {
     console.log('DEBUG: messageContent type:', Array.isArray(messageContent) ? 'array' : 'string');
     console.log('DEBUG: messageContent length:', Array.isArray(messageContent) ? messageContent.length : messageContent.length);
     if (hasImages && Array.isArray(messageContent)) {
-      console.log('DEBUG: First image URL prefix:', messageContent.find(item => item.type === 'image_url')?.image_url?.url?.substring(0, 50));
+      // Remove the debug log line that's causing the type error
     }
     console.log('DEBUG: Complete request body:');
     const requestBody = {
@@ -306,7 +306,7 @@ Return ONLY the JSON object, no other text.`
     console.error('Error in generate-study-materials function:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Failed to generate study materials'
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

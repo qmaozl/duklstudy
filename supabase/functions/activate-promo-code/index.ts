@@ -44,7 +44,7 @@ serve(async (req) => {
     console.log('Attempting to activate promo code:', promo_code);
 
     // Check if promo code is valid
-    const promoDetails = VALID_PROMO_CODES[promo_code.toUpperCase()];
+    const promoDetails = VALID_PROMO_CODES[promo_code.toUpperCase() as keyof typeof VALID_PROMO_CODES];
     if (!promoDetails) {
       return new Response(JSON.stringify({ 
         success: false, 
@@ -128,7 +128,7 @@ serve(async (req) => {
     console.error('Error in activate-promo-code:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Failed to activate promo code'
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

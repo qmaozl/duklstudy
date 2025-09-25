@@ -73,10 +73,10 @@ serve(async (req) => {
       });
       
     } catch (error) {
-      console.error('Transcript extraction failed:', error.message);
+      console.error('Transcript extraction failed:', error instanceof Error ? error.message : 'Unknown error');
       return new Response(JSON.stringify({ 
         success: false,
-        error: `Unable to extract transcript: ${error.message}. This video may not have captions available or may be restricted.`
+        error: `Unable to extract transcript: ${error instanceof Error ? error.message : 'Unknown error'}. This video may not have captions available or may be restricted.`
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -87,7 +87,7 @@ serve(async (req) => {
     console.error('Error in extract-youtube-transcript function:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Failed to extract transcript'
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

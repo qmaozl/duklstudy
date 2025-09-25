@@ -116,7 +116,7 @@ serve(async (req) => {
     console.error('Error in OCR function:', error);
     return new Response(JSON.stringify({
       success: false,
-      error: error.message || 'Failed to process image'
+      error: error instanceof Error ? error.message : 'Failed to process image'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

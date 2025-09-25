@@ -98,7 +98,7 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
     console.error('Error in ai-tutor function:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       message: "I'm sorry, I'm having trouble responding right now. Please try again in a moment!",
       timestamp: new Date().toISOString()
     }), {

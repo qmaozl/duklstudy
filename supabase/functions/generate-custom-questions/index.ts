@@ -245,7 +245,7 @@ Better to generate 10 perfect questions than 15 questionable ones.`
   } catch (error) {
     console.error('Error in generate-custom-questions function:', error);
     return new Response(JSON.stringify({ 
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Failed to generate questions',
       details: 'Failed to generate factually accurate questions. Please try again.',
       timestamp: new Date().toISOString()
     }), {

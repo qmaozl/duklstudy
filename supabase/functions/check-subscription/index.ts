@@ -88,7 +88,7 @@ serve(async (req) => {
       limit: 20,
     });
 
-    const validSubscriptions = subscriptions.data.filter((sub) =>
+    const validSubscriptions = subscriptions.data.filter((sub: any) =>
       sub.status === "active" || sub.status === "trialing"
     );
 

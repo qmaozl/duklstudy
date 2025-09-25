@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,10 +16,10 @@ serve(async (req) => {
   try {
     console.log('Processing relevant sources request');
     
-    if (!deepseekApiKey) {
+    if (!openaiApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'DeepSeek API key not found'
+        error: 'OpenAI API key not found'
       }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -40,14 +40,14 @@ serve(async (req) => {
 
     console.log('Key concepts:', key_concepts);
 
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${deepseekApiKey}`,
+        'Authorization': `Bearer ${openaiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -75,12 +75,12 @@ Return ONLY the JSON object, no other text.`
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('DeepSeek API error:', errorData);
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      console.error('OpenAI API error:', errorData);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('DeepSeek response received');
+    console.log('OpenAI response received');
 
     const result = data.choices[0].message.content;
     
@@ -116,7 +116,7 @@ Return ONLY the JSON object, no other text.`
     console.error('Error in find-relevant-sources function:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Failed to find sources'
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

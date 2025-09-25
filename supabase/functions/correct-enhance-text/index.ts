@@ -116,7 +116,7 @@ Return ONLY the JSON object, no other text.`
     console.error('Error in correct-enhance-text function:', error);
     return new Response(JSON.stringify({ 
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Failed to process text'
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
