@@ -112,7 +112,10 @@ const VideoSummarizer = () => {
           body: { youtube_url: youtubeUrl }
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Primary transcript extraction error:', error);
+          throw error;
+        }
         if (data?.success) {
           transcriptData = data;
         } else {
@@ -130,7 +133,10 @@ const VideoSummarizer = () => {
             body: { youtube_url: youtubeUrl }
           });
 
-          if (altError) throw altError;
+          if (altError) {
+            console.error('Alternative transcript extraction error:', altError);
+            throw altError;
+          }
           if (altData?.success) {
             transcriptData = altData;
             toast({
@@ -144,13 +150,13 @@ const VideoSummarizer = () => {
             throw new Error(altData?.error || 'Alternative method failed');
           }
         } catch (altError) {
-          console.log('Alternative method also failed:', altError);
-          throw transcriptError; // Throw the original error
+          console.error('Alternative method also failed:', altError);
+          throw new Error(`Failed to extract transcript: ${transcriptError?.message || 'Both methods failed'}. This may be because the video has no captions, is private, or uses non-standard formats.`);
         }
       }
 
       if (!transcriptData?.success) {
-        throw new Error('Unable to extract transcript from this video. This may be because:\n• The video has no captions or transcripts\n• The video is private or restricted\n• The video uses non-standard caption formats\n\nPlease try a different video that has closed captions enabled.');
+        throw new Error('Unable to extract transcript from this video. Please try a different video with closed captions enabled.');
       }
 
       const extractedVideoData: VideoData = {
@@ -164,119 +170,163 @@ const VideoSummarizer = () => {
 
       // Check if transcript is meaningful (not just error message)
       if (extractedVideoData.transcript.length < 50) {
-        throw new Error('Transcript too short or invalid. Please try a different video that has closed captions enabled.');
+        throw new Error('Transcript too short or invalid. Please try a different video with closed captions enabled.');
       }
 
-      // Step 2: Correct and enhance the transcript
-      setCurrentStep('Processing transcript content...');
-      const { data: correctedData, error: correctionError } = await supabase.functions.invoke('correct-enhance-text', {
-        body: { raw_text: extractedVideoData.transcript }
-      });
+      // Optimize: Skip text correction for short transcripts to save time
+      let corrected_text = extractedVideoData.transcript;
+      let key_concepts = [];
 
-      if (correctionError) throw correctionError;
-      
-      if (!correctedData.success) {
-        throw new Error(correctedData.error || 'Failed to process transcript content');
-      }
-      
-      const { corrected_text, key_concepts } = correctedData;
-
-      // Step 3: Find relevant sources
-      setCurrentStep('Finding relevant learning sources...');
-      const { data: sourcesData, error: sourcesError } = await supabase.functions.invoke('find-relevant-sources', {
-        body: { key_concepts }
-      });
-
-      if (sourcesError) throw sourcesError;
-
-      if (!sourcesData.success) {
-        throw new Error(sourcesData.error || 'Failed to find relevant sources');
-      }
-
-      // Step 4: Generate study materials
-      setCurrentStep('Generating study materials...');
-      const { data: materialsData, error: materialsError } = await supabase.functions.invoke('generate-study-materials', {
-        body: { 
-          corrected_text,
-          num_questions: parseInt(numQuestions)
-        }
-      });
-
-      if (materialsError) throw materialsError;
-
-      if (!materialsData.success) {
-        throw new Error(materialsData.error || 'Failed to generate study materials');
-      }
-
-      // Combine all the results
-      const fullStudyMaterial: StudyMaterial = {
-        ...materialsData,
-        sources: [...(sourcesData.sources || []), `Original Video: ${extractedVideoData.title}`],
-        key_concepts
-      };
-
-      setStudyMaterial(fullStudyMaterial);
-
-      // Save to database
-      if (user) {
+      if (extractedVideoData.transcript.length > 500) {
+        // Step 2: Correct and enhance the transcript (only for longer content)
+        setCurrentStep('Processing transcript content...');
         try {
-          const { data: savedMaterial, error: saveError } = await supabase
-            .from('study_materials')
-            .insert({
-              user_id: user.id,
-              title: `Video Study: ${extractedVideoData.title}`,
-              source_type: 'youtube_video',
-              original_content: youtubeUrl,
-              corrected_text,
-              key_concepts,
-              summary: fullStudyMaterial.summary,
-              flashcards: fullStudyMaterial.flashcards,
-              quiz: fullStudyMaterial.quiz,
-              sources: fullStudyMaterial.sources,
-              points_earned: 15 // Extra points for video processing
-            })
-            .select()
-            .single();
+          const { data: correctedData, error: correctionError } = await supabase.functions.invoke('correct-enhance-text', {
+            body: { raw_text: extractedVideoData.transcript }
+          });
 
-          if (saveError) {
-            console.error('Error saving study material:', saveError);
+          if (correctionError) {
+            console.error('Text correction error:', correctionError);
+            // Don't fail the entire process, just use original text
             toast({
               title: "Warning",
-              description: "Study materials generated but not saved to database. Please try again.",
-              variant: "destructive",
+              description: "Text processing partially failed, using original transcript",
+              variant: "default",
             });
-          } else if (savedMaterial) {
-            setCurrentStudyMaterialId(savedMaterial.id);
-            console.log('Study material saved successfully:', savedMaterial.id);
-            // Trigger dashboard refresh
-            setDashboardRefreshTrigger(prev => prev + 1);
-            toast({
-              title: "Success!",
-              description: "Video processed and saved to your dashboard successfully!",
-            });
+          } else if (correctedData?.success) {
+            corrected_text = correctedData.corrected_text;
+            key_concepts = correctedData.key_concepts || [];
           }
-        } catch (saveError) {
-          console.error('Database save failed:', saveError);
-          toast({
-            title: "Warning",
-            description: "Study materials generated but not saved. Please check your connection.",
-            variant: "destructive",
-          });
+        } catch (correctionError) {
+          console.error('Text correction failed:', correctionError);
+          // Continue with original text
         }
       } else {
-        toast({
-          title: "Warning",
-          description: "Please log in to save your study materials permanently.",
-          variant: "destructive",
-        });
+        // For short transcripts, extract basic concepts
+        key_concepts = extractedVideoData.title.split(' ').slice(0, 3);
+      }
+
+      // Step 3 & 4: Run in parallel to save time
+      setCurrentStep('Generating study materials and finding sources...');
+      
+      try {
+        const [materialsResult, sourcesResult] = await Promise.all([
+          // Generate study materials
+          supabase.functions.invoke('generate-study-materials', {
+            body: { 
+              corrected_text,
+              num_questions: parseInt(numQuestions)
+            }
+          }),
+          // Find relevant sources (run in parallel)
+          key_concepts.length > 0 
+            ? supabase.functions.invoke('find-relevant-sources', {
+                body: { key_concepts }
+              })
+            : Promise.resolve({ data: { success: true, sources: [] }, error: null })
+        ]);
+
+        // Handle materials generation
+        const { data: materialsData, error: materialsError } = materialsResult;
+        if (materialsError) {
+          console.error('Materials generation error:', materialsError);
+          throw new Error(`Failed to generate study materials: ${materialsError.message}`);
+        }
+        if (!materialsData?.success) {
+          throw new Error(materialsData?.error || 'Failed to generate study materials');
+        }
+
+        // Handle sources (non-critical, can fail without stopping the process)
+        const { data: sourcesData, error: sourcesError } = sourcesResult;
+        let sources = [`Original Video: ${extractedVideoData.title}`];
+        
+        if (sourcesError) {
+          console.error('Sources finding error:', sourcesError);
+          toast({
+            title: "Warning",
+            description: "Could not find additional learning sources, but study materials were generated successfully",
+            variant: "default",
+          });
+        } else if (sourcesData?.success && sourcesData.sources) {
+          sources = [...sourcesData.sources, `Original Video: ${extractedVideoData.title}`];
+        }
+
+        // Combine all the results
+        const fullStudyMaterial: StudyMaterial = {
+          ...materialsData,
+          sources,
+          key_concepts
+        };
+
+        setStudyMaterial(fullStudyMaterial);
+
+        // Save to database (run in background, don't block UI)
+        if (user) {
+          try {
+            const { data: savedMaterial, error: saveError } = await supabase
+              .from('study_materials')
+              .insert({
+                user_id: user.id,
+                title: `Video Study: ${extractedVideoData.title}`,
+                source_type: 'youtube_video',
+                original_content: youtubeUrl,
+                corrected_text,
+                key_concepts,
+                summary: fullStudyMaterial.summary,
+                flashcards: fullStudyMaterial.flashcards,
+                quiz: fullStudyMaterial.quiz,
+                sources: fullStudyMaterial.sources,
+                points_earned: 15 // Extra points for video processing
+              })
+              .select()
+              .single();
+
+            if (saveError) {
+              console.error('Error saving study material:', saveError);
+              toast({
+                title: "Warning",
+                description: "Study materials generated but not saved to database. Materials are still available for this session.",
+                variant: "default",
+              });
+            } else if (savedMaterial) {
+              setCurrentStudyMaterialId(savedMaterial.id);
+              console.log('Study material saved successfully:', savedMaterial.id);
+              // Trigger dashboard refresh
+              setDashboardRefreshTrigger(prev => prev + 1);
+              toast({
+                title: "Success!",
+                description: "Video processed and saved successfully!",
+              });
+            }
+          } catch (saveError) {
+            console.error('Database save failed:', saveError);
+            toast({
+              title: "Warning",
+              description: "Study materials generated but not saved. Materials are still available for this session.",
+              variant: "default",
+            });
+          }
+        } else {
+          toast({
+            title: "Success!",
+            description: "Video processed successfully! Please log in to save materials permanently.",
+          });
+        }
+
+      } catch (parallelError) {
+        console.error('Parallel processing error:', parallelError);
+        throw parallelError;
       }
 
     } catch (error) {
       console.error('Error processing video:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to process video. Please try again.";
+      
       toast({
-        title: "Error",
-        description: error.message || "Failed to process video. Please try again.",
+        title: "Processing Failed",
+        description: errorMessage,
         variant: "destructive",
+        duration: 5000,
       });
     } finally {
       setIsProcessing(false);
