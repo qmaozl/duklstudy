@@ -3,15 +3,24 @@ import { toast } from '@/hooks/use-toast';
 
 export const checkGenerationLimit = async (): Promise<boolean> => {
   try {
+    // Get user session to ensure user is authenticated
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError || !sessionData?.session) {
+      toast({
+        title: "Authentication Error",
+        description: "Please sign in to continue.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     // 1) Short-circuit for Dukl Pro users based on current subscription status
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (sessionData?.session) {
-      const { data: subInfo } = await supabase.functions.invoke('check-subscription');
-      const isPro = (subInfo?.subscription_tier === 'pro') || subInfo?.generation_limit === null;
-      const isSubscribed = !!subInfo?.subscribed;
-      if (isSubscribed && isPro) {
-        return true; // Pro users have unlimited generations
-      }
+    const { data: subInfo } = await supabase.functions.invoke('check-subscription');
+    const isPro = (subInfo?.subscription_tier === 'pro') || subInfo?.generation_limit === null;
+    const isSubscribed = !!subInfo?.subscribed;
+    if (isSubscribed && isPro) {
+      return true; // Pro users have unlimited generations
     }
 
     // 2) Fallback to server-enforced counter for free users
