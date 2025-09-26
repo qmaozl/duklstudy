@@ -18,14 +18,30 @@ serve(async (req) => {
   );
 
   try {
+    console.log('Starting increment-generation function');
+    
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header provided");
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      throw new Error("No authorization header provided");
+    }
+    console.log('Authorization header found');
 
     const token = authHeader.replace("Bearer ", "");
+    console.log('Authenticating user with token, token length:', token.length);
+    console.log('Token starts with:', token.substring(0, 20) + '...');
+    
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    if (userError) {
+      console.error('Authentication error:', userError);
+      throw new Error(`Authentication error: ${userError.message}`);
+    }
     const user = userData.user;
-    if (!user) throw new Error("User not authenticated");
+    if (!user?.id) {
+      console.error('User not authenticated or missing user ID');
+      throw new Error("User not authenticated");
+    }
+    console.log('User authenticated:', { userId: user.id, email: user.email });
 
     // Get current subscription info
     const { data: subData, error: subError } = await supabaseClient
@@ -60,6 +76,7 @@ serve(async (req) => {
       .from('subscribers')
       .upsert({ 
         user_id: user.id,
+        email: user.email || '',
         generations_used: currentUsed + 1,
         updated_at: new Date().toISOString()
       });
