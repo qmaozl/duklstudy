@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
+const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY'); // Prefer DeepSeek key, fallback to OpenAI-compatible key
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,10 +38,13 @@ serve(async (req) => {
       });
     }
 
-    // Sanitize and clamp num_questions
-    const clampedQuestions = Math.max(1, Math.min(30, parseInt(num_questions) || 5));
+    // Sanitize and clamp num_questions (reduced for speed)
+    const clampedQuestions = Math.max(5, Math.min(12, parseInt(num_questions) || 8));
 
-    console.log('Input text length:', corrected_text?.length || 0);
+    // Trim very long inputs to speed up processing
+    const inputText = (corrected_text || '').toString().slice(0, 4000);
+
+    console.log('Input text length (trimmed):', inputText.length);
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
 
@@ -71,7 +74,7 @@ serve(async (req) => {
       });
     }
     // Create content for DeepSeek API (text-only)
-    const messageContent = `Text to analyze: "${corrected_text || 'No text provided'}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`;
+    const messageContent = `Text to analyze: "${inputText || 'No text provided'}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`;
 
     console.log('DEBUG: Request content structure:');
     console.log('DEBUG: messageContent type:', typeof messageContent);
@@ -89,18 +92,12 @@ serve(async (req) => {
 1. **Analyze Content:** Use the provided text as the primary content for analysis.
 
 2. **Create Comprehensive Educational Summary:** Generate a detailed, educational summary that serves as a complete learning resource. Your summary should:
-   - Be 2000-3000 words long with substantial educational value
-   - Cover ALL major concepts, theories, definitions, and examples from the content
-   - Include detailed explanations that help students understand WHY things work, not just what they are
-   - Provide context, background information, and real-world applications
-   - Use clear headings and subheadings to organize information logically
-   - Include step-by-step breakdowns of complex processes or concepts
-   - Add relevant examples, analogies, and mnemonics to aid understanding
-   - Explain connections between different concepts covered in the material
-   - Include practical applications and implications of the knowledge
-   - Format as comprehensive study notes that could replace a textbook chapter
+    - Be 400-800 words long
+    - Cover the main concepts, definitions, and key examples
+    - Give clear explanations of the why and how, with 1-2 practical applications
+    - Use headings and short paragraphs for readability
 
-3. **Create Flashcards:** Generate 8-15 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information from the text.
+3. **Create Flashcards:** Generate 6-10 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information from the text.
 
 4. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer with factual accuracy.
 
@@ -135,17 +132,25 @@ Return ONLY the JSON object, no other text.`
           content: messageContent
         }
       ],
-      max_tokens: 6000,
-      temperature: 0.4
+      max_tokens: 2200,
+      temperature: 0.3
     };
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort('timeout'), 45000);
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/v1/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errorData = await response.text();
@@ -235,9 +240,12 @@ Return ONLY the JSON object, no other text.`
 
   } catch (error) {
     console.error('Error in generate-study-materials function:', error);
+    const message = (error instanceof Error && (error.name === 'AbortError' || String(error.message).toLowerCase().includes('abort')))
+      ? 'Generation timed out. Try again with fewer questions.'
+      : (error instanceof Error ? error.message : 'Failed to generate study materials');
     return new Response(JSON.stringify({ 
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to generate study materials'
+      error: message
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -230,7 +230,11 @@ const VideoSummarizer = () => {
         const { data: materialsData, error: materialsError } = materialsResult;
         if (materialsError) {
           console.error('Materials generation error:', materialsError);
-          throw new Error(`Failed to generate study materials: ${materialsError.message}`);
+          const name = (materialsError as any)?.name;
+          const friendly = name === 'FunctionsFetchError'
+            ? 'The generator is temporarily unreachable or timed out. Try again, or reduce the number of questions.'
+            : `Failed to generate study materials: ${(materialsError as any)?.message || 'Unknown error'}`;
+          throw new Error(friendly);
         }
         if (!materialsData?.success) {
           throw new Error(materialsData?.error || 'Failed to generate study materials');
