@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, X } from 'lucide-react';
+import { Play, Pause, X, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StudyMode } from './StudyModeSelector';
 import oceanBackground from '@/assets/ocean-background.jpg';
