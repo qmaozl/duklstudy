@@ -50,9 +50,6 @@ const StudyTimer = () => {
   return (
     <>
       <div className="space-y-6">
-        {/* Study Groups */}
-        <StudyGroupManager />
-
         {/* Main Timer Card */}
         <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
           <CardHeader className="text-center pb-2">
@@ -62,6 +59,9 @@ const StudyTimer = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Study Groups */}
+            <StudyGroupManager />
+
             {/* Timer Display */}
             <div className="text-center">
               <div className={cn("text-6xl font-mono font-bold transition-colors duration-300", getTimerColor())}>

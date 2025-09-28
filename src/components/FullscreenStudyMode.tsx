@@ -123,7 +123,7 @@ const FullscreenStudyMode = ({
   return (
     <div 
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000",
+        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in",
         config.className
       )}
       style={{
@@ -145,20 +145,20 @@ const FullscreenStudyMode = ({
       </Button>
 
       {/* Timer Display */}
-      <div className="text-center mb-8">
-        <div className="text-8xl font-mono font-light text-white drop-shadow-lg mb-4">
+      <div className="text-center mb-8 animate-scale-in">
+        <div className="text-8xl font-mono font-light text-white drop-shadow-lg mb-4 transition-all duration-500">
           {formatTime(seconds)}
         </div>
         {totalSeconds > 0 && (
-          <div className="text-xl text-white/80">
+          <div className="text-xl text-white/80 animate-fade-in">
             Target: {formatTime(totalSeconds)}
           </div>
         )}
       </div>
 
       {/* Audio Control Bar */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2">
-        <div className="bg-black/80 backdrop-blur rounded-full px-6 py-3 flex items-center space-x-4">
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 animate-slide-in-right">
+        <div className="bg-black/80 backdrop-blur rounded-full px-6 py-3 flex items-center space-x-4 transition-all duration-300 hover:bg-black/90">
           {/* Progress Bar */}
           <div 
             className="w-64 h-2 bg-gray-600 rounded-full cursor-pointer relative overflow-hidden"
