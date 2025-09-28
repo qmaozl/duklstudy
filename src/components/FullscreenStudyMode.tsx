@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, X, Rocket } from 'lucide-react';
+import { Play, Pause, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StudyMode } from './StudyModeSelector';
 import oceanBackground from '@/assets/ocean-background.jpg';
@@ -32,18 +32,18 @@ const FullscreenStudyMode = ({
   const modeConfig = {
     ocean: {
       background: `url(${oceanBackground})`,
-      audioSrc: '/audio/ocean-waves.wav',
+      audioSrc: '/audio/ocean-waves.mp3',
       className: 'bg-gradient-to-b from-blue-900/20 to-blue-600/30'
     },
     rain: {
       background: `url(${rainBackground})`,
-      audioSrc: '/audio/rain.wav',
+      audioSrc: '/audio/rain.mp3',
       className: 'bg-gradient-to-b from-slate-900/40 to-slate-600/30'
     },
     whitenoise: {
-      background: 'linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%)',
-      audioSrc: '/audio/white-noise.wav',
-      className: 'bg-white'
+      background: '#ffffff',
+      audioSrc: '/audio/white-noise.mp3',
+      className: 'bg-white white-noise-stars'
     }
   };
 
@@ -146,7 +146,7 @@ const FullscreenStudyMode = ({
 
       {/* Timer Display */}
       <div className="text-center mb-8 animate-scale-in">
-        <div className="text-8xl font-mono font-light text-white drop-shadow-lg mb-4 transition-all duration-500">
+        <div className="text-8xl font-geo font-light text-white drop-shadow-lg mb-4 transition-all duration-500">
           {formatTime(seconds)}
         </div>
         {totalSeconds > 0 && (

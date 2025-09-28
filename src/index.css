@@ -317,4 +317,59 @@
   .gradient-aurora {
     background: var(--gradient-aurora);
   }
-}
+  }
+
+  /* Rocket takeoff animation */
+  @keyframes rocketTakeoff {
+    0% { 
+      transform: translateY(0) rotate(45deg) scale(1); 
+      opacity: 1; 
+    }
+    50% { 
+      transform: translateY(-200px) rotate(45deg) scale(1.2); 
+      opacity: 1; 
+    }
+    100% { 
+      transform: translateY(-400px) rotate(45deg) scale(0.5); 
+      opacity: 0; 
+    }
+  }
+
+  .animate-rocket-takeoff {
+    animation: rocketTakeoff 2s ease-out;
+  }
+
+  /* Enhanced shake animation for rocket takeoff */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0) translateY(0); }
+    10% { transform: translateX(-2px) translateY(-1px); }
+    20% { transform: translateX(2px) translateY(1px); }
+    30% { transform: translateX(-4px) translateY(-2px); }
+    40% { transform: translateX(4px) translateY(2px); }
+    50% { transform: translateX(-6px) translateY(-3px); }
+    60% { transform: translateX(6px) translateY(3px); }
+    70% { transform: translateX(-4px) translateY(-2px); }
+    80% { transform: translateX(4px) translateY(2px); }
+    90% { transform: translateX(-2px) translateY(-1px); }
+  }
+
+  /* White noise starry background */
+  .white-noise-stars {
+    background-image: 
+      radial-gradient(1px 1px at 10px 20px, #000, transparent),
+      radial-gradient(1px 1px at 30px 40px, #000, transparent),
+      radial-gradient(1px 1px at 60px 10px, #000, transparent),
+      radial-gradient(1px 1px at 80px 50px, #000, transparent),
+      radial-gradient(1px 1px at 45px 70px, #000, transparent),
+      radial-gradient(0.5px 0.5px at 20px 60px, #000, transparent),
+      radial-gradient(0.5px 0.5px at 70px 30px, #000, transparent),
+      radial-gradient(0.5px 0.5px at 90px 80px, #000, transparent);
+    background-size: 100px 100px;
+    background-repeat: repeat;
+    animation: floatParticles 8s ease-in-out infinite;
+  }
+
+  @keyframes floatParticles {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-2px); }
+  }

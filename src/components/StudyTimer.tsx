@@ -7,12 +7,14 @@ import { cn } from '@/lib/utils';
 import StudyModeSelector, { StudyMode } from './StudyModeSelector';
 import FullscreenStudyMode from './FullscreenStudyMode';
 import StudyGroupManager from './StudyGroupManager';
+import TransitionOverlay from './TransitionOverlay';
 
 const StudyTimer = () => {
   const { seconds, state, start, pause, stop, reset, formattedTime } = useTimer();
   const [selectedMode, setSelectedMode] = useState<StudyMode>('ocean');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetMinutes, setTargetMinutes] = useState(25); // Default 25-minute session
+  const [showTransition, setShowTransition] = useState(false);
 
   const getTimerColor = () => {
     switch (state) {
@@ -32,6 +34,11 @@ const StudyTimer = () => {
 
   const handleLockIn = () => {
     start();
+    setShowTransition(true);
+  };
+
+  const handleTransitionComplete = () => {
+    setShowTransition(false);
     setIsFullscreen(true);
   };
 
@@ -64,7 +71,7 @@ const StudyTimer = () => {
 
             {/* Timer Display */}
             <div className="text-center">
-              <div className={cn("text-6xl font-mono font-bold transition-colors duration-300", getTimerColor())}>
+              <div className={cn("text-6xl font-geo font-bold transition-colors duration-300", getTimerColor())}>
                 {formattedTime}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
@@ -141,6 +148,12 @@ const StudyTimer = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Transition Overlay */}
+      <TransitionOverlay
+        isActive={showTransition}
+        onComplete={handleTransitionComplete}
+      />
 
       {/* Fullscreen Study Mode */}
       <FullscreenStudyMode
