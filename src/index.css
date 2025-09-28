@@ -67,6 +67,15 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Animated background tokens */
+    --ocean-deep: 210 80% 22%;
+    --ocean-mid: 210 70% 28%;
+    --ocean-surface: 200 80% 40%;
+    --rain-sky-top: 220 30% 18%;
+    --rain-sky-bottom: 220 30% 10%;
+    --star-color: 0 0% 0%;
+    --white-bg: 0 0% 100%;
   }
 
   .dark {
@@ -355,21 +364,83 @@
 
   /* White noise starry background */
   .white-noise-stars {
+    background-color: hsl(var(--white-bg));
     background-image: 
-      radial-gradient(1px 1px at 10px 20px, #000, transparent),
-      radial-gradient(1px 1px at 30px 40px, #000, transparent),
-      radial-gradient(1px 1px at 60px 10px, #000, transparent),
-      radial-gradient(1px 1px at 80px 50px, #000, transparent),
-      radial-gradient(1px 1px at 45px 70px, #000, transparent),
-      radial-gradient(0.5px 0.5px at 20px 60px, #000, transparent),
-      radial-gradient(0.5px 0.5px at 70px 30px, #000, transparent),
-      radial-gradient(0.5px 0.5px at 90px 80px, #000, transparent);
+      radial-gradient(1px 1px at 10px 20px, hsl(var(--star-color)), transparent),
+      radial-gradient(1px 1px at 30px 40px, hsl(var(--star-color)), transparent),
+      radial-gradient(1px 1px at 60px 10px, hsl(var(--star-color)), transparent),
+      radial-gradient(1px 1px at 80px 50px, hsl(var(--star-color)), transparent),
+      radial-gradient(1px 1px at 45px 70px, hsl(var(--star-color)), transparent),
+      radial-gradient(0.5px 0.5px at 20px 60px, hsl(var(--star-color)), transparent),
+      radial-gradient(0.5px 0.5px at 70px 30px, hsl(var(--star-color)), transparent),
+      radial-gradient(0.5px 0.5px at 90px 80px, hsl(var(--star-color)), transparent);
     background-size: 100px 100px;
     background-repeat: repeat;
     animation: floatParticles 8s ease-in-out infinite;
   }
 
+  /* Ocean animated background */
+  .ocean-animated {
+    background: linear-gradient(180deg,
+      hsl(var(--ocean-surface)) 0%,
+      hsl(var(--ocean-mid)) 50%,
+      hsl(var(--ocean-deep)) 100%
+    );
+    position: relative;
+    overflow: hidden;
+  }
+  .ocean-animated::before {
+    content: '';
+    position: absolute;
+    inset: -10%;
+    background:
+      radial-gradient(120px 60px at 20% 110%, hsl(0 0% 100% / 0.05), transparent 70%),
+      radial-gradient(160px 80px at 60% 110%, hsl(0 0% 100% / 0.05), transparent 70%),
+      radial-gradient(100px 50px at 90% 110%, hsl(0 0% 100% / 0.05), transparent 70%);
+    animation: oceanShift 8s linear infinite;
+  }
+
+  @keyframes oceanShift {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-10%); }
+  }
+
+  /* Rain animated background */
+  .rain-animated {
+    background: linear-gradient(180deg,
+      hsl(var(--rain-sky-top)) 0%,
+      hsl(var(--rain-sky-bottom)) 100%
+    );
+    position: relative;
+    overflow: hidden;
+  }
+  .rain-animated::before {
+    content: '';
+    position: absolute;
+    inset: -50% -50% 0 -50%;
+    background-image: repeating-linear-gradient(
+      -60deg,
+      hsl(0 0% 100% / 0.08) 0px,
+      hsl(0 0% 100% / 0.08) 2px,
+      transparent 2px,
+      transparent 6px
+    );
+    animation: rainFall 1.2s linear infinite;
+  }
+
+  @keyframes rainFall {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(20%); }
+  }
+
   @keyframes floatParticles {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-2px); }
+  }
+
+  /* Geometric Sans utility */
+  @layer utilities {
+    .font-geo {
+      font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    }
   }

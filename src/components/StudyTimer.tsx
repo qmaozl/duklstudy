@@ -15,6 +15,7 @@ const StudyTimer = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetMinutes, setTargetMinutes] = useState(25); // Default 25-minute session
   const [showTransition, setShowTransition] = useState(false);
+  const [showExitTransition, setShowExitTransition] = useState(false);
 
   const getTimerColor = () => {
     switch (state) {
@@ -43,7 +44,12 @@ const StudyTimer = () => {
   };
 
   const handleExitFullscreen = () => {
+    setShowExitTransition(true);
+  };
+
+  const handleExitTransitionComplete = () => {
     setIsFullscreen(false);
+    setShowExitTransition(false);
   };
 
   const handlePlayPause = () => {
@@ -149,10 +155,18 @@ const StudyTimer = () => {
         </Card>
       </div>
 
-      {/* Transition Overlay */}
+      {/* Transition Overlays */}
       <TransitionOverlay
         isActive={showTransition}
         onComplete={handleTransitionComplete}
+        variant="enter"
+        message="Lock In!"
+      />
+      <TransitionOverlay
+        isActive={showExitTransition}
+        onComplete={handleExitTransitionComplete}
+        variant="exit"
+        message="Lock Out? :("
       />
 
       {/* Fullscreen Study Mode */}

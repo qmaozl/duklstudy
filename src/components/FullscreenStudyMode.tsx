@@ -1,10 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, X } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StudyMode } from './StudyModeSelector';
-import oceanBackground from '@/assets/ocean-background.jpg';
-import rainBackground from '@/assets/rain-background.jpg';
 
 interface FullscreenStudyModeProps {
   mode: StudyMode;
@@ -31,43 +29,45 @@ const FullscreenStudyMode = ({
 
   const modeConfig = {
     ocean: {
-      background: `url(${oceanBackground})`,
-      audioSrc: '/audio/ocean-waves.mp3',
-      className: 'bg-gradient-to-b from-blue-900/20 to-blue-600/30'
+      className: 'ocean-animated',
+      audio: { wav: '/audio/ocean-waves.wav', mp3: '/audio/ocean-waves.mp3' }
     },
     rain: {
-      background: `url(${rainBackground})`,
-      audioSrc: '/audio/rain.mp3',
-      className: 'bg-gradient-to-b from-slate-900/40 to-slate-600/30'
+      className: 'rain-animated',
+      audio: { wav: '/audio/rain.wav', mp3: '/audio/rain.mp3' }
     },
     whitenoise: {
-      background: '#ffffff',
-      audioSrc: '/audio/white-noise.mp3',
-      className: 'bg-white white-noise-stars'
+      className: 'white-noise-stars',
+      audio: { wav: '/audio/white-noise.wav', mp3: '/audio/white-noise.mp3' }
     }
-  };
+  } as const;
 
   const config = modeConfig[mode];
   const progress = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0;
 
   useEffect(() => {
-    if (isActive && audioRef.current) {
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.3;
-      
-      if (!isPaused) {
-        audioRef.current.play().catch(console.error);
-        setIsPlaying(true);
-      }
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.loop = true;
+    audio.volume = 0.3;
+    audio.muted = false;
+    audio.load();
+
+    if (isActive && !isPaused) {
+      audio
+        .play()
+        .then(() => setIsPlaying(true))
+        .catch((e) => {
+          console.warn('Autoplay blocked, will play on user interaction.', e);
+          setIsPlaying(false);
+        });
     }
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
+      audio.pause();
+      audio.currentTime = 0;
     };
-  }, [isActive, mode]);
+  }, [isActive, mode, isPaused]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -121,27 +121,24 @@ const FullscreenStudyMode = ({
   if (!isActive) return null;
 
   return (
-    <div 
+    <div
       className={cn(
         "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in",
         config.className
       )}
-      style={{
-        backgroundImage: config.background,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}
     >
-      <audio ref={audioRef} src={config.audioSrc} />
+      <audio ref={audioRef} preload="auto" autoPlay playsInline>
+        <source src={config.audio.wav} type="audio/wav" />
+        <source src={config.audio.mp3} type="audio/mpeg" />
+      </audio>
       
       {/* Exit Button */}
       <Button
         onClick={onExit}
         variant="ghost"
-        size="icon"
-        className="absolute top-6 right-6 text-white/70 hover:text-white hover:bg-white/10"
+        className="absolute top-6 left-1/2 -translate-x-1/2 text-white/80 hover:text-white hover:bg-white/10"
       >
-        <X className="h-6 w-6" />
+        Lock Out? :(
       </Button>
 
       {/* Timer Display */}
