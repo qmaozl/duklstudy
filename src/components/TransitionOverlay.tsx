@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface TransitionOverlayProps {
@@ -10,30 +10,34 @@ interface TransitionOverlayProps {
 
 const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 'Lock In!' }: TransitionOverlayProps) => {
   const [visible, setVisible] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+
+  // Keep latest onComplete without re-triggering timers
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     if (!isActive) {
       setVisible(false);
       return;
     }
-    
+
     setVisible(true);
 
-    // First timeout for the message to show, then trigger completion
     const messageTimeout = setTimeout(() => {
-      onComplete();
-    }, 1200);
+      onCompleteRef.current?.();
+    }, 1000);
 
-    // Second timeout to hide the overlay after completion
     const hideTimeout = setTimeout(() => {
       setVisible(false);
-    }, 1500);
+    }, 1400);
 
     return () => {
       clearTimeout(messageTimeout);
       clearTimeout(hideTimeout);
     };
-  }, [isActive, onComplete]);
+  }, [isActive]);
 
   if (!isActive || !visible) return null;
 

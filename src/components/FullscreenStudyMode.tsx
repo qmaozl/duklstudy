@@ -12,6 +12,7 @@ interface FullscreenStudyModeProps {
   onPlayPause: () => void;
   onExit: () => void;
   isPaused: boolean;
+  audioRef?: React.RefObject<HTMLAudioElement>;
 }
 
 const FullscreenStudyMode = ({ 
@@ -21,9 +22,11 @@ const FullscreenStudyMode = ({
   totalSeconds,
   onPlayPause, 
   onExit, 
-  isPaused 
+  isPaused,
+  audioRef: externalAudioRef
 }: FullscreenStudyModeProps) => {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const internalAudioRef = useRef<HTMLAudioElement | null>(null);
+  const mediaRef = externalAudioRef ?? internalAudioRef;
   const [isPlaying, setIsPlaying] = useState(!isPaused);
   const [audioPosition, setAudioPosition] = useState(0);
 
@@ -46,13 +49,12 @@ const FullscreenStudyMode = ({
   const progress = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0;
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio) return;
     audio.loop = true;
     audio.volume = 0.3;
     audio.muted = false;
-    audio.load();
-
+    
     if (isActive && !isPaused) {
       audio
         .play()
@@ -70,19 +72,20 @@ const FullscreenStudyMode = ({
   }, [isActive, mode, isPaused]);
 
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPaused) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play().catch(console.error);
-        setIsPlaying(true);
-      }
+    const audio = mediaRef.current;
+    if (!audio) return;
+
+    if (isPaused) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().catch(console.error);
+      setIsPlaying(true);
     }
   }, [isPaused]);
 
   useEffect(() => {
-    const audio = audioRef.current;
+    const audio = mediaRef.current;
     if (!audio) return;
 
     const updatePosition = () => {
@@ -96,14 +99,15 @@ const FullscreenStudyMode = ({
   }, []);
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current) return;
+    const audio = mediaRef.current;
+    if (!audio) return;
     
     const rect = e.currentTarget.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
     
-    if (audioRef.current.duration) {
-      audioRef.current.currentTime = percentage * audioRef.current.duration;
+    if (audio.duration) {
+      audio.currentTime = percentage * audio.duration;
     }
   };
 
@@ -127,10 +131,11 @@ const FullscreenStudyMode = ({
         config.className
       )}
     >
-      <audio ref={audioRef} preload="auto" autoPlay playsInline>
-        <source src={config.audio.wav} type="audio/wav" />
-        <source src={config.audio.mp3} type="audio/mpeg" />
-      </audio>
+      {!externalAudioRef && (
+        <audio ref={internalAudioRef} preload="auto" playsInline>
+          <source src={config.audio.mp3} type="audio/mpeg" />
+        </audio>
+      )}
       
       {/* Exit Button */}
       <Button
