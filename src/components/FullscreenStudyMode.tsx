@@ -23,10 +23,10 @@ const FullscreenStudyMode = ({
   onPlayPause, 
   onExit, 
   isPaused,
-  audioRef: externalAudioRef
+  audioRef
 }: FullscreenStudyModeProps) => {
   const internalAudioRef = useRef<HTMLAudioElement | null>(null);
-  const mediaRef = externalAudioRef ?? internalAudioRef;
+  const mediaRef = audioRef ?? internalAudioRef;
   const [isPlaying, setIsPlaying] = useState(!isPaused);
   const [audioPosition, setAudioPosition] = useState(0);
 
@@ -131,8 +131,8 @@ const FullscreenStudyMode = ({
         config.className
       )}
     >
-      {!externalAudioRef && (
-        <audio ref={internalAudioRef} preload="auto" playsInline>
+      {!audioRef && (
+        <audio ref={internalAudioRef} preload="auto" autoPlay playsInline>
           <source src={config.audio.mp3} type="audio/mpeg" />
         </audio>
       )}
