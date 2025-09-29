@@ -12,15 +12,27 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!isActive) return;
+    if (!isActive) {
+      setVisible(false);
+      return;
+    }
+    
     setVisible(true);
 
-    const t = setTimeout(() => {
+    // First timeout for the message to show, then trigger completion
+    const messageTimeout = setTimeout(() => {
       onComplete();
-      setVisible(false);
     }, 1200);
 
-    return () => clearTimeout(t);
+    // Second timeout to hide the overlay after completion
+    const hideTimeout = setTimeout(() => {
+      setVisible(false);
+    }, 1500);
+
+    return () => {
+      clearTimeout(messageTimeout);
+      clearTimeout(hideTimeout);
+    };
   }, [isActive, onComplete]);
 
   if (!isActive || !visible) return null;
