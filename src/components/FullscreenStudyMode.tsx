@@ -47,6 +47,12 @@ const FullscreenStudyMode = ({
 
   const config = modeConfig[mode];
   const progress = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0;
+  const backgroundStyle =
+    mode === 'ocean'
+      ? { backgroundImage: "url(/images/sea.jpg)" }
+      : mode === 'rain'
+      ? { backgroundImage: "url(/images/rain.jpg)" }
+      : undefined;
 
   useEffect(() => {
     const audio = mediaRef.current;
@@ -127,9 +133,10 @@ const FullscreenStudyMode = ({
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in",
+        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in bg-cover bg-center",
         config.className
       )}
+      style={backgroundStyle}
     >
       {!audioRef && (
         <audio ref={internalAudioRef} preload="auto" autoPlay playsInline>
@@ -141,18 +148,26 @@ const FullscreenStudyMode = ({
       <Button
         onClick={onExit}
         variant="ghost"
-        className="absolute top-6 left-1/2 -translate-x-1/2 text-white/80 hover:text-white hover:bg-white/10"
+        className={cn(
+          "absolute top-6 left-1/2 -translate-x-1/2",
+          mode === 'whitenoise'
+            ? "text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
+            : "text-white/80 hover:text-white hover:bg-white/10"
+        )}
       >
         Lock Out? :(
       </Button>
 
       {/* Timer Display */}
       <div className="text-center mb-8 animate-scale-in">
-        <div className="text-8xl font-geo font-light text-white drop-shadow-lg mb-4 transition-all duration-500">
+        <div className={cn(
+          "text-8xl font-geo font-light drop-shadow-lg mb-4 transition-all duration-500",
+          mode === 'whitenoise' ? "text-[hsl(0_0%_0%)]" : "text-white"
+        )}>
           {formatTime(seconds)}
         </div>
         {totalSeconds > 0 && (
-          <div className="text-xl text-white/80 animate-fade-in">
+          <div className={cn("text-xl animate-fade-in", mode === 'whitenoise' ? "text-[hsl(0_0%_15%)]" : "text-white/80") }>
             Target: {formatTime(totalSeconds)}
           </div>
         )}

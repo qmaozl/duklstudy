@@ -10,6 +10,7 @@ interface TransitionOverlayProps {
 
 const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 'Lock In!' }: TransitionOverlayProps) => {
   const [visible, setVisible] = useState(false);
+  const [fadingOut, setFadingOut] = useState(false);
   const onCompleteRef = useRef(onComplete);
 
   // Keep latest onComplete without re-triggering timers
@@ -20,21 +21,31 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
   useEffect(() => {
     if (!isActive) {
       setVisible(false);
+      setFadingOut(false);
       return;
     }
 
     setVisible(true);
+    setFadingOut(false);
 
-    const messageTimeout = setTimeout(() => {
+    // Trigger the page below to mount while overlay is still visible
+    const completeTimeout = setTimeout(() => {
       onCompleteRef.current?.();
-    }, 1000);
+    }, 600);
 
+    // Start fade out right after mounting background
+    const fadeTimeout = setTimeout(() => {
+      setFadingOut(true);
+    }, 900);
+
+    // Remove overlay after fade-out completes
     const hideTimeout = setTimeout(() => {
       setVisible(false);
     }, 1400);
 
     return () => {
-      clearTimeout(messageTimeout);
+      clearTimeout(completeTimeout);
+      clearTimeout(fadeTimeout);
       clearTimeout(hideTimeout);
     };
   }, [isActive]);
@@ -46,7 +57,7 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
       className={cn(
         'fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-700',
         variant === 'enter' ? 'bg-[hsl(0_0%_0%)]' : 'bg-[hsl(var(--destructive))]',
-        'animate-fade-in'
+        fadingOut ? 'animate-fade-out' : 'animate-fade-in'
       )}
     >
       <div className="text-3xl md:text-4xl font-geo text-white/95 animate-scale-in">

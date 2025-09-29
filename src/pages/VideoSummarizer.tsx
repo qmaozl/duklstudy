@@ -324,12 +324,14 @@ const VideoSummarizer = () => {
 
     } catch (error) {
       console.error('Error processing video:', error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to process video. Please try again.";
-      
+      const raw = error instanceof Error ? (error.message || '') : String(error);
+      const friendly = /FunctionsFetchError|Failed to fetch|edge function/i.test(raw)
+        ? 'The AI generator is temporarily unreachable or timed out. Please try again in a moment or reduce the number of questions.'
+        : raw || 'Failed to process video. Please try again.';
       toast({
-        title: "Processing Failed",
-        description: errorMessage,
-        variant: "destructive",
+        title: 'Processing Failed',
+        description: friendly,
+        variant: 'destructive',
         duration: 5000,
       });
     } finally {
