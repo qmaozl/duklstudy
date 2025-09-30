@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png";
-import timerShot from "@/assets/timer-2.png";
+import Navigation from "@/components/Navigation";
+import timerShot from "@/assets/timer.png";
 import youtubeShot from "@/assets/youtube.png";
 
 const HomePage = () => {
@@ -29,22 +29,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top Bar */}
-      <header className="fixed top-0 inset-x-0 z-40 backdrop-blur border-b border-white/10 bg-black/20">
-        <nav className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-3 group">
-            <img src={logo} alt="DUKL Study logo" className="h-8 w-8" />
-            <span className="text-white text-xl font-extralight tracking-wide" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
-              DUKL STUDY
-            </span>
-          </Link>
-          <ul className="flex items-center gap-8 text-sm">
-            <li><Link className="text-white/90 hover:text-white story-link" to="/">Home</Link></li>
-            <li><Link className="text-white/90 hover:text-white story-link" to="/video-summarizer">summarize video</Link></li>
-            <li><Link className="text-white/90 hover:text-white story-link" to="/dashboard">focus timer</Link></li>
-          </ul>
-        </nav>
-      </header>
+      <Navigation />
 
       {/* Hero */}
       <main className="flex-1">
@@ -85,8 +70,17 @@ const HomePage = () => {
                   <li>• Track your focus streaks & progress</li>
                 </ul>
               </div>
-              <div className="rounded-xl overflow-hidden shadow-glow ring-1 ring-black/5 transform transition-transform duration-700 hover:scale-105 max-w-lg mx-auto">
-                <img src={timerShot} alt="DUKL focus timer UI screenshot" className="w-full h-auto" loading="lazy" />
+              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
+                <div className="bg-black rounded-xl p-3 shadow-2xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden">
+                    <img src={timerShot} alt="DUKL focus timer UI screenshot" className="w-full h-auto" loading="lazy" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -110,8 +104,17 @@ const HomePage = () => {
                   <li>• Smart YouTube video search</li>
                 </ul>
               </div>
-              <div className="md:order-1 rounded-xl overflow-hidden shadow-glow ring-1 ring-black/5 transform transition-transform duration-700 hover:scale-105 max-w-lg mx-auto">
-                <img src={youtubeShot} alt="DUKL AI YouTube summarizer UI screenshot" className="w-full h-auto" loading="lazy" />
+              <div className="md:order-1 max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
+                <div className="bg-black rounded-xl p-3 shadow-2xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden">
+                    <img src={youtubeShot} alt="DUKL AI YouTube summarizer UI screenshot" className="w-full h-auto" loading="lazy" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

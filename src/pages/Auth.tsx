@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import Navigation from '@/components/Navigation';
 import { Brain, GraduationCap, Trophy, Timer } from 'lucide-react';
 
 const Auth = () => {
@@ -57,8 +58,10 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
-      <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
+      <Navigation />
+      <div className="pt-20 flex items-center justify-center p-4">
+        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         
         {/* Left Side - Branding */}
         <div className="space-y-8 text-center lg:text-left">
@@ -209,6 +212,7 @@ const Auth = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

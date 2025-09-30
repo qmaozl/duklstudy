@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/contexts/AuthContext';
+import Navigation from '@/components/Navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -110,22 +111,10 @@ const Subscription = () => {
   const isPro = subscription?.subscription_tier === 'pro';
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate('/')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-          </div>
-        </div>
+    <div className="min-h-screen">
+      <Navigation />
+      <div className="pt-20 p-4 md:p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
 
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
@@ -320,6 +309,7 @@ const Subscription = () => {
               </CardContent>
             </Card>
           </div>
+        </div>
         </div>
       </div>
     </div>

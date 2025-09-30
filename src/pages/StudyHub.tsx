@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Navigation from '@/components/Navigation';
 import { ArrowLeft, Book, Calendar, Search, Eye, Trash2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,8 +104,10 @@ const StudyHub = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen">
+      <Navigation />
+      <div className="pt-20 p-4 md:p-6">
+        <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Button
@@ -320,6 +323,7 @@ const StudyHub = () => {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

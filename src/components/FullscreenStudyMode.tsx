@@ -57,18 +57,28 @@ const FullscreenStudyMode = ({
   useEffect(() => {
     const audio = mediaRef.current;
     if (!audio) return;
+    
     audio.loop = true;
-    audio.volume = 0.3;
+    audio.volume = 0.5;
     audio.muted = false;
+    audio.preload = 'auto';
     
     if (isActive && !isPaused) {
-      audio
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch((e) => {
-          console.warn('Autoplay blocked, will play on user interaction.', e);
-          setIsPlaying(false);
-        });
+      // Force load and play
+      audio.load();
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Audio playing successfully');
+            setIsPlaying(true);
+          })
+          .catch((e) => {
+            console.warn('Autoplay blocked, clicking play button will start audio:', e);
+            setIsPlaying(false);
+          });
+      }
     }
 
     return () => {
@@ -133,7 +143,7 @@ const FullscreenStudyMode = ({
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in",
+        "fixed top-0 left-0 right-0 bottom-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in",
         config.className
       )}
       style={{
@@ -142,7 +152,9 @@ const FullscreenStudyMode = ({
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         width: '100vw',
-        height: '100vh'
+        height: '100vh',
+        margin: 0,
+        padding: 0
       }}
     >
       {!audioRef && (

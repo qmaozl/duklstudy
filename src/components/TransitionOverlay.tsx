@@ -28,20 +28,20 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
     setVisible(true);
     setFadingOut(false);
 
-    // Show message for 800ms before fading
+    // Show message for 1000ms before starting fade
     const messageTimeout = setTimeout(() => {
       setFadingOut(true);
-    }, 800);
+    }, 1000);
 
-    // Mount background during fade
+    // Complete transition during fade
     const completeTimeout = setTimeout(() => {
       onCompleteRef.current?.();
-    }, 1300);
+    }, 1500);
 
-    // Remove overlay completely after fade completes
+    // Remove overlay after fade completes (total 2500ms)
     const hideTimeout = setTimeout(() => {
       setVisible(false);
-    }, 2000);
+    }, 2500);
 
     return () => {
       clearTimeout(messageTimeout);
@@ -57,13 +57,13 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
       className={cn(
         'fixed inset-0 z-[100] flex items-center justify-center',
         variant === 'enter' ? 'bg-[hsl(0_0%_0%)]' : 'bg-[hsl(var(--destructive))]',
-        'transition-opacity duration-700',
+        'transition-opacity duration-1000',
         fadingOut ? 'opacity-0' : 'opacity-100'
       )}
     >
       <div className={cn(
         "text-3xl md:text-4xl font-geo text-white/95",
-        "transition-transform duration-500",
+        "transition-all duration-700",
         fadingOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
       )}>
         {message}
