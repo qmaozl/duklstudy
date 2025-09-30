@@ -28,24 +28,24 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
     setVisible(true);
     setFadingOut(false);
 
-    // Trigger the page below to mount while overlay is still visible
+    // Show message for 800ms before fading
+    const messageTimeout = setTimeout(() => {
+      setFadingOut(true);
+    }, 800);
+
+    // Mount background during fade
     const completeTimeout = setTimeout(() => {
       onCompleteRef.current?.();
-    }, 600);
+    }, 1300);
 
-    // Start fade out right after mounting background
-    const fadeTimeout = setTimeout(() => {
-      setFadingOut(true);
-    }, 900);
-
-    // Remove overlay after fade-out completes
+    // Remove overlay completely after fade completes
     const hideTimeout = setTimeout(() => {
       setVisible(false);
-    }, 1400);
+    }, 2000);
 
     return () => {
+      clearTimeout(messageTimeout);
       clearTimeout(completeTimeout);
-      clearTimeout(fadeTimeout);
       clearTimeout(hideTimeout);
     };
   }, [isActive]);
@@ -55,12 +55,17 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-700',
+        'fixed inset-0 z-[100] flex items-center justify-center',
         variant === 'enter' ? 'bg-[hsl(0_0%_0%)]' : 'bg-[hsl(var(--destructive))]',
-        fadingOut ? 'animate-fade-out' : 'animate-fade-in'
+        'transition-opacity duration-700',
+        fadingOut ? 'opacity-0' : 'opacity-100'
       )}
     >
-      <div className="text-3xl md:text-4xl font-geo text-white/95 animate-scale-in">
+      <div className={cn(
+        "text-3xl md:text-4xl font-geo text-white/95",
+        "transition-transform duration-500",
+        fadingOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
+      )}>
         {message}
       </div>
     </div>

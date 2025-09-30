@@ -133,10 +133,17 @@ const FullscreenStudyMode = ({
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in bg-cover bg-center",
+        "fixed inset-0 z-50 flex flex-col items-center justify-center transition-all duration-1000 animate-fade-in",
         config.className
       )}
-      style={backgroundStyle}
+      style={{
+        ...backgroundStyle,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        width: '100vw',
+        height: '100vh'
+      }}
     >
       {!audioRef && (
         <audio ref={internalAudioRef} preload="auto" autoPlay playsInline>

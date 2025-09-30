@@ -100,28 +100,16 @@ const Index = () => {
         </div>
 
         {/* Main Dashboard Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           
           {/* Left Column - User Profile */}
           <div className="lg:col-span-1">
             <UserProfile />
           </div>
 
-          {/* Middle Column - Study Timer */}
+          {/* Right Column - Study Timer */}
           <div className="lg:col-span-1">
             <StudyTimer />
-          </div>
-
-          {/* Right Column - Quick Stats or Additional Info */}
-          <div className="lg:col-span-1">
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center p-6 rounded-lg bg-gradient-to-br from-primary/5 to-secondary/5 border border-primary/10">
-                <h3 className="text-lg font-semibold mb-2">Ready to Learn?</h3>
-                <p className="text-sm text-muted-foreground">
-                  Choose one of the study tools below to get started with AI-powered learning.
-                </p>
-              </div>
-            </div>
           </div>
         </div>
 
