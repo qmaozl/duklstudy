@@ -85,7 +85,7 @@ const HomePage = () => {
                   <li>• Track your focus streaks & progress</li>
                 </ul>
               </div>
-              <div className="rounded-xl overflow-hidden shadow-glow ring-1 ring-black/5">
+              <div className="rounded-xl overflow-hidden shadow-glow ring-1 ring-black/5 transform transition-transform duration-700 hover:scale-105 max-w-lg mx-auto">
                 <img src={timerShot} alt="DUKL focus timer UI screenshot" className="w-full h-auto" loading="lazy" />
               </div>
             </div>
@@ -110,7 +110,7 @@ const HomePage = () => {
                   <li>• Smart YouTube video search</li>
                 </ul>
               </div>
-              <div className="md:order-1 rounded-xl overflow-hidden shadow-glow ring-1 ring-black/5">
+              <div className="md:order-1 rounded-xl overflow-hidden shadow-glow ring-1 ring-black/5 transform transition-transform duration-700 hover:scale-105 max-w-lg mx-auto">
                 <img src={youtubeShot} alt="DUKL AI YouTube summarizer UI screenshot" className="w-full h-auto" loading="lazy" />
               </div>
             </div>
