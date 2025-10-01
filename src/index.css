@@ -148,6 +148,11 @@
     overflow-x: hidden;
   }
 
+  /* Hide typing cursor globally */
+  input, textarea, [contenteditable] {
+    caret-color: transparent;
+  }
+
   /* Space-themed background elements */
   body::before {
     content: '';
