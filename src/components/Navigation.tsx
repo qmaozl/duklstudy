@@ -16,6 +16,7 @@ const Navigation = () => {
           <li><Link className="text-white/90 hover:text-white story-link" to="/">Home</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/video-summarizer">summarize video</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/dashboard">focus timer</Link></li>
+          <li><Link className="text-white/90 hover:text-white story-link" to="/calendar">calendar</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/subscription">membership</Link></li>
         </ul>
       </nav>

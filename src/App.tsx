@@ -11,6 +11,7 @@ import StudyMaterials from "./pages/StudyMaterials";
 import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
 import Subscription from "./pages/Subscription";
+import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/study-materials" element={<StudyMaterials />} />
           <Route path="/video-summarizer" element={<VideoSummarizer />} />
           <Route path="/study-hub" element={<StudyHub />} />
+          <Route path="/calendar" element={<Calendar />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 
 export type TimerState = 'stopped' | 'running' | 'paused';
 
-export function useTimer() {
+export function useTimer(subject?: string) {
   const [seconds, setSeconds] = useState(0);
   const [state, setState] = useState<TimerState>('stopped');
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -46,7 +46,8 @@ export function useTimer() {
             .insert({
               user_id: user.id,
               duration_minutes: minutes,
-              date: new Date().toISOString().split('T')[0]
+              date: new Date().toISOString().split('T')[0],
+              subject: subject || null
             });
 
           if (error) throw error;

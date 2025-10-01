@@ -161,6 +161,47 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          duration_minutes: number
+          id: string
+          scheduled_date: string
+          scheduled_time: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          scheduled_date: string
+          scheduled_time: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          scheduled_date?: string
+          scheduled_time?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_tasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       study_group_members: {
         Row: {
           group_id: string
@@ -312,6 +353,7 @@ export type Database = {
           date: string
           duration_minutes: number
           id: string
+          subject: string | null
           user_id: string | null
         }
         Insert: {
@@ -319,6 +361,7 @@ export type Database = {
           date?: string
           duration_minutes: number
           id?: string
+          subject?: string | null
           user_id?: string | null
         }
         Update: {
@@ -326,7 +369,38 @@ export type Database = {
           date?: string
           duration_minutes?: number
           id?: string
+          subject?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      study_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_study_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_study_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_study_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -369,6 +443,48 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          due_date: string
+          id: string
+          notes: string | null
+          priority_order: number
+          subject: string
+          task_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          priority_order?: number
+          subject: string
+          task_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          priority_order?: number
+          subject?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
