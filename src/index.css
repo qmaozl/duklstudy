@@ -148,9 +148,13 @@
     overflow-x: hidden;
   }
 
-  /* Hide typing cursor globally */
+  /* Hide typing cursor by default, show on focus */
   input, textarea, [contenteditable] {
     caret-color: transparent;
+  }
+  
+  input:focus, textarea:focus, [contenteditable]:focus {
+    caret-color: auto;
   }
 
   /* Space-themed background elements */
