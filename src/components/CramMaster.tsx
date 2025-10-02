@@ -37,6 +37,7 @@ interface Task {
   priority_order: number;
   completed: boolean;
   notes?: string;
+  difficulty: number;
 }
 
 interface SortableTaskProps {
@@ -111,6 +112,7 @@ const CramMaster = ({ onClose, onScheduleCreated }: CramMasterProps) => {
     subject: "",
     due_date: "",
     notes: "",
+    difficulty: 3,
   });
 
   const sensors = useSensors(
@@ -172,6 +174,7 @@ const CramMaster = ({ onClose, onScheduleCreated }: CramMasterProps) => {
         subject: "",
         due_date: "",
         notes: "",
+        difficulty: 3,
       });
       setShowAddForm(false);
       fetchTasks();
@@ -316,6 +319,24 @@ const CramMaster = ({ onClose, onScheduleCreated }: CramMasterProps) => {
                     value={formData.due_date}
                     onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
                   />
+                </div>
+                <div>
+                  <Label htmlFor="difficulty">Difficulty (1-5) *</Label>
+                  <Select
+                    value={formData.difficulty.toString()}
+                    onValueChange={(value) => setFormData({ ...formData, difficulty: parseInt(value) })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">⭐ Very Easy</SelectItem>
+                      <SelectItem value="2">⭐⭐ Easy</SelectItem>
+                      <SelectItem value="3">⭐⭐⭐ Medium</SelectItem>
+                      <SelectItem value="4">⭐⭐⭐⭐ Hard</SelectItem>
+                      <SelectItem value="5">⭐⭐⭐⭐⭐ Very Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="notes">Notes (optional)</Label>

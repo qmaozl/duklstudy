@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Pause, Square, RotateCcw, Clock, Zap } from 'lucide-react';
@@ -13,9 +13,24 @@ const StudyTimer = () => {
   const { seconds, state, start, pause, stop, reset, formattedTime } = useTimer();
   const [selectedMode, setSelectedMode] = useState<StudyMode>('ocean');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [targetMinutes, setTargetMinutes] = useState(25); // Default 25-minute session
+  const [targetMinutes, setTargetMinutes] = useState(25);
   const [showTransition, setShowTransition] = useState(false);
   const [showExitTransition, setShowExitTransition] = useState(false);
+  const startSoundRef = useRef<HTMLAudioElement | null>(null);
+  const endSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Initialize audio elements
+    startSoundRef.current = new Audio('/audio/timer-start.mp3');
+    endSoundRef.current = new Audio('/audio/timer-end.mp3');
+  }, []);
+
+  useEffect(() => {
+    // Play end sound when timer reaches 0 from running state
+    if (state === 'stopped' && seconds === 0) {
+      endSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
+    }
+  }, [state, seconds]);
 
   const getTimerColor = () => {
     switch (state) {
@@ -34,6 +49,7 @@ const StudyTimer = () => {
   };
 
   const handleLockIn = () => {
+    startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
     start();
     setShowTransition(true);
   };

@@ -35,34 +35,61 @@ export type Database = {
         }
         Relationships: []
       }
+      friendships: {
+        Row: {
+          created_at: string | null
+          friend_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          avatar_gender: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
           level: number
           points: number
+          ui_mode: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          avatar_gender?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id?: string
           level?: number
           points?: number
+          ui_mode?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          avatar_gender?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
           level?: number
           points?: number
+          ui_mode?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -224,6 +251,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "study_group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "study_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_group_music: {
+        Row: {
+          added_by: string
+          created_at: string | null
+          group_id: string
+          id: string
+          is_playing: boolean | null
+          youtube_url: string
+        }
+        Insert: {
+          added_by: string
+          created_at?: string | null
+          group_id: string
+          id?: string
+          is_playing?: boolean | null
+          youtube_url: string
+        }
+        Update: {
+          added_by?: string
+          created_at?: string | null
+          group_id?: string
+          id?: string
+          is_playing?: boolean | null
+          youtube_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_group_music_group_id_fkey"
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "study_groups"
@@ -450,6 +512,7 @@ export type Database = {
         Row: {
           completed: boolean
           created_at: string
+          difficulty: number | null
           due_date: string
           id: string
           notes: string | null
@@ -463,6 +526,7 @@ export type Database = {
         Insert: {
           completed?: boolean
           created_at?: string
+          difficulty?: number | null
           due_date: string
           id?: string
           notes?: string | null
@@ -476,6 +540,7 @@ export type Database = {
         Update: {
           completed?: boolean
           created_at?: string
+          difficulty?: number | null
           due_date?: string
           id?: string
           notes?: string | null
@@ -484,6 +549,27 @@ export type Database = {
           task_type?: string
           title?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_friend_codes: {
+        Row: {
+          created_at: string | null
+          friend_code: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_code?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_code?: string
+          id?: string
           user_id?: string
         }
         Relationships: []

@@ -12,6 +12,8 @@ interface Profile {
   level: number;
   created_at: string;
   updated_at: string;
+  avatar_gender?: 'male' | 'female';
+  ui_mode?: 'standard' | 'game';
 }
 
 interface Subscription {
@@ -55,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
+      setProfile(profileData as Profile);
       
       // Fetch subscription data via edge function for accurate Stripe sync
       await fetchSubscriptionData();

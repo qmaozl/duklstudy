@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import UIModeSwitcher from "./UIModeSwitcher";
 
 const Navigation = () => {
   return (
@@ -17,7 +18,9 @@ const Navigation = () => {
           <li><Link className="text-white/90 hover:text-white story-link" to="/video-summarizer">summarize video</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/dashboard">focus timer</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/calendar">calendar</Link></li>
+          <li><Link className="text-white/90 hover:text-white story-link" to="/friends">friends</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/subscription">membership</Link></li>
+          <li><UIModeSwitcher /></li>
         </ul>
       </nav>
     </header>

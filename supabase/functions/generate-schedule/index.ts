@@ -13,6 +13,7 @@ interface Task {
   due_date: string;
   priority_order: number;
   notes?: string;
+  difficulty: number;
 }
 
 Deno.serve(async (req) => {
@@ -57,11 +58,14 @@ Deno.serve(async (req) => {
       const dueDate = new Date(task.due_date);
       const daysUntilDue = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Determine study duration based on task type
-      let totalMinutes = 60;
-      if (task.task_type === 'exam') totalMinutes = 180;
-      else if (task.task_type === 'test') totalMinutes = 120;
-      else if (task.task_type === 'project') totalMinutes = 240;
+      // Determine study duration based on task type and difficulty
+      let baseMinutes = 60;
+      if (task.task_type === 'exam') baseMinutes = 180;
+      else if (task.task_type === 'test') baseMinutes = 120;
+      else if (task.task_type === 'project') baseMinutes = 240;
+      
+      // Multiply by difficulty factor (1-5)
+      const totalMinutes = baseMinutes * (task.difficulty / 3);
 
       // Distribute study sessions
       const sessionsNeeded = Math.ceil(totalMinutes / 60);
