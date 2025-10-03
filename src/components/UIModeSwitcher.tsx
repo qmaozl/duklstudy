@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Gamepad2 } from 'lucide-react';
 import GameUI from './GameUI';
 import AvatarSelector from './AvatarSelector';
+import TransitionOverlay from './TransitionOverlay';
 import { toast } from '@/hooks/use-toast';
 
 interface UIModeSwitcherProps {
@@ -15,6 +16,8 @@ const UIModeSwitcher = ({ onFeatureOpen }: UIModeSwitcherProps) => {
   const { user, profile, refreshProfile } = useAuth();
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [gameMode, setGameMode] = useState(false);
+  const [showTransition, setShowTransition] = useState(false);
+  const [transitionVariant, setTransitionVariant] = useState<'enter' | 'exit'>('enter');
 
   useEffect(() => {
     if (profile) {
@@ -37,6 +40,16 @@ const UIModeSwitcher = ({ onFeatureOpen }: UIModeSwitcherProps) => {
       return;
     }
 
+    // Show transition
+    setTransitionVariant(newMode === 'game' ? 'enter' : 'exit');
+    setShowTransition(true);
+  };
+
+  const handleTransitionComplete = async () => {
+    if (!user) return;
+
+    const newMode = gameMode ? 'standard' : 'game';
+    
     const { error } = await supabase
       .from('profiles')
       .update({ ui_mode: newMode })
@@ -48,15 +61,11 @@ const UIModeSwitcher = ({ onFeatureOpen }: UIModeSwitcherProps) => {
         description: 'Failed to switch UI mode.',
         variant: 'destructive',
       });
+      setShowTransition(false);
     } else {
       setGameMode(!gameMode);
       await refreshProfile();
-      toast({
-        title: gameMode ? 'Standard Mode' : 'Game Mode',
-        description: gameMode
-          ? 'Switched to standard interface.'
-          : 'Welcome to the game world!',
-      });
+      setTimeout(() => setShowTransition(false), 500);
     }
   };
 
@@ -80,6 +89,13 @@ const UIModeSwitcher = ({ onFeatureOpen }: UIModeSwitcherProps) => {
 
   return (
     <>
+      <TransitionOverlay
+        isActive={showTransition}
+        onComplete={handleTransitionComplete}
+        variant={transitionVariant}
+        message={transitionVariant === 'enter' ? 'Lock In!' : 'Returning...'}
+      />
+
       {!gameMode && (
         <Button
           onClick={toggleUIMode}
@@ -96,7 +112,7 @@ const UIModeSwitcher = ({ onFeatureOpen }: UIModeSwitcherProps) => {
         <AvatarSelector onComplete={handleAvatarComplete} />
       )}
 
-      {gameMode && profile?.avatar_gender && (
+      {gameMode && profile?.avatar_gender && !showTransition && (
         <GameUI
           onExit={toggleUIMode}
           onOpenFeature={handleFeatureOpen}
