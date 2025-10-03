@@ -1,13 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { useAuth } from '@/contexts/AuthContext';
-import MacOSPopup from './MacOSPopup';
-import StudyTimer from './StudyTimer';
-import AITutor from '@/pages/AITutor';
-import StudyMaterials from '@/pages/StudyMaterials';
-import VideoSummarizer from '@/pages/VideoSummarizer';
-import StudyHub from '@/pages/StudyHub';
-import Calendar from '@/pages/Calendar';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 interface GameUIProps {
   onExit: () => void;
@@ -15,16 +10,19 @@ interface GameUIProps {
 }
 
 const GameUI = ({ onExit, onOpenFeature }: GameUIProps) => {
-  const gameRef = useRef<Phaser.Game | null>(null);
+  const gameRef = useRef<HTMLDivElement>(null);
   const { profile } = useAuth();
-  const [activeFeature, setActiveFeature] = useState<string | null>(null);
+  const [game, setGame] = useState<Phaser.Game | null>(null);
+  const [nearFeature, setNearFeature] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!gameRef.current || game) return;
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      width: window.innerWidth,
-      height: window.innerHeight,
-      parent: 'game-container',
+      parent: gameRef.current,
+      width: 800,
+      height: 600,
       physics: {
         default: 'arcade',
         arcade: {
@@ -33,170 +31,161 @@ const GameUI = ({ onExit, onOpenFeature }: GameUIProps) => {
         },
       },
       scene: {
-        preload: preloadScene,
         create: createScene,
         update: updateScene,
       },
+      backgroundColor: '#2d3561',
     };
 
-    gameRef.current = new Phaser.Game(config);
+    const newGame = new Phaser.Game(config);
+    setGame(newGame);
 
     let player: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
     let cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-    let wasd: { w: Phaser.Input.Keyboard.Key; a: Phaser.Input.Keyboard.Key; s: Phaser.Input.Keyboard.Key; d: Phaser.Input.Keyboard.Key };
-    const featureZones: Array<{ zone: Phaser.GameObjects.Arc; name: string }> = [];
-    let lastDirection = 'down';
-
-    function preloadScene(this: Phaser.Scene) {
-      // Dynamically import map only in game mode
-      this.load.image('map', '/src/assets/game-map.png');
-    }
+    const features = new Map<string, Phaser.GameObjects.Rectangle>();
 
     function createScene(this: Phaser.Scene) {
-      // Add map background (scaled to fit screen)
-      const map = this.add.image(window.innerWidth / 2, window.innerHeight / 2, 'map');
-      const scaleX = window.innerWidth / map.width;
-      const scaleY = window.innerHeight / map.height;
-      const scale = Math.max(scaleX, scaleY);
-      map.setScale(scale);
+      // Create pixel art style map
+      const graphics = this.add.graphics();
+      graphics.fillStyle(0x1a1f3a, 1);
+      graphics.fillRect(0, 0, 800, 600);
 
-      // Create player (will be replaced with sprite animations later)
-      const playerColor = profile?.avatar_gender === 'female' ? 0xff69b4 : 0x6366f1;
-      player = this.physics.add.sprite(window.innerWidth / 2, window.innerHeight / 2, '');
-      player.setDisplaySize(32, 48);
-      
-      // Create simple player graphic for now
+      // Draw grid
+      graphics.lineStyle(1, 0x3d4466, 0.3);
+      for (let i = 0; i < 800; i += 40) {
+        graphics.lineBetween(i, 0, i, 600);
+      }
+      for (let i = 0; i < 600; i += 40) {
+        graphics.lineBetween(0, i, 800, i);
+      }
+
+      // Create player (pixel art style)
+      const playerColor = profile?.avatar_gender === 'female' ? 0xff69b4 : 0x4169e1;
+      player = this.physics.add.sprite(400, 300, '');
+      player.setDisplaySize(32, 32);
       const playerGraphics = this.add.graphics();
       playerGraphics.fillStyle(playerColor, 1);
-      playerGraphics.fillRect(-16, -24, 32, 48);
-      const playerTexture = playerGraphics.generateTexture('player', 32, 48);
+      playerGraphics.fillRect(-16, -16, 32, 32);
+      const playerTexture = playerGraphics.generateTexture('player', 32, 32);
       player.setTexture('player');
       playerGraphics.destroy();
 
-      // Create feature zones as white outlined circles with semi-transparent background
-      const features = [
-        { x: window.innerWidth * 0.2, y: window.innerHeight * 0.3, name: 'Study Timer' },
-        { x: window.innerWidth * 0.8, y: window.innerHeight * 0.3, name: 'Study Materials' },
-        { x: window.innerWidth * 0.2, y: window.innerHeight * 0.7, name: 'Video Summarizer' },
-        { x: window.innerWidth * 0.8, y: window.innerHeight * 0.7, name: 'AI Tutor' },
-        { x: window.innerWidth * 0.5, y: window.innerHeight * 0.5, name: 'Study Hub' },
-        { x: window.innerWidth * 0.65, y: window.innerHeight * 0.5, name: 'Calendar' },
+      // Create feature zones
+      const featureData = [
+        { name: 'Timer', x: 200, y: 150, color: 0x00ff00 },
+        { name: 'Study Materials', x: 600, y: 150, color: 0x00ffff },
+        { name: 'Calendar', x: 200, y: 450, color: 0xffff00 },
+        { name: 'Study Groups', x: 600, y: 450, color: 0xff00ff },
+        { name: 'Friends', x: 400, y: 300, color: 0xffa500 },
       ];
 
-      features.forEach((feature) => {
-        // Create circle with white outline and semi-transparent white fill
-        const zone = this.add.circle(feature.x, feature.y, 50, 0xffffff, 0.2);
-        zone.setStrokeStyle(3, 0xffffff, 0.8);
-        
-        // Add label below the zone
-        const text = this.add.text(feature.x, feature.y + 70, feature.name, {
-          fontSize: '14px',
+      featureData.forEach(({ name, x, y, color }) => {
+        const zone = this.add.rectangle(x, y, 80, 80, color, 0.3);
+        zone.setStrokeStyle(2, color);
+        features.set(name, zone);
+
+        // Add label
+        this.add.text(x, y, name, {
+          fontSize: '12px',
           color: '#ffffff',
-          align: 'center',
           backgroundColor: '#000000',
-          padding: { x: 8, y: 4 },
-        });
-        text.setOrigin(0.5);
-        featureZones.push({ zone: zone as Phaser.GameObjects.Arc, name: feature.name });
+          padding: { x: 4, y: 2 },
+        }).setOrigin(0.5);
       });
 
-      // Setup input - both arrow keys and WASD
       cursors = this.input.keyboard!.createCursorKeys();
-      wasd = {
-        w: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-        a: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-        s: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.S),
-        d: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      };
     }
 
     function updateScene(this: Phaser.Scene) {
-      const speed = 200;
-      
-      // Reset velocity
+      if (!player || !cursors) return;
+
+      const speed = 160;
       player.setVelocity(0);
 
-      // Movement with both arrow keys and WASD
-      if (cursors.left.isDown || wasd.a.isDown) {
+      if (cursors.left?.isDown) {
         player.setVelocityX(-speed);
-        lastDirection = 'left';
-      } else if (cursors.right.isDown || wasd.d.isDown) {
+      } else if (cursors.right?.isDown) {
         player.setVelocityX(speed);
-        lastDirection = 'right';
       }
 
-      if (cursors.up.isDown || wasd.w.isDown) {
+      if (cursors.up?.isDown) {
         player.setVelocityY(-speed);
-        lastDirection = 'up';
-      } else if (cursors.down.isDown || wasd.s.isDown) {
+      } else if (cursors.down?.isDown) {
         player.setVelocityY(speed);
-        lastDirection = 'down';
       }
 
-      // Normalize diagonal movement
-      if (player.body.velocity.x !== 0 && player.body.velocity.y !== 0) {
-        player.setVelocity(player.body.velocity.x * 0.707, player.body.velocity.y * 0.707);
-      }
-
-      // Keep player in bounds
-      player.x = Phaser.Math.Clamp(player.x, 20, window.innerWidth - 20);
-      player.y = Phaser.Math.Clamp(player.y, 20, window.innerHeight - 20);
-
-      // Check proximity to feature zones - immediate redirect
-      featureZones.forEach(({ zone, name }) => {
-        const distance = Phaser.Math.Distance.Between(player.x, player.y, zone.x, zone.y);
+      // Check proximity to features
+      let foundFeature: string | null = null;
+      features.forEach((zone, name) => {
+        const distance = Phaser.Math.Distance.Between(
+          player.x,
+          player.y,
+          zone.x,
+          zone.y
+        );
         if (distance < 60) {
-          setActiveFeature(name);
+          foundFeature = name;
         }
       });
-    }
 
-    // Handle window resize
-    const handleResize = () => {
-      if (gameRef.current) {
-        gameRef.current.scale.resize(window.innerWidth, window.innerHeight);
-      }
-    };
-    window.addEventListener('resize', handleResize);
+      setNearFeature(foundFeature);
+    }
 
     return () => {
-      window.removeEventListener('resize', handleResize);
-      if (gameRef.current) {
-        gameRef.current.destroy(true);
-        gameRef.current = null;
-      }
+      newGame.destroy(true);
     };
-  }, [profile]);
-
-  const renderFeatureContent = () => {
-    switch (activeFeature) {
-      case 'Study Timer':
-        return <StudyTimer />;
-      case 'Study Materials':
-        return <StudyMaterials />;
-      case 'Video Summarizer':
-        return <VideoSummarizer />;
-      case 'AI Tutor':
-        return <AITutor />;
-      case 'Study Hub':
-        return <StudyHub />;
-      case 'Calendar':
-        return <Calendar />;
-      default:
-        return null;
-    }
-  };
+  }, [profile?.avatar_gender]);
 
   return (
-    <div className="fixed inset-0 bg-black">
-      {/* Phaser Game Canvas - Fullscreen */}
-      <div id="game-container" className="w-full h-full" />
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+      {/* Top Bar */}
+      <div className="h-16 bg-card border-b flex items-center justify-between px-4">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-2xl">
+            {profile?.avatar_gender === 'female' ? '👩‍🎓' : '👨‍🎓'}
+          </div>
+          <div className="flex-1">
+            <div className="h-2 bg-muted rounded-full overflow-hidden w-48">
+              <div
+                className="h-full bg-gradient-to-r from-green-500 to-blue-500"
+                style={{
+                  width: `${((profile?.points || 0) % 100)}%`,
+                }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Level {profile?.level || 1} • {profile?.points || 0} XP
+            </p>
+          </div>
+        </div>
+        <Button onClick={onExit} variant="outline" size="sm">
+          <X className="h-4 w-4 mr-2" />
+          Exit Game Mode
+        </Button>
+      </div>
 
-      {/* Mac OS Style Feature Popup */}
-      {activeFeature && (
-        <MacOSPopup onClose={() => setActiveFeature(null)}>
-          {renderFeatureContent()}
-        </MacOSPopup>
+      {/* Game Canvas */}
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-b from-background to-muted/20">
+        <div className="relative">
+          <div ref={gameRef} className="rounded-lg overflow-hidden shadow-2xl border-4 border-primary/20" />
+          <p className="text-center mt-4 text-sm text-muted-foreground">
+            Use arrow keys to move • Walk near zones to interact
+          </p>
+        </div>
+      </div>
+
+      {/* Feature Popup */}
+      {nearFeature && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-card border rounded-lg p-4 shadow-xl animate-fade-in">
+          <p className="text-sm mb-2">Press to open:</p>
+          <Button
+            onClick={() => onOpenFeature(nearFeature)}
+            className="w-full"
+            size="lg"
+          >
+            Open {nearFeature}
+          </Button>
+        </div>
       )}
     </div>
   );
