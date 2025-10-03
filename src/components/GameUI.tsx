@@ -8,7 +8,6 @@ import StudyMaterials from '@/pages/StudyMaterials';
 import VideoSummarizer from '@/pages/VideoSummarizer';
 import StudyHub from '@/pages/StudyHub';
 import Calendar from '@/pages/Calendar';
-import mapImage from '@/assets/game-map.png';
 
 interface GameUIProps {
   onExit: () => void;
@@ -49,10 +48,8 @@ const GameUI = ({ onExit, onOpenFeature }: GameUIProps) => {
     let lastDirection = 'down';
 
     function preloadScene(this: Phaser.Scene) {
-      // Load map image
-      this.load.image('map', mapImage);
-      // Note: Character sprites will need to be extracted from zip and loaded here
-      // For now using placeholder colored box
+      // Dynamically import map only in game mode
+      this.load.image('map', '/src/assets/game-map.png');
     }
 
     function createScene(this: Phaser.Scene) {
@@ -166,9 +163,10 @@ const GameUI = ({ onExit, onOpenFeature }: GameUIProps) => {
       window.removeEventListener('resize', handleResize);
       if (gameRef.current) {
         gameRef.current.destroy(true);
+        gameRef.current = null;
       }
     };
-  }, []);
+  }, [profile]);
 
   const renderFeatureContent = () => {
     switch (activeFeature) {
