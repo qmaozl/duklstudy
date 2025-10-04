@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause } from 'lucide-react';
+import { Play, Pause, Maximize, Minimize } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StudyMode } from './StudyModeSelector';
 
@@ -29,6 +29,7 @@ const FullscreenStudyMode = ({
   const mediaRef = audioRef ?? internalAudioRef;
   const [isPlaying, setIsPlaying] = useState(!isPaused);
   const [audioPosition, setAudioPosition] = useState(0);
+  const [isFullscreenMode, setIsFullscreenMode] = useState(false);
 
   const modeConfig = {
     ocean: {
@@ -127,6 +128,16 @@ const FullscreenStudyMode = ({
     }
   };
 
+  const toggleFullscreen = () => {
+    if (!isFullscreenMode) {
+      document.documentElement.requestFullscreen().catch(console.error);
+      setIsFullscreenMode(true);
+    } else {
+      document.exitFullscreen().catch(console.error);
+      setIsFullscreenMode(false);
+    }
+  };
+
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -149,7 +160,7 @@ const FullscreenStudyMode = ({
       style={{
         ...backgroundStyle,
         backgroundSize: 'cover',
-        backgroundPosition: '25% center',
+        backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         width: '100vw',
         height: '100vh'
@@ -161,13 +172,28 @@ const FullscreenStudyMode = ({
         </audio>
       )}
       
+      {/* Fullscreen Toggle Button */}
+      <Button
+        onClick={toggleFullscreen}
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "absolute top-8 right-8",
+          mode === 'whitenoise'
+            ? "text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
+            : "text-white/80 hover:text-white hover:bg-white/10"
+        )}
+      >
+        {isFullscreenMode ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
+      </Button>
+
       {/* Exit Button */}
       <Button
         onClick={onExit}
         variant="ghost"
         size="lg"
         className={cn(
-          "absolute top-8 right-8 text-lg font-semibold",
+          "absolute top-8 left-8 text-lg font-semibold",
           mode === 'whitenoise'
             ? "text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
             : "text-white/80 hover:text-white hover:bg-white/10"
