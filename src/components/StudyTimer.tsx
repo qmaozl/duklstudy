@@ -15,7 +15,6 @@ const StudyTimer = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetMinutes, setTargetMinutes] = useState(25);
   const [showTransition, setShowTransition] = useState(false);
-  const [showExitTransition, setShowExitTransition] = useState(false);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
 
@@ -60,12 +59,8 @@ const StudyTimer = () => {
   };
 
   const handleExitFullscreen = () => {
-    setShowExitTransition(true);
-  };
-
-  const handleExitTransitionComplete = () => {
+    stop();
     setIsFullscreen(false);
-    setShowExitTransition(false);
   };
 
   const handlePlayPause = () => {
@@ -171,18 +166,12 @@ const StudyTimer = () => {
         </Card>
       </div>
 
-      {/* Transition Overlays */}
+      {/* Transition Overlay */}
       <TransitionOverlay
         isActive={showTransition}
         onComplete={handleTransitionComplete}
         variant="enter"
         message="Lock In!"
-      />
-      <TransitionOverlay
-        isActive={showExitTransition}
-        onComplete={handleExitTransitionComplete}
-        variant="exit"
-        message="Lock Out? :("
       />
 
       {/* Fullscreen Study Mode */}
