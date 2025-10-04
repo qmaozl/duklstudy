@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StudyMode } from './StudyModeSelector';
-import timerImage from '@/assets/timer.png';
 
 interface FullscreenStudyModeProps {
   mode: StudyMode;
@@ -179,24 +178,13 @@ const FullscreenStudyMode = ({
       </Button>
 
       {/* Timer Display */}
-      <div className="relative flex flex-col items-center justify-center mb-8 animate-scale-in">
-        {/* Timer Image */}
-        <img 
-          src={timerImage} 
-          alt="Timer" 
-          className="w-64 h-64 md:w-80 md:h-80 object-contain mb-4 drop-shadow-2xl"
-        />
-        
-        {/* Timer Text Overlay */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <div className={cn(
-            "text-6xl md:text-7xl font-geo font-bold drop-shadow-lg transition-all duration-500",
-            mode === 'whitenoise' ? "text-[hsl(0_0%_0%)]" : "text-white"
-          )}>
-            {formatTime(seconds)}
-          </div>
+      <div className="text-center mb-8 animate-scale-in">
+        <div className={cn(
+          "text-8xl font-geo font-light drop-shadow-lg mb-4 transition-all duration-500",
+          mode === 'whitenoise' ? "text-[hsl(0_0%_0%)]" : "text-white"
+        )}>
+          {formatTime(seconds)}
         </div>
-        
         {totalSeconds > 0 && (
           <div className={cn("text-xl animate-fade-in", mode === 'whitenoise' ? "text-[hsl(0_0%_15%)]" : "text-white/80") }>
             Target: {formatTime(totalSeconds)}

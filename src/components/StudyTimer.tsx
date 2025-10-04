@@ -177,16 +177,12 @@ const StudyTimer = () => {
         onComplete={handleTransitionComplete}
         variant="enter"
         message="Lock In!"
-        showTimer={true}
-        timerValue={formattedTime}
       />
       <TransitionOverlay
         isActive={showExitTransition}
         onComplete={handleExitTransitionComplete}
         variant="exit"
         message="Lock Out? :("
-        showTimer={true}
-        timerValue={formattedTime}
       />
 
       {/* Fullscreen Study Mode */}

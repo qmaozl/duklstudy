@@ -6,11 +6,9 @@ interface TransitionOverlayProps {
   onComplete: () => void;
   variant?: 'enter' | 'exit';
   message?: string;
-  showTimer?: boolean;
-  timerValue?: string;
 }
 
-const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 'Lock In!', showTimer = false, timerValue = '00:00' }: TransitionOverlayProps) => {
+const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 'Lock In!' }: TransitionOverlayProps) => {
   const [visible, setVisible] = useState(false);
   const [fadingOut, setFadingOut] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -57,7 +55,7 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
   return (
     <div
       className={cn(
-        'fixed inset-0 z-[100] flex flex-col items-center justify-center',
+        'fixed inset-0 z-[100] flex items-center justify-center',
         variant === 'enter' ? 'bg-[hsl(0_0%_0%)]' : 'bg-[hsl(var(--destructive))]',
         'transition-opacity duration-1000',
         fadingOut ? 'opacity-0' : 'opacity-100'
@@ -66,20 +64,10 @@ const TransitionOverlay = ({ isActive, onComplete, variant = 'enter', message = 
       <div className={cn(
         "text-3xl md:text-4xl font-geo text-white/95",
         "transition-all duration-700",
-        fadingOut ? "scale-95 opacity-0" : "scale-100 opacity-100",
-        showTimer && "mb-8"
+        fadingOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
       )}>
         {message}
       </div>
-      {showTimer && (
-        <div className={cn(
-          "text-8xl md:text-9xl font-geo font-bold text-white/95",
-          "transition-all duration-700",
-          fadingOut ? "scale-95 opacity-0" : "scale-100 opacity-100"
-        )}>
-          {timerValue}
-        </div>
-      )}
     </div>
   );
 };
