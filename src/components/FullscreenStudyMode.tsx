@@ -149,7 +149,7 @@ const FullscreenStudyMode = ({
       style={{
         ...backgroundStyle,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: '25% center',
         backgroundRepeat: 'no-repeat',
         width: '100vw',
         height: '100vh'
