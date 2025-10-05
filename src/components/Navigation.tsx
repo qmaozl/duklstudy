@@ -14,8 +14,8 @@ const Navigation = () => {
           </span>
         </Link>
         <ul className="flex items-center gap-8 text-sm">
-          <li><Link className="text-white/90 hover:text-white story-link" to="/">Home</Link></li>
-          <li><Link className="text-white/90 hover:text-white story-link" to="/dashboard">Dashboard</Link></li>
+          <li><Link className="text-white/90 hover:text-white story-link" to="/home">Home</Link></li>
+          <li><Link className="text-white/90 hover:text-white story-link" to="/">Dashboard</Link></li>
           <li><SubscriptionButton /></li>
         </ul>
       </nav>

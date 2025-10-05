@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Navigation from '@/components/Navigation';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Plus, BookOpen } from 'lucide-react';
@@ -33,10 +34,20 @@ const MemorisePro = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto space-y-8">
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        
+        <main className="flex-1 overflow-auto">
+          <header className="sticky top-0 z-10 backdrop-blur border-b border-border bg-background/80">
+            <div className="flex items-center h-14 px-4">
+              <SidebarTrigger className="mr-4" />
+              <h1 className="text-lg font-semibold">Memorise Pro</h1>
+            </div>
+          </header>
+
+          <div className="p-6 space-y-8">
+            <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-3">
@@ -104,9 +115,11 @@ const MemorisePro = () => {
               </div>
             </CardContent>
           </Card>
-        </div>
+            </div>
+          </div>
+        </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

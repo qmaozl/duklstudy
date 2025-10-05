@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
+import DashboardOverview from "./pages/DashboardOverview";
 import Auth from "./pages/Auth";
 import AITutor from "./pages/AITutor";
 import StudyMaterials from "./pages/StudyMaterials";
@@ -25,7 +26,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/" element={<DashboardOverview />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/dashboard" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/ai-tutor" element={<AITutor />} />
