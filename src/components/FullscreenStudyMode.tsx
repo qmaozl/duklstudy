@@ -34,15 +34,15 @@ const FullscreenStudyMode = ({
   const modeConfig = {
     ocean: {
       className: 'ocean-animated',
-      audio: { wav: '/audio/ocean-waves.wav', mp3: '/audio/ocean-waves.mp3' }
+      audio: { mp3: '/audio/ocean-waves.mp3' }
     },
     rain: {
       className: 'rain-animated',
-      audio: { wav: '/audio/rain.wav', mp3: '/audio/rain.mp3' }
+      audio: { mp3: '/audio/rain.mp3' }
     },
     whitenoise: {
       className: 'white-noise-stars',
-      audio: { wav: '/audio/white-noise.wav', mp3: '/audio/white-noise.mp3' }
+      audio: { mp3: '/audio/white-noise.mp3' }
     }
   } as const;
 

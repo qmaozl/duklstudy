@@ -154,7 +154,10 @@ const StudyGroupManager = () => {
         .select()
         .single();
 
-      if (groupError) throw groupError;
+      if (groupError) {
+        console.error('Group creation error:', groupError);
+        throw groupError;
+      }
 
       // Add creator as member
       const { error: memberError } = await supabase

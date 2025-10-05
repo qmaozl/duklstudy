@@ -48,9 +48,9 @@ const StudyTimer = () => {
   };
 
   const handleLockIn = () => {
-    startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
     start();
-    setShowTransition(true);
+    setIsFullscreen(true);
+    startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
   };
 
   const handleTransitionComplete = () => {

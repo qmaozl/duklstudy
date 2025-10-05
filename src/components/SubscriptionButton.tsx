@@ -20,8 +20,6 @@ export const SubscriptionButton = () => {
     navigate('/subscription');
   };
 
-  const generationsUsed = subscription?.generations_used || 0;
-  const generationLimit = subscription?.generation_limit || 5;
   const isSubscribed = subscription?.subscribed || false;
   const isPro = subscription?.subscription_tier === 'pro';
 
@@ -29,8 +27,8 @@ export const SubscriptionButton = () => {
     return (
       <Button 
         onClick={() => navigate('/auth')}
-        variant="outline"
-        className="flex items-center gap-2"
+        variant="ghost"
+        className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10"
       >
         <Crown className="h-4 w-4" />
         Sign In
@@ -39,32 +37,13 @@ export const SubscriptionButton = () => {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      {/* Generation Counter - hide for Pro */}
-      {!isPro && (
-        <div className="hidden sm:flex items-center gap-2 text-sm">
-          <span className="text-muted-foreground">
-            {generationsUsed}/{generationLimit}
-          </span>
-          <div className="w-16 bg-muted rounded-full h-1.5">
-            <div 
-              className="bg-primary rounded-full h-1.5 transition-all" 
-              style={{ width: `${Math.min((generationsUsed / generationLimit) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Subscription Button */}
-      <Button 
-        onClick={handleSubscribe}
-        variant={isSubscribed ? "secondary" : "default"}
-        className={`flex items-center gap-2 ${!isSubscribed ? 'bg-primary hover:bg-primary/90' : ''}`}
-      >
-        <Crown className="h-4 w-4" />
-        {isSubscribed ? 'Pro' : 'Upgrade'}
-        {!isSubscribed && <ExternalLink className="h-4 w-4" />}
-      </Button>
-    </div>
+    <Button 
+      onClick={handleSubscribe}
+      variant="ghost"
+      className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10 font-medium"
+    >
+      <Crown className="h-4 w-4" />
+      {isPro ? 'Pro' : 'Upgrade'}
+    </Button>
   );
 };

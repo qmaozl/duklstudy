@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
-import UIModeSwitcher from "./UIModeSwitcher";
+import { SubscriptionButton } from "./SubscriptionButton";
 
 const Navigation = () => {
   return (
@@ -15,12 +15,8 @@ const Navigation = () => {
         </Link>
         <ul className="flex items-center gap-8 text-sm">
           <li><Link className="text-white/90 hover:text-white story-link" to="/">Home</Link></li>
-          <li><Link className="text-white/90 hover:text-white story-link" to="/video-summarizer">summarize video</Link></li>
-          <li><Link className="text-white/90 hover:text-white story-link" to="/dashboard">focus timer</Link></li>
-          <li><Link className="text-white/90 hover:text-white story-link" to="/calendar">calendar</Link></li>
-          <li><Link className="text-white/90 hover:text-white story-link" to="/friends">friends</Link></li>
-          <li><Link className="text-white/90 hover:text-white story-link" to="/subscription">membership</Link></li>
-          <li><UIModeSwitcher /></li>
+          <li><Link className="text-white/90 hover:text-white story-link" to="/dashboard">Dashboard</Link></li>
+          <li><SubscriptionButton /></li>
         </ul>
       </nav>
     </header>
