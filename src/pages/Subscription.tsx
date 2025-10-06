@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/contexts/AuthContext';
-import Navigation from '@/components/Navigation';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Check, Crown, Zap, Star, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Check, Crown, Zap, Star, ExternalLink } from 'lucide-react';
 
 const Subscription = () => {
   const { user, subscription } = useAuth();
@@ -111,9 +111,8 @@ const Subscription = () => {
   const isPro = subscription?.subscription_tier === 'pro';
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6 lg:p-8">
+    <DashboardLayout>
+      <div className="p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto space-y-8">
 
         <div className="text-center space-y-4">
@@ -312,7 +311,7 @@ const Subscription = () => {
         </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

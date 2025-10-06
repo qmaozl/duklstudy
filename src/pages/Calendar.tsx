@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
-import Navigation from "@/components/Navigation";
+import { DashboardLayout } from "@/components/DashboardLayout";
 import CramMaster from "@/components/CramMaster";
 
 interface StudySession {
@@ -127,19 +127,19 @@ const Calendar = () => {
   }, [] as string[]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="container mx-auto px-4 py-8 mt-16">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Study Calendar</h1>
-            <p className="text-muted-foreground">Track your study sessions and manage your schedule</p>
+    <DashboardLayout>
+      <div className="p-6">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-4xl font-bold text-foreground mb-2">Study Calendar</h1>
+              <p className="text-muted-foreground">Track your study sessions and manage your schedule</p>
+            </div>
+            <Button onClick={() => setShowCramMaster(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Cram Master
+            </Button>
           </div>
-          <Button onClick={() => setShowCramMaster(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Cram Master
-          </Button>
-        </div>
 
         {/* Streak Display */}
         <Card className="p-6 mb-6 bg-gradient-to-r from-primary/10 to-accent/10">
@@ -258,19 +258,20 @@ const Calendar = () => {
               )}
             </div>
           </Card>
+          </div>
         </div>
-      </div>
 
-      {showCramMaster && (
-        <CramMaster
-          onClose={() => setShowCramMaster(false)}
-          onScheduleCreated={() => {
-            fetchScheduledTasks();
-            setShowCramMaster(false);
-          }}
-        />
-      )}
-    </div>
+        {showCramMaster && (
+          <CramMaster
+            onClose={() => setShowCramMaster(false)}
+            onScheduleCreated={() => {
+              fetchScheduledTasks();
+              setShowCramMaster(false);
+            }}
+          />
+        )}
+      </div>
+    </DashboardLayout>
   );
 };
 

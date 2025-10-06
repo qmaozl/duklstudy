@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import { ArrowLeft, Upload, Sparkles, Loader2, FileText, Download, ExternalLink, Image, X } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { Upload, Sparkles, Loader2, FileText, Download, ExternalLink, Image, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -279,28 +279,16 @@ const StudyMaterials = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6">
+    <DashboardLayout>
+      <div className="p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/dashboard')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" />
               <h1 className="text-2xl font-bold">Study Materials Generator</h1>
             </div>
           </div>
-          <SubscriptionButton />
-        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Input Section */}
@@ -543,7 +531,7 @@ const StudyMaterials = () => {
         </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

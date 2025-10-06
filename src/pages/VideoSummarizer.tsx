@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import { ArrowLeft, Youtube, Sparkles, Loader2, Trophy, BookX, Plus, ExternalLink } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { Youtube, Sparkles, Loader2, Trophy, BookX, Plus, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -404,37 +404,25 @@ const VideoSummarizer = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6">
+    <DashboardLayout>
+      <div className="p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/')}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Youtube className="h-6 w-6 text-red-500" />
               <h1 className="text-2xl font-bold">AI Video Study Hub</h1>
             </div>
+            
+            <div className="flex items-center gap-3">
+              {totalPointsEarned > 0 && (
+                <Badge className="bg-yellow-500 text-white">
+                  <Trophy className="h-4 w-4 mr-1" />
+                  {totalPointsEarned} Total Points Earned
+                </Badge>
+              )}
+            </div>
           </div>
-          
-          <div className="flex items-center gap-3">
-            {totalPointsEarned > 0 && (
-              <Badge className="bg-yellow-500 text-white">
-                <Trophy className="h-4 w-4 mr-1" />
-                {totalPointsEarned} Total Points Earned
-              </Badge>
-            )}
-            <SubscriptionButton />
-          </div>
-        </div>
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -777,7 +765,7 @@ const VideoSummarizer = () => {
         </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

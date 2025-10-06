@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Home, Clock, Brain, Video, Calendar, Users, BookOpen, Settings, Crown } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, Users, BookOpen, Crown } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -17,8 +16,7 @@ import {
 import logo from "@/assets/logo.png";
 
 const menuItems = [
-  { title: "Home", url: "/", icon: Home },
-  { title: "Dashboard", url: "/dashboard", icon: Clock },
+  { title: "Dashboard", url: "/", icon: Home },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Study Materials", url: "/study-materials", icon: BookOpen },
@@ -42,8 +40,11 @@ export function AppSidebar() {
   const isPro = subscription?.subscription_tier === 'pro';
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-64"} collapsible="icon">
-      <SidebarHeader className="border-b border-border/40 p-4">
+    <Sidebar 
+      className={`transition-all duration-300 ${collapsed ? "w-14" : "w-64"}`} 
+      collapsible="icon"
+    >
+      <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           <img src={logo} alt="DUKL Study" className="h-8 w-8" />
           {!collapsed && (

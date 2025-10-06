@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Clock, Calendar as CalendarIcon, TrendingUp, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -88,19 +87,8 @@ const DashboardOverview = () => {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AppSidebar />
-        
-        <main className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 backdrop-blur border-b border-border bg-background/80">
-            <div className="flex items-center h-14 px-4">
-              <SidebarTrigger className="mr-4" />
-              <h1 className="text-lg font-semibold">Dashboard Overview</h1>
-            </div>
-          </header>
-
-          <div className="p-6 space-y-6">
+    <DashboardLayout>
+      <div className="p-6 space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
@@ -175,10 +163,8 @@ const DashboardOverview = () => {
                 </p>
               </CardContent>
             </Card>
-          </div>
-        </main>
       </div>
-    </SidebarProvider>
+    </DashboardLayout>
   );
 };
 
