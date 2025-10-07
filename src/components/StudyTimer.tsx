@@ -8,6 +8,8 @@ import StudyModeSelector, { StudyMode } from './StudyModeSelector';
 import FullscreenStudyMode from './FullscreenStudyMode';
 import StudyGroupManager from './StudyGroupManager';
 import TransitionOverlay from './TransitionOverlay';
+import { FloatingTimer } from './FloatingTimer';
+import { useLocation } from 'react-router-dom';
 
 const StudyTimer = () => {
   const { seconds, state, start, pause, stop, reset, formattedTime } = useTimer();
@@ -15,8 +17,10 @@ const StudyTimer = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [targetMinutes, setTargetMinutes] = useState(25);
   const [showTransition, setShowTransition] = useState(false);
+  const [showFloatingTimer, setShowFloatingTimer] = useState(false);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     // Initialize audio elements
@@ -59,9 +63,22 @@ const StudyTimer = () => {
   };
 
   const handleExitFullscreen = () => {
-    stop();
     setIsFullscreen(false);
+    if (state === 'running') {
+      setShowFloatingTimer(true);
+    } else {
+      stop();
+    }
   };
+
+  // Show floating timer when navigating away from dashboard while timer is running
+  useEffect(() => {
+    if (state === 'running' && location.pathname !== '/' && !isFullscreen) {
+      setShowFloatingTimer(true);
+    } else if (location.pathname === '/' && !isFullscreen) {
+      setShowFloatingTimer(false);
+    }
+  }, [location.pathname, state, isFullscreen]);
 
   const handlePlayPause = () => {
     if (state === 'running') {

@@ -19,7 +19,7 @@ const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
-  { title: "Study Materials", url: "/study-materials", icon: BookOpen },
+  { title: "Flashcards", url: "/flashcards", icon: BookOpen },
   { title: "Calendar", url: "/calendar", icon: Calendar },
   { title: "Friends", url: "/friends", icon: Users },
 ];

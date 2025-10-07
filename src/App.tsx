@@ -16,6 +16,8 @@ import Calendar from "./pages/Calendar";
 import Friends from "./pages/Friends";
 import MemorisePro from "./pages/MemorisePro";
 import MemoriseReview from "./pages/MemoriseReview";
+import Flashcards from "./pages/Flashcards";
+import FlashcardStudy from "./pages/FlashcardStudy";
 import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
 
@@ -31,7 +33,6 @@ const App = () => (
           <Route path="/dashboard" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/ai-tutor" element={<AITutor />} />
-          <Route path="/study-materials" element={<StudyMaterials />} />
           <Route path="/video-summarizer" element={<VideoSummarizer />} />
           <Route path="/study-hub" element={<StudyHub />} />
           <Route path="/calendar" element={<Calendar />} />
@@ -39,6 +40,8 @@ const App = () => (
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/memorise-pro" element={<MemorisePro />} />
           <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
+          <Route path="/flashcards" element={<Flashcards />} />
+          <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <AIChatbot />
