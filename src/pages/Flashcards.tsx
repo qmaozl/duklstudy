@@ -50,7 +50,7 @@ export default function Flashcards() {
     if (!user) return;
 
     const { data, error } = await supabase
-      .from('flashcard_sets')
+      .from('flashcard_sets' as any)
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
@@ -60,7 +60,7 @@ export default function Flashcards() {
       return;
     }
 
-    setSets(data || []);
+    setSets(data as any || []);
   };
 
   const addCardField = () => {
@@ -99,7 +99,7 @@ export default function Flashcards() {
     }
 
     const { error } = await supabase
-      .from('flashcard_sets')
+      .from('flashcard_sets' as any)
       .insert({
         user_id: user.id,
         title: newSetTitle,
@@ -133,7 +133,7 @@ export default function Flashcards() {
 
   const deleteSet = async (setId: string) => {
     const { error } = await supabase
-      .from('flashcard_sets')
+      .from('flashcard_sets' as any)
       .delete()
       .eq('id', setId);
 

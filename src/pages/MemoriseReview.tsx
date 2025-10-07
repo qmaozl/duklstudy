@@ -106,50 +106,60 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
     const normalizedOriginal = normalizeText(text);
     const normalizedUser = normalizeText(userInput);
 
+    // Create character-level diff
     const originalChars = normalizedOriginal.split('');
     const userChars = normalizedUser.split('');
-
-    const missed: string[] = [];
-    const wrong: string[] = [];
-    const extra: string[] = [];
-
-    // Simple diff algorithm
-    let i = 0, j = 0;
-    while (i < originalChars.length || j < userChars.length) {
-      if (i < originalChars.length && j < userChars.length) {
-        if (originalChars[i] === userChars[j]) {
-          i++;
-          j++;
+    
+    // Use dynamic programming for better diff algorithm
+    const dp: number[][] = [];
+    for (let i = 0; i <= originalChars.length; i++) {
+      dp[i] = [];
+      for (let j = 0; j <= userChars.length; j++) {
+        if (i === 0) dp[i][j] = j;
+        else if (j === 0) dp[i][j] = i;
+        else if (originalChars[i - 1] === userChars[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
         } else {
-          // Check if it's a skip
-          if (j + 1 < userChars.length && originalChars[i] === userChars[j + 1]) {
-            extra.push(userChars[j]);
-            j++;
-          } else if (i + 1 < originalChars.length && originalChars[i + 1] === userChars[j]) {
-            missed.push(originalChars[i]);
-            i++;
-          } else {
-            wrong.push(`Expected: ${originalChars[i]}, Got: ${userChars[j]}`);
-            i++;
-            j++;
-          }
+          dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
         }
-      } else if (i < originalChars.length) {
-        missed.push(originalChars[i]);
-        i++;
-      } else {
-        extra.push(userChars[j]);
-        j++;
       }
     }
 
-    const accuracy = ((originalChars.length - missed.length - wrong.length) / originalChars.length * 100).toFixed(1);
+    // Backtrack to find the diff
+    const diffResult: Array<{char: string, status: 'correct' | 'wrong' | 'missed', userChar?: string}> = [];
+    let i = originalChars.length;
+    let j = userChars.length;
+
+    while (i > 0 || j > 0) {
+      if (i > 0 && j > 0 && originalChars[i - 1] === userChars[j - 1]) {
+        diffResult.unshift({ char: originalChars[i - 1], status: 'correct' });
+        i--;
+        j--;
+      } else if (j > 0 && (i === 0 || dp[i][j - 1] <= dp[i - 1][j])) {
+        // User added extra character (skip it in userChars)
+        j--;
+      } else if (i > 0 && (j === 0 || dp[i - 1][j] < dp[i][j - 1])) {
+        // User missed this character
+        diffResult.unshift({ char: originalChars[i - 1], status: 'missed' });
+        i--;
+      } else {
+        // Wrong character
+        diffResult.unshift({ char: originalChars[i - 1], status: 'wrong', userChar: userChars[j - 1] });
+        i--;
+        j--;
+      }
+    }
+
+    const correctCount = diffResult.filter(d => d.status === 'correct').length;
+    const accuracy = ((correctCount / originalChars.length) * 100).toFixed(1);
 
     setAnalysis({
-      missed,
-      wrong,
-      extra,
-      accuracy
+      diffResult,
+      accuracy,
+      total: originalChars.length,
+      correct: correctCount,
+      wrong: diffResult.filter(d => d.status === 'wrong').length,
+      missed: diffResult.filter(d => d.status === 'missed').length
     });
     setIsAnalyzing(false);
   };
@@ -186,39 +196,91 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
               </Button>
 
               {analysis && (
-                <div className="space-y-4 p-6 bg-muted/50 rounded-lg">
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold">Accuracy: {analysis.accuracy}%</h3>
+                <div className="space-y-6">
+                  {/* Stats */}
+                  <div className="grid grid-cols-4 gap-4 text-center p-4 bg-muted rounded-lg">
+                    <div>
+                      <div className="text-2xl font-bold text-primary">{analysis.accuracy}%</div>
+                      <div className="text-xs text-muted-foreground">Accuracy</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">{analysis.correct}</div>
+                      <div className="text-xs text-muted-foreground">Correct</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-red-600">{analysis.wrong}</div>
+                      <div className="text-xs text-muted-foreground">Wrong</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-500">{analysis.missed}</div>
+                      <div className="text-xs text-muted-foreground">Missed</div>
+                    </div>
                   </div>
 
-                  {analysis.missed.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-destructive mb-2">Missed Characters ({analysis.missed.length}):</h4>
-                      <p className="text-sm">{analysis.missed.join(', ')}</p>
+                  {/* Inline Text Analysis */}
+                  <div className="p-6 bg-background rounded-lg border">
+                    <h4 className="font-semibold mb-4">Detailed Analysis:</h4>
+                    <div className="text-xl leading-relaxed whitespace-pre-wrap">
+                      {analysis.diffResult.map((item: any, index: number) => {
+                        if (item.status === 'correct') {
+                          return (
+                            <span key={index} className="text-green-600 font-medium">
+                              {item.char}
+                            </span>
+                          );
+                        } else if (item.status === 'wrong') {
+                          return (
+                            <span
+                              key={index}
+                              className="relative text-red-600 font-medium cursor-pointer hover:bg-red-100 px-0.5 rounded group"
+                              title={`You wrote: ${item.userChar}`}
+                            >
+                              {item.char}
+                              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                You wrote: {item.userChar}
+                              </span>
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span
+                              key={index}
+                              className="relative text-gray-400 font-medium cursor-pointer hover:bg-gray-100 px-0.5 rounded group"
+                              title="You missed this!"
+                            >
+                              {item.char}
+                              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                You missed this!
+                              </span>
+                            </span>
+                          );
+                        }
+                      })}
                     </div>
-                  )}
-
-                  {analysis.wrong.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-orange-600 mb-2">Wrong Characters ({analysis.wrong.length}):</h4>
-                      <div className="text-sm space-y-1">
-                        {analysis.wrong.map((w: string, i: number) => (
-                          <p key={i}>{w}</p>
-                        ))}
+                    
+                    {/* Legend */}
+                    <div className="mt-6 pt-4 border-t flex gap-6 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 bg-green-600 rounded"></span>
+                        <span>Correct</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 bg-red-600 rounded"></span>
+                        <span>Wrong (hover to see what you wrote)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 bg-gray-400 rounded"></span>
+                        <span>Missed</span>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {analysis.extra.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold text-yellow-600 mb-2">Extra Characters ({analysis.extra.length}):</h4>
-                      <p className="text-sm">{analysis.extra.join(', ')}</p>
-                    </div>
-                  )}
-
-                  {analysis.missed.length === 0 && analysis.wrong.length === 0 && analysis.extra.length === 0 && (
-                    <div className="text-center text-green-600 font-semibold">
-                      Perfect! You got everything right! 🎉
+                  {analysis.correct === analysis.total && (
+                    <div className="text-center p-6 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="text-3xl mb-2">🎉</div>
+                      <div className="text-lg font-semibold text-green-800">
+                        Perfect! You got everything right!
+                      </div>
                     </div>
                   )}
                 </div>

@@ -201,6 +201,25 @@ const StudyTimer = () => {
         onExit={handleExitFullscreen}
         isPaused={state === 'paused'}
       />
+
+      {/* Floating Timer */}
+      {showFloatingTimer && state !== 'stopped' && (
+        <FloatingTimer
+          seconds={seconds}
+          state={state}
+          formattedTime={formattedTime}
+          onPlayPause={handlePlayPause}
+          onStop={() => {
+            stop();
+            setShowFloatingTimer(false);
+          }}
+          onExpand={() => {
+            setShowFloatingTimer(false);
+            setIsFullscreen(true);
+          }}
+          onClose={() => setShowFloatingTimer(false)}
+        />
+      )}
     </>
   );
 };

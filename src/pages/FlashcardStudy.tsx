@@ -45,8 +45,8 @@ export default function FlashcardStudy() {
       return;
     }
 
-    setSetTitle(data.title);
-    setCards(data.cards || []);
+    setSetTitle((data as any).title);
+    setCards((data as any).cards || []);
     setLoading(false);
   };
 
