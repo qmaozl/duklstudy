@@ -24,6 +24,7 @@ interface ScheduledTask {
   scheduled_time: string;
   duration_minutes: number;
   completed: boolean;
+  action: string | null;
   tasks: {
     title: string;
     subject: string;
@@ -239,7 +240,7 @@ const Calendar = () => {
                   {selectedDateTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="p-3 bg-accent/10 rounded-lg"
+                      className="p-3 bg-accent/10 rounded-lg space-y-1"
                     >
                       <p className="font-medium text-foreground">
                         {task.tasks.title}
@@ -250,6 +251,11 @@ const Calendar = () => {
                       <p className="text-xs text-muted-foreground">
                         {task.tasks.subject} • {task.tasks.task_type}
                       </p>
+                      {task.action && (
+                        <p className="text-xs text-primary mt-2 font-medium">
+                          💡 {task.action}
+                        </p>
+                      )}
                     </div>
                   ))}
                 </div>

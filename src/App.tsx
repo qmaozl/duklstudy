@@ -8,7 +8,6 @@ import HomePage from "./pages/HomePage";
 import DashboardOverview from "./pages/DashboardOverview";
 import Auth from "./pages/Auth";
 import AITutor from "./pages/AITutor";
-import StudyMaterials from "./pages/StudyMaterials";
 import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
 import Subscription from "./pages/Subscription";

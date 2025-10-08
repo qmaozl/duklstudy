@@ -231,11 +231,29 @@ const CramMaster = ({ onClose, onScheduleCreated }: CramMasterProps) => {
     setIsGenerating(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-schedule", {
-        body: { tasks },
+      const { data, error } = await supabase.functions.invoke("ai-schedule-planner", {
+        body: { tasks, availableHours: 4 },
       });
 
       if (error) throw error;
+
+      const scheduleResult = data.schedule;
+
+      const scheduleData = scheduleResult.map((item: any) => ({
+        task_id: tasks.find((t: any) => t.title === item.task_title)?.id,
+        user_id: user.id,
+        scheduled_date: item.scheduled_date,
+        scheduled_time: item.scheduled_time,
+        duration_minutes: item.duration_minutes,
+        action: item.action,
+        completed: false
+      }));
+
+      const { error: insertError } = await supabase
+        .from("scheduled_tasks")
+        .insert(scheduleData);
+
+      if (insertError) throw insertError;
 
       toast({
         title: "Success",

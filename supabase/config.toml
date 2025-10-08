@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.ocr-image-text]
 verify_jwt = false
+
+[functions.ai-schedule-planner]
+verify_jwt = false

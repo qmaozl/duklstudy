@@ -220,6 +220,7 @@ export type Database = {
       }
       scheduled_tasks: {
         Row: {
+          action: string | null
           completed: boolean
           created_at: string
           duration_minutes: number
@@ -230,6 +231,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action?: string | null
           completed?: boolean
           created_at?: string
           duration_minutes: number
@@ -240,6 +242,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action?: string | null
           completed?: boolean
           created_at?: string
           duration_minutes?: number
