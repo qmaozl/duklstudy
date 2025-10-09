@@ -159,15 +159,7 @@ const StudyGroupManager = () => {
         throw groupError;
       }
 
-      // Add creator as member
-      const { error: memberError } = await supabase
-        .from('study_group_members')
-        .insert({
-          group_id: group.id,
-          user_id: user.id
-        });
-
-      if (memberError) throw memberError;
+      // The database trigger automatically adds the owner as a member
 
       toast({
         title: "Study group created!",

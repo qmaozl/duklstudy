@@ -79,6 +79,30 @@ const VideoSummarizer = () => {
       return;
     }
 
+    // Check generation limits based on subscription tier
+    const isPro = subscription?.subscription_tier === 'pro';
+    
+    if (!isPro) {
+      // Check if user has reached their free tier limit (5 videos per day)
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todayVideos } = await supabase
+        .from('study_materials')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('source_type', 'youtube_video')
+        .gte('created_at', today);
+      
+      if (todayVideos && todayVideos.length >= 5) {
+        toast({
+          title: "Daily Limit Reached",
+          description: "Free users can process 5 videos per day. Upgrade to Pro for unlimited access!",
+          variant: "destructive",
+          action: <Button variant="outline" onClick={() => navigate('/subscription')}>Upgrade</Button> as any,
+        });
+        return;
+      }
+    }
+
     // Check generation limits
     const canGenerate = await checkGenerationLimit();
     if (!canGenerate) {

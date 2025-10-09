@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import CramMaster from "@/components/CramMaster";
+import { useNavigate } from "react-router-dom";
 
 interface StudySession {
   id: string;
@@ -33,13 +34,40 @@ interface ScheduledTask {
 }
 
 const Calendar = () => {
-  const { user } = useAuth();
+  const { user, subscription } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
   const [scheduledTasks, setScheduledTasks] = useState<ScheduledTask[]>([]);
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
   const [showCramMaster, setShowCramMaster] = useState(false);
+
+  const handleCramMasterClick = async () => {
+    const isPro = subscription?.subscription_tier === 'pro';
+    
+    if (!isPro) {
+      // Check if user has used Cram Master today
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todaySchedules } = await supabase
+        .from('scheduled_tasks')
+        .select('id')
+        .eq('user_id', user?.id)
+        .gte('created_at', today);
+      
+      if (todaySchedules && todaySchedules.length >= 2) {
+        toast({
+          title: "Daily Limit Reached",
+          description: "Free users can use Cram Master 2 times per day. Upgrade to Pro for unlimited access!",
+          variant: "destructive",
+          action: <Button variant="outline" onClick={() => navigate('/subscription')}>Upgrade</Button> as any,
+        });
+        return;
+      }
+    }
+    
+    setShowCramMaster(true);
+  };
 
   useEffect(() => {
     if (user) {
@@ -136,7 +164,7 @@ const Calendar = () => {
               <h1 className="text-4xl font-bold text-foreground mb-2">Study Calendar</h1>
               <p className="text-muted-foreground">Track your study sessions and manage your schedule</p>
             </div>
-            <Button onClick={() => setShowCramMaster(true)} className="gap-2">
+            <Button onClick={handleCramMasterClick} className="gap-2">
               <Plus className="w-4 h-4" />
               Cram Master
             </Button>
