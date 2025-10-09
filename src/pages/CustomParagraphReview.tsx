@@ -24,7 +24,7 @@ const CustomParagraphReview = () => {
 
   const fetchParagraph = async () => {
     const { data, error } = await supabase
-      .from('custom_paragraphs')
+      .from('custom_paragraphs' as any)
       .select('*')
       .eq('id', id)
       .eq('user_id', user?.id)

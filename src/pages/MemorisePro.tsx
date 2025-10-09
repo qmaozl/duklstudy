@@ -21,7 +21,7 @@ const MemorisePro = () => {
 
   const fetchCustomParagraphs = async () => {
     const { data, error } = await supabase
-      .from('custom_paragraphs')
+      .from('custom_paragraphs' as any)
       .select('*')
       .eq('user_id', user?.id)
       .order('created_at', { ascending: false });

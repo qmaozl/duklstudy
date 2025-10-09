@@ -47,7 +47,7 @@ const CustomParagraphNew = () => {
       
       if (!isPro) {
         const { data: existingParagraphs, error: countError } = await supabase
-          .from('custom_paragraphs')
+          .from('custom_paragraphs' as any)
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id);
 
@@ -67,7 +67,7 @@ const CustomParagraphNew = () => {
 
       // Save the paragraph
       const { error } = await supabase
-        .from('custom_paragraphs')
+        .from('custom_paragraphs' as any)
         .insert({
           user_id: user.id,
           title: title.trim(),
