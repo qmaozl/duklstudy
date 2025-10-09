@@ -3,8 +3,9 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, Crown } from "lucide-react";
+import { Crown, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import logo from "@/assets/logo.png";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -24,25 +25,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* Top Navigation Bar */}
           <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-14 items-center justify-between px-4">
-              <div className="flex items-center gap-2">
-                <SidebarTrigger className="text-foreground" />
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/home')}
-                    className="text-sm"
-                  >
-                    Home
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/')}
-                    className="text-sm"
-                  >
-                    Dashboard
-                  </Button>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="lg:hidden p-2"
+                  onClick={() => document.querySelector('[data-sidebar-trigger]')?.dispatchEvent(new Event('click', { bubbles: true }))}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+                  <img src={logo} alt="DUKL Study" className="h-7 w-7" />
+                  <span className="text-lg font-extralight tracking-wide hidden sm:inline" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
+                    DUKL STUDY
+                  </span>
                 </div>
               </div>
               
@@ -59,7 +55,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto pt-4">
             {children}
           </main>
         </div>

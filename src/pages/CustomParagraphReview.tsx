@@ -1,20 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Navigation from '@/components/Navigation';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Play } from 'lucide-react';
-import { chineseTexts, ChineseTextKey } from '@/data/chineseTexts';
+import { supabase } from '@/integrations/supabase/client';
 
-const MemoriseReview = () => {
-  const { textKey } = useParams<{ textKey: string }>();
+const CustomParagraphReview = () => {
+  const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [paragraph, setParagraph] = useState<any>(null);
   const [isMemorizing, setIsMemorizing] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    if (user && id) {
+      fetchParagraph();
+    }
+  }, [user, id]);
+
+  const fetchParagraph = async () => {
+    const { data, error } = await supabase
+      .from('custom_paragraphs')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user?.id)
+      .single();
+
+    if (error || !data) {
+      navigate('/memorise-pro');
+      return;
+    }
+
+    setParagraph(data);
+    setLoadingData(false);
+  };
+
+  if (loading || loadingData) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -26,26 +51,23 @@ const MemoriseReview = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const decodedKey = decodeURIComponent(textKey || '') as ChineseTextKey;
-  const text = chineseTexts[decodedKey];
-
-  if (!text) {
-    navigate('/memorise-pro');
+  if (!paragraph) {
     return null;
   }
 
-  const handleStartMemorizing = () => {
-    setIsMemorizing(true);
-  };
-
   if (isMemorizing) {
-    return <MemorizingMode textKey={decodedKey} text={text} onBack={() => setIsMemorizing(false)} />;
+    return (
+      <MemorizingMode
+        title={paragraph.title}
+        text={paragraph.content}
+        onBack={() => setIsMemorizing(false)}
+      />
+    );
   }
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6 lg:p-8">
+    <DashboardLayout>
+      <div className="p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <Button
             variant="ghost"
@@ -58,15 +80,17 @@ const MemoriseReview = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>{decodedKey}</CardTitle>
+              <CardTitle>{paragraph.title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="prose max-w-none">
-                <div className="whitespace-pre-wrap text-lg leading-relaxed font-serif">{text}</div>
+                <div className="whitespace-pre-wrap text-lg leading-relaxed font-serif">
+                  {paragraph.content}
+                </div>
               </div>
 
               <Button
-                onClick={handleStartMemorizing}
+                onClick={() => setIsMemorizing(true)}
                 size="lg"
                 className="w-full gradient-primary"
               >
@@ -77,28 +101,20 @@ const MemoriseReview = () => {
           </Card>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
 interface MemorizingModeProps {
-  textKey: string;
+  title: string;
   text: string;
   onBack: () => void;
 }
 
-const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }) => {
+const MemorizingMode: React.FC<MemorizingModeProps> = ({ title, text, onBack }) => {
   const [userInput, setUserInput] = useState('');
   const [analysis, setAnalysis] = useState<any>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  const normalizeText = (str: string) => {
-    return str
-      .replace(/\s+/g, '') // Remove all whitespace
-      .replace(/[，。！？；：「」『』（）、]/g, '') // Remove Chinese punctuation
-      .toLowerCase()
-      .trim();
-  };
 
   const analyzeText = () => {
     setIsAnalyzing(true);
@@ -178,9 +194,8 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
   };
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6 lg:p-8">
+    <DashboardLayout>
+      <div className="p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <Button variant="ghost" onClick={onBack} className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -189,14 +204,14 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
 
           <Card>
             <CardHeader>
-              <CardTitle>Type what you remember: {textKey}</CardTitle>
+              <CardTitle>Type what you remember: {title}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <Textarea
                 placeholder="Type the text from memory here..."
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                className="min-h-[300px] text-lg font-serif"
+                className="min-h-[300px] text-lg font-serif whitespace-pre-wrap"
               />
 
               <Button
@@ -210,7 +225,6 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
 
               {analysis && (
                 <div className="space-y-6">
-                  {/* Stats */}
                   <div className="grid grid-cols-4 gap-4 text-center p-4 bg-muted rounded-lg">
                     <div>
                       <div className="text-2xl font-bold text-primary">{analysis.accuracy}%</div>
@@ -230,7 +244,6 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                     </div>
                   </div>
 
-                  {/* Inline Text Analysis */}
                   <div className="p-6 bg-background rounded-lg border">
                     <h4 className="font-semibold mb-4">Detailed Analysis:</h4>
                     <div className="text-xl leading-relaxed whitespace-pre-wrap">
@@ -279,7 +292,6 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                       })}
                     </div>
                     
-                    {/* Legend */}
                     <div className="mt-6 pt-4 border-t flex gap-6 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 bg-green-600 rounded"></span>
@@ -310,8 +322,8 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
           </Card>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
-export default MemoriseReview;
+export default CustomParagraphReview;

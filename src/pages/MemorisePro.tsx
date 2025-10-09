@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -6,11 +6,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Plus, BookOpen } from 'lucide-react';
 import { chineseTextOptions, ChineseTextKey } from '@/data/chineseTexts';
+import { supabase } from '@/integrations/supabase/client';
 
 const MemorisePro = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [customParagraphs, setCustomParagraphs] = useState<string[]>([]);
+  const [customParagraphs, setCustomParagraphs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user) {
+      fetchCustomParagraphs();
+    }
+  }, [user]);
+
+  const fetchCustomParagraphs = async () => {
+    const { data, error } = await supabase
+      .from('custom_paragraphs')
+      .select('*')
+      .eq('user_id', user?.id)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setCustomParagraphs(data);
+    }
+  };
 
   if (loading) {
     return (
@@ -90,14 +109,14 @@ const MemorisePro = () => {
                   Add Custom Paragraph
                 </Button>
                 
-                {customParagraphs.map((name, index) => (
+                {customParagraphs.map((paragraph) => (
                   <Button
-                    key={index}
+                    key={paragraph.id}
                     variant="outline"
                     className="h-auto py-4 px-4 text-left justify-start hover:bg-primary/10"
-                    onClick={() => navigate(`/memorise-pro/custom/${index}`)}
+                    onClick={() => navigate(`/memorise-pro/custom/${paragraph.id}`)}
                   >
-                    <span className="text-sm font-medium">{name}</span>
+                    <span className="text-sm font-medium">{paragraph.title}</span>
                   </Button>
                 ))}
               </div>
