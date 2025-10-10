@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -19,14 +20,34 @@ interface QuizQuestion {
   correct_answer: string;
 }
 
+// Input validation schema
+const requestSchema = z.object({
+  content: z.string().min(10).max(50000),
+  topic: z.string().min(1).max(200),
+  numQuestions: z.number().int().min(1).max(50).default(25)
+});
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { content, topic, numQuestions = 25 } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid input',
+        details: validationResult.error.errors
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { content, topic, numQuestions } = validationResult.data;
 
     console.log(`Generating ${numQuestions} questions for topic: ${topic}`);
 
@@ -37,7 +58,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'o3-2025-04-16', // Use O3 for better reasoning and fact-checking
+        model: 'o3-2025-04-16',
         messages: [
           {
             role: 'system',
@@ -140,38 +161,31 @@ Better to generate 10 perfect questions than 15 questionable ones.`
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      console.error('OpenAI API error:', response.status);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
     const generatedContent = data.choices[0].message.content;
-
-    console.log('Generated content preview:', generatedContent.substring(0, 300));
 
     // Parse the JSON response
     let questionsData;
     try {
       questionsData = JSON.parse(generatedContent);
     } catch (parseError) {
-      console.error('Failed to parse generated JSON:', parseError);
-      console.error('Raw content:', generatedContent);
+      console.error('Failed to parse generated JSON');
       throw new Error('Invalid JSON response from AI - please try again');
     }
 
     // Validate the response structure
     if (!questionsData.questions || !Array.isArray(questionsData.questions)) {
-      console.error('Invalid structure:', questionsData);
       throw new Error('Invalid questions format from AI');
     }
 
-    // Strict validation for each question with enhanced checks
+    // Strict validation for each question
     const validatedQuestions: QuizQuestion[] = [];
-    for (let i = 0; i < questionsData.questions.length; i++) {
-      const q = questionsData.questions[i];
-      
-      // Check all required fields exist and are strings
+    for (const q of questionsData.questions) {
+      // Check all required fields
       if (!q.question || typeof q.question !== 'string' ||
           !q.options || typeof q.options !== 'object' ||
           !q.correct_answer || typeof q.correct_answer !== 'string' ||
@@ -179,40 +193,28 @@ Better to generate 10 perfect questions than 15 questionable ones.`
           !q.options.b || typeof q.options.b !== 'string' ||
           !q.options.c || typeof q.options.c !== 'string' ||
           !q.options.d || typeof q.options.d !== 'string') {
-        console.error(`Question ${i + 1} failed validation - missing or invalid fields:`, q);
         continue;
       }
 
       // Check correct answer is valid
       if (!['a', 'b', 'c', 'd'].includes(q.correct_answer)) {
-        console.error(`Question ${i + 1} has invalid correct_answer:`, q.correct_answer);
         continue;
       }
 
-      // Enhanced content validation
+      // Content validation
       if (q.question.length < 15 || q.question.length > 300) {
-        console.error(`Question ${i + 1} has invalid length:`, q.question.length);
         continue;
       }
 
       // Check for empty or too short options
       const options = [q.options.a, q.options.b, q.options.c, q.options.d];
       if (options.some(opt => !opt.trim() || opt.trim().length < 2)) {
-        console.error(`Question ${i + 1} has invalid options`);
         continue;
       }
 
       // Check for duplicate options
       const uniqueOptions = new Set(options.map(opt => opt.trim().toLowerCase()));
       if (uniqueOptions.size !== 4) {
-        console.error(`Question ${i + 1} has duplicate options`);
-        continue;
-      }
-
-      // Additional quality checks
-      const correctOption = q.options[q.correct_answer];
-      if (!correctOption || correctOption.trim().length < 2) {
-        console.error(`Question ${i + 1} has invalid correct option`);
         continue;
       }
 
@@ -228,7 +230,7 @@ Better to generate 10 perfect questions than 15 questionable ones.`
       });
     }
 
-    console.log(`Successfully validated ${validatedQuestions.length} out of ${questionsData.questions.length} questions`);
+    console.log(`Successfully validated ${validatedQuestions.length} questions`);
 
     if (validatedQuestions.length === 0) {
       throw new Error('No valid questions could be generated. Please try again.');

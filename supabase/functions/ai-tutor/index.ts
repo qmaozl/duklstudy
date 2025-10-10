@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
 
@@ -7,6 +8,16 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  user_message: z.string().min(1).max(5000),
+  current_topic: z.string().max(200).optional(),
+  conversation_history: z.array(z.object({
+    role: z.enum(['user', 'assistant', 'system']),
+    content: z.string().max(5000)
+  })).max(50).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,14 +31,22 @@ serve(async (req) => {
       throw new Error('OpenAI API key not found');
     }
     
-    const { user_message, current_topic, conversation_history } = await req.json();
+    const body = await req.json();
     
-    if (!user_message) {
-      throw new Error('No user message provided');
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(JSON.stringify({ 
+        success: false,
+        error: 'Invalid input',
+        details: validationResult.error.errors
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    console.log('User message:', user_message);
-    console.log('Current topic:', current_topic);
+    const { user_message, current_topic, conversation_history } = validationResult.data;
 
     // Build conversation with context
     const messages = [
@@ -76,14 +95,11 @@ Keep responses conversational, helpful, and encouraging. Aim for 2-3 sentences u
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
+      console.error('OpenAI API error:', response.status);
       throw new Error(`OpenAI API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('OpenAI response received');
-
     const botResponse = data.choices[0].message.content;
     
     return new Response(JSON.stringify({

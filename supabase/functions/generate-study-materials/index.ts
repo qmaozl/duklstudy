@@ -1,12 +1,22 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY'); // Prefer DeepSeek key, fallback to OpenAI-compatible key
+const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  corrected_text: z.string().min(50).max(100000).optional(),
+  images: z.array(z.string()).max(5).optional(),
+  num_questions: z.number().int().min(5).max(50).default(8)
+}).refine(data => data.corrected_text || (data.images && data.images.length > 0), {
+  message: "Either corrected_text or images must be provided"
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,36 +29,37 @@ serve(async (req) => {
     if (!deepseekApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'DeepSeek API key not found'
+        error: 'API key not configured'
       }), {
-        status: 200,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     
-    const { corrected_text, images, num_questions = 5 } = await req.json();
+    const body = await req.json();
     
-    if (!corrected_text && !images?.length) {
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'No content (text or images) provided for processing'
+        error: 'Invalid input',
+        details: validationResult.error.errors
       }), {
-        status: 200,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Sanitize and clamp num_questions (reduced for speed)
-    const clampedQuestions = Math.max(5, Math.min(12, parseInt(num_questions) || 8));
+    const { corrected_text, images, num_questions } = validationResult.data;
 
-    // Trim very long inputs to speed up processing
+    const clampedQuestions = num_questions;
     const inputText = (corrected_text || '').toString().slice(0, 4000);
 
     console.log('Input text length (trimmed):', inputText.length);
     console.log('Number of images:', images?.length || 0);
     console.log('Number of questions requested:', clampedQuestions);
 
-    // Use DeepSeek API - note: DeepSeek doesn't support vision, so images will be ignored
     const hasImages = images && images.length > 0;
     if (hasImages) {
       console.log('WARNING: Images detected but DeepSeek does not support vision. Processing text only.');
@@ -58,29 +69,8 @@ serve(async (req) => {
     const baseUrl = 'https://api.deepseek.com';
     const model = 'deepseek-chat';
     
-    console.log('DEBUG: About to make API call');
-    console.log('DEBUG: baseUrl:', baseUrl);
-    console.log('DEBUG: model:', model);
-    console.log('DEBUG: API key present:', !!apiKey);
-    console.log('DEBUG: API key length:', apiKey?.length || 0);
-    
-    if (!apiKey) {
-      return new Response(JSON.stringify({ 
-        success: false,
-        error: 'DeepSeek API key not found'
-      }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    // Create content for DeepSeek API (text-only)
-    const messageContent = `Text to analyze: "${inputText || 'No text provided'}"${clampedQuestions ? `\n\nGenerate exactly ${clampedQuestions} quiz questions.` : ''}`;
+    const messageContent = `Text to analyze: "${inputText || 'No text provided'}"\n\nGenerate exactly ${clampedQuestions} quiz questions.`;
 
-    console.log('DEBUG: Request content structure:');
-    console.log('DEBUG: messageContent type:', typeof messageContent);
-    console.log('DEBUG: messageContent length:', messageContent.length);
-    
-    console.log('DEBUG: Complete request body:');
     const requestBody = {
       model,
       messages: [
@@ -135,6 +125,7 @@ Return ONLY the JSON object, no other text.`
       max_tokens: 2200,
       temperature: 0.3
     };
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort('timeout'), 45000);
     let response;
@@ -153,50 +144,36 @@ Return ONLY the JSON object, no other text.`
     }
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('DeepSeek API error:', errorData);
+      console.error('DeepSeek API error:', response.status);
       throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('DeepSeek response received');
-
     const result = data.choices[0].message.content;
     
     let cleanedResult = '';
     try {
-      // Clean the response by removing markdown code blocks if present and extract valid JSON
       cleanedResult = result.trim();
-      console.log('Raw AI response length:', cleanedResult.length);
 
-      // If wrapped in fenced code blocks, extract the inner content
       const fencedMatch = cleanedResult.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
       if (fencedMatch) {
-        console.log('Detected fenced code block, extracting JSON...');
         cleanedResult = fencedMatch[1].trim();
       } else {
-        // Remove any stray opening/closing fences just in case
         cleanedResult = cleanedResult
           .replace(/^```(?:json)?/i, '')
           .replace(/```$/i, '')
           .trim();
       }
 
-      // If still not a pure JSON object, slice between the first '{' and last '}'
       if (!(cleanedResult.startsWith('{') && cleanedResult.endsWith('}'))) {
         const firstBrace = cleanedResult.indexOf('{');
         const lastBrace = cleanedResult.lastIndexOf('}');
         if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          console.log('Slicing content between outermost braces...');
           cleanedResult = cleanedResult.slice(firstBrace, lastBrace + 1).trim();
         }
       }
 
-      console.log('Cleaned response length:', cleanedResult.length);
-      console.log('First 200 characters of cleaned response:', cleanedResult.substring(0, 200));
-
       const parsedResult = JSON.parse(cleanedResult);
-      console.log('Successfully parsed study materials');
       
       return new Response(JSON.stringify({
         success: true,
@@ -205,11 +182,8 @@ Return ONLY the JSON object, no other text.`
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('Raw AI response:', result);
-      console.error('Cleaned response:', cleanedResult);
+      console.error('Failed to parse AI response as JSON');
       
-      // Fallback response
       return new Response(JSON.stringify({
         success: true,
         summary: "Unable to generate summary at this time.",
@@ -247,7 +221,7 @@ Return ONLY the JSON object, no other text.`
       success: false,
       error: message
     }), {
-      status: 200,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

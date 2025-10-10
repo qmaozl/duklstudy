@@ -1,10 +1,10 @@
 project_id = "vqbmbbuhdnxbuuatxmla"
 
 [functions.ai-tutor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-custom-questions]
-verify_jwt = false
+verify_jwt = true
 
 [functions.check-subscription]
 verify_jwt = true
@@ -28,19 +28,19 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.correct-enhance-text]
-verify_jwt = false
+verify_jwt = true
 
 [functions.find-relevant-sources]
 verify_jwt = false
 
 [functions.generate-study-materials]
-verify_jwt = false
+verify_jwt = true
 
 [functions.youtube-search]
 verify_jwt = false
 
 [functions.ocr-image-text]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ai-schedule-planner]
-verify_jwt = false
+verify_jwt = true

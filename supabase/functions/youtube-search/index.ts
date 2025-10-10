@@ -1,9 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  query: z.string().min(1).max(500),
+  maxResults: z.number().int().min(1).max(50).default(10),
+  type: z.enum(['video', 'channel', 'playlist']).default('video')
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,17 +19,22 @@ serve(async (req) => {
   }
 
   try {
-    const { query, maxResults = 10, type = 'video' } = await req.json();
+    const body = await req.json();
     
-    if (!query) {
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'Search query is required'
+        error: 'Invalid input',
+        details: validationResult.error.errors
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    const { query, maxResults, type } = validationResult.data;
 
     const youtubeApiKey = Deno.env.get('YOUTUBE_API_KEY');
     if (!youtubeApiKey) {

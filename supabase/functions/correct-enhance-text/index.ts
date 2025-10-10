@@ -1,12 +1,18 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
+const deepseekApiKey = Deno.env.get('OPENAI_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  raw_text: z.string().min(10).max(50000)
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,24 +25,29 @@ serve(async (req) => {
     if (!deepseekApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'DeepSeek API key not found'
+        error: 'API key not configured'
       }), {
-        status: 200,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     
-    const { raw_text } = await req.json();
+    const body = await req.json();
     
-    if (!raw_text) {
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'No raw text provided for correction'
+        error: 'Invalid input',
+        details: validationResult.error.errors
       }), {
-        status: 200,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const { raw_text } = validationResult.data;
 
     console.log('Input text length:', raw_text.length);
 
@@ -78,19 +89,15 @@ Return ONLY the JSON object, no other text.`
     });
 
     if (!response.ok) {
-      const errorData = await response.text();
-      console.error('DeepSeek API error:', errorData);
+      console.error('DeepSeek API error:', response.status);
       throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('DeepSeek response received');
-
     const result = data.choices[0].message.content;
     
     try {
       const parsedResult = JSON.parse(result);
-      console.log('Successfully parsed correction result');
       
       return new Response(JSON.stringify({
         success: true,
@@ -99,13 +106,12 @@ Return ONLY the JSON object, no other text.`
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('Raw AI response:', result);
+      console.error('Failed to parse AI response as JSON');
       
       // Fallback response
       return new Response(JSON.stringify({
         success: true,
-        corrected_text: raw_text, // Return original text if parsing fails
+        corrected_text: raw_text,
         key_concepts: ["General Topic", "Study Material", "Learning Content", "Educational Text"]
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -118,7 +124,7 @@ Return ONLY the JSON object, no other text.`
       success: false,
       error: error instanceof Error ? error.message : 'Failed to process text'
     }), {
-      status: 200,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

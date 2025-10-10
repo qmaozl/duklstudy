@@ -1,10 +1,25 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const taskSchema = z.object({
+  title: z.string().min(1).max(200),
+  subject: z.string().min(1).max(100),
+  task_type: z.string().min(1).max(50),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  difficulty: z.number().int().min(1).max(5)
+});
+
+const requestSchema = z.object({
+  tasks: z.array(taskSchema).min(1).max(50),
+  availableHours: z.number().min(0.5).max(24)
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,7 +27,25 @@ serve(async (req) => {
   }
 
   try {
-    const { tasks, availableHours } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Invalid input',
+          details: validationResult.error.errors
+        }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { tasks, availableHours } = validationResult.data;
     
     const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
     if (!DEEPSEEK_API_KEY) {

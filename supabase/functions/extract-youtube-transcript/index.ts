@@ -1,9 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  youtube_url: z.string().url().min(10).max(500),
+  lang: z.string().length(2).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,30 +23,32 @@ serve(async (req) => {
     let requestBody;
     try {
       const text = await req.text();
-      console.log('Raw request body:', text);
       requestBody = text ? JSON.parse(text) : {};
     } catch (parseError) {
-      console.error('JSON parsing error:', parseError);
+      console.error('JSON parsing error');
       return new Response(JSON.stringify({ 
         success: false,
         error: 'Invalid JSON in request body' 
       }), {
-        status: 200,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     
-    const { youtube_url, lang = 'en' } = requestBody;
-    
-    if (!youtube_url) {
+    // Validate input
+    const validationResult = requestSchema.safeParse(requestBody);
+    if (!validationResult.success) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'YouTube URL is required' 
+        error: 'Invalid input',
+        details: validationResult.error.errors
       }), {
-        status: 200,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const { youtube_url, lang = 'en' } = validationResult.data;
 
     console.log('Extracting transcript for URL:', youtube_url, 'Language:', lang);
 

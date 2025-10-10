@@ -1,10 +1,16 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema - base64 images should be less than 5MB
+const requestSchema = z.object({
+  image: z.string().min(100).max(7000000) // ~5MB in base64
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,22 +25,27 @@ serve(async (req) => {
         success: false,
         error: 'Google Cloud Vision API key not configured'
       }), {
-        status: 200,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const { image } = await req.json();
+    const body = await req.json();
     
-    if (!image) {
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
       return new Response(JSON.stringify({
         success: false,
-        error: 'No image provided'
+        error: 'Invalid input',
+        details: validationResult.error.errors
       }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const { image } = validationResult.data;
 
     console.log('Processing OCR request...');
 

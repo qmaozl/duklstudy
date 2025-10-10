@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const deepseekApiKey = Deno.env.get('OPENAI_API_KEY'); // Using same env var for DeepSeek
 
@@ -7,6 +8,11 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  key_concepts: z.array(z.string().min(1).max(200)).min(1).max(20)
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,24 +25,29 @@ serve(async (req) => {
     if (!deepseekApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'DeepSeek API key not found'
+        error: 'API key not configured'
       }), {
-        status: 200,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     
-    const { key_concepts } = await req.json();
+    const body = await req.json();
     
-    if (!key_concepts || !Array.isArray(key_concepts)) {
+    // Validate input
+    const validationResult = requestSchema.safeParse(body);
+    if (!validationResult.success) {
       return new Response(JSON.stringify({ 
         success: false,
-        error: 'No key concepts provided or invalid format'
+        error: 'Invalid input',
+        details: validationResult.error.errors
       }), {
-        status: 200,
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    const { key_concepts } = validationResult.data;
 
     console.log('Key concepts:', key_concepts);
 
