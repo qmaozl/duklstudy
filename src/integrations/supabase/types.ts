@@ -14,33 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      custom_paragraphs: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          title: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          title: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          title?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       database: {
         Row: {
           content: string | null
@@ -59,33 +32,6 @@ export type Database = {
           created_at?: string
           id?: number
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      feature_usage: {
-        Row: {
-          created_at: string
-          feature_key: string
-          id: string
-          last_used_at: string
-          usage_count: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          feature_key: string
-          id?: string
-          last_used_at?: string
-          usage_count?: number
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          feature_key?: string
-          id?: string
-          last_used_at?: string
-          usage_count?: number
-          user_id?: string
         }
         Relationships: []
       }
@@ -312,38 +258,6 @@ export type Database = {
             columns: ["task_id"]
             isOneToOne: false
             referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      study_group_chat: {
-        Row: {
-          created_at: string
-          group_id: string
-          id: string
-          message: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          group_id: string
-          id?: string
-          message: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          group_id?: string
-          id?: string
-          message?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "study_group_chat_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "study_groups"
             referencedColumns: ["id"]
           },
         ]

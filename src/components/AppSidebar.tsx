@@ -1,4 +1,4 @@
-import { Home, Clock, Brain, Video, Users, Crown, Menu } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, Users, BookOpen, Crown } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -11,17 +11,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import logo from "@/assets/logo.png";
 
 const menuItems = [
-  { title: "Overview", url: "/", icon: Home },
-  { title: "Study Hub", url: "/study-hub", icon: Brain },
-  { title: "AI Tutor", url: "/ai-tutor", icon: Brain },
+  { title: "Dashboard", url: "/", icon: Home },
   { title: "Focus Timer", url: "/focus-timer", icon: Clock },
-  { title: "Study Group", url: "/study-group", icon: Users },
+  { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
+  { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
+  { title: "Flashcards", url: "/flashcards", icon: BookOpen },
+  { title: "Calendar", url: "/calendar", icon: Calendar },
+  { title: "Friends", url: "/friends", icon: Users },
 ];
 
 export function AppSidebar() {
@@ -46,16 +47,11 @@ export function AppSidebar() {
     >
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <SidebarTrigger>
-            <Menu className="h-5 w-5" />
-          </SidebarTrigger>
+          <img src={logo} alt="DUKL Study" className="h-8 w-8" />
           {!collapsed && (
-            <>
-              <img src={logo} alt="DUKL Study" className="h-8 w-8" />
-              <span className="text-xl font-extralight tracking-wide" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
-                STUDY
-              </span>
-            </>
+            <span className="text-xl font-extralight tracking-wide" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
+              STUDY
+            </span>
           )}
         </div>
       </SidebarHeader>
