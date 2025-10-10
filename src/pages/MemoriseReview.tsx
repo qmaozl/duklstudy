@@ -102,22 +102,79 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
 
   const analyzeText = () => {
     setIsAnalyzing(true);
-    
-    // Use character-based LCS algorithm
-    import('@/utils/lcsCompare').then(({ compareTexts, calculateStats }) => {
-      const comparison = compareTexts(text, userInput);
-      const stats = calculateStats(comparison);
-      
-      setAnalysis({
-        diffResult: comparison,
-        accuracy: stats.accuracy,
-        total: stats.total,
-        correct: stats.correct,
-        wrong: stats.wrong,
-        missed: stats.missing
-      });
-      setIsAnalyzing(false);
+
+    const originalWords = text.split(/\s+/).filter(w => w.length > 0);
+    const userWords = userInput.split(/\s+/).filter(w => w.length > 0);
+
+    const diffResult: Array<{
+      word: string;
+      status: 'correct' | 'wrong' | 'missed';
+      userWord?: string;
+      groupId?: number;
+    }> = [];
+
+    let i = 0, j = 0;
+    let groupId = 0;
+
+    while (i < originalWords.length || j < userWords.length) {
+      if (i >= originalWords.length) {
+        // Extra words from user (ignore)
+        j++;
+        continue;
+      }
+
+      if (j >= userWords.length) {
+        // Missed words
+        diffResult.push({ word: originalWords[i], status: 'missed', groupId });
+        i++;
+        continue;
+      }
+
+      if (originalWords[i].toLowerCase() === userWords[j].toLowerCase()) {
+        // Correct match
+        if (diffResult.length > 0 && diffResult[diffResult.length - 1].status !== 'correct') {
+          groupId++;
+        }
+        diffResult.push({ word: originalWords[i], status: 'correct' });
+        i++;
+        j++;
+      } else {
+        // Check if it's a skip (missed) or wrong word
+        // Look ahead to see if user word matches any upcoming original word
+        const nextMatchIndex = originalWords.slice(i + 1, i + 5).findIndex(
+          w => w.toLowerCase() === userWords[j].toLowerCase()
+        );
+
+        if (nextMatchIndex !== -1) {
+          // User skipped word(s)
+          diffResult.push({ word: originalWords[i], status: 'missed', groupId });
+          i++;
+        } else {
+          // Wrong word (substitution)
+          diffResult.push({
+            word: originalWords[i],
+            status: 'wrong',
+            userWord: userWords[j],
+            groupId
+          });
+          i++;
+          j++;
+        }
+      }
+    }
+
+    const correctCount = diffResult.filter(d => d.status === 'correct').length;
+    const accuracy = ((correctCount / originalWords.length) * 100).toFixed(1);
+
+    setAnalysis({
+      diffResult,
+      accuracy,
+      total: originalWords.length,
+      correct: correctCount,
+      wrong: diffResult.filter(d => d.status === 'wrong').length,
+      missed: diffResult.filter(d => d.status === 'missed').length
     });
+    setIsAnalyzing(false);
   };
 
   return (
@@ -176,22 +233,29 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                   {/* Inline Text Analysis */}
                   <div className="p-6 bg-background rounded-lg border">
                     <h4 className="font-semibold mb-4">Detailed Analysis:</h4>
-                    <div className="text-xl leading-relaxed whitespace-pre-wrap font-serif">
+                    <div className="text-xl leading-relaxed whitespace-pre-wrap">
                       {analysis.diffResult.map((item: any, index: number) => {
+                        const prevItem = index > 0 ? analysis.diffResult[index - 1] : null;
+                        const needsSpace = index > 0 && item.status === 'correct' && prevItem?.status === 'correct';
+                        
                         if (item.status === 'correct') {
                           return (
-                            <span key={index} className="text-green-600 font-medium">{item.original}</span>
+                            <span key={index}>
+                              {needsSpace && ' '}
+                              <span className="text-green-600 font-medium">{item.word}</span>
+                            </span>
                           );
                         } else if (item.status === 'wrong') {
                           return (
                             <span key={index}>
+                              {needsSpace && ' '}
                               <span
-                                className="relative text-red-600 font-medium cursor-pointer hover:bg-red-100 px-0.5 rounded group"
-                                title={`You wrote: ${item.userChar}`}
+                                className="relative text-red-600 font-medium cursor-pointer hover:bg-red-100 px-1 rounded group"
+                                title={`You wrote: ${item.userWord}`}
                               >
-                                {item.original}
+                                {item.word}
                                 <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                  You wrote: {item.userChar}
+                                  You wrote: {item.userWord}
                                 </span>
                               </span>
                             </span>
@@ -199,11 +263,12 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                         } else {
                           return (
                             <span key={index}>
+                              {needsSpace && ' '}
                               <span
-                                className="relative text-gray-400 font-medium cursor-pointer hover:bg-gray-100 px-0.5 rounded group"
+                                className="relative text-gray-400 font-medium cursor-pointer hover:bg-gray-100 px-1 rounded group"
                                 title="You missed this!"
                               >
-                                {item.original}
+                                {item.word}
                                 <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                   You missed this!
                                 </span>
