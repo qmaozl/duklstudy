@@ -22,7 +22,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
             <Button
               variant="ghost"
               size="sm"
-              className="p-2"
+              className="lg:hidden p-2"
               onClick={toggleSidebar}
             >
               <Menu className="h-5 w-5" />
@@ -30,7 +30,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
               <img src={logo} alt="DUKL Study" className="h-7 w-7" />
               <span className="text-lg font-extralight tracking-wide hidden sm:inline" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
-                STUDY
+                DUKL STUDY
               </span>
             </div>
           </div>
@@ -48,7 +48,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto pt-4">
         {children}
       </main>
     </div>
