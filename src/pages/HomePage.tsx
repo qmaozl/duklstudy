@@ -42,7 +42,7 @@ const HomePage = () => {
           </p>
           <div className="mb-8">
             <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
-              <Link to="/auth">I want to lock in→</Link>
+              <Link to="/">I want to lock in→</Link>
             </Button>
           </div>
           <div className="text-white/60 tracking-widest text-sm">TRUSTED BY SIGMAS</div>
@@ -126,7 +126,7 @@ const HomePage = () => {
             Turn study anxiety into<br />confidence with Dukl.
           </h2>
           <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
-            <Link to="/auth">I want to lock in→</Link>
+            <Link to="/">I want to lock in→</Link>
           </Button>
         </section>
       </main>
