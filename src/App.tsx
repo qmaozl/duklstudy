@@ -15,6 +15,8 @@ import Calendar from "./pages/Calendar";
 import Friends from "./pages/Friends";
 import MemorisePro from "./pages/MemorisePro";
 import MemoriseReview from "./pages/MemoriseReview";
+import CustomParagraphNew from "./pages/CustomParagraphNew";
+import CustomParagraphReview from "./pages/CustomParagraphReview";
 import Flashcards from "./pages/Flashcards";
 import FlashcardStudy from "./pages/FlashcardStudy";
 import NotFound from "./pages/NotFound";
@@ -39,6 +41,8 @@ const App = () => (
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/memorise-pro" element={<MemorisePro />} />
           <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
+          <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
+          <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
           <Route path="/flashcards" element={<Flashcards />} />
           <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
           <Route path="*" element={<NotFound />} />
