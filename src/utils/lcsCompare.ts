@@ -5,7 +5,7 @@
 
 export interface CharacterComparison {
   original: string;
-  status: 'correct' | 'wrong' | 'missing';
+  status: 'correct' | 'missing';
   userChar: string | null;
 }
 
@@ -14,7 +14,6 @@ export interface ComparisonResult {
   accuracy: string;
   total: number;
   correct: number;
-  wrong: number;
   missed: number;
 }
 
@@ -96,56 +95,6 @@ function backtrackLCS(
 }
 
 /**
- * Find wrong characters by comparing positions after LCS alignment
- */
-function findWrongCharacters(
-  source: string[],
-  user: string[],
-  lcsResult: CharacterComparison[]
-): CharacterComparison[] {
-  const result: CharacterComparison[] = [];
-  let sourceIdx = 0;
-  let userIdx = 0;
-  let lcsIdx = 0;
-
-  while (sourceIdx < source.length) {
-    if (lcsIdx < lcsResult.length && lcsResult[lcsIdx].original === source[sourceIdx]) {
-      // This character is already in LCS result
-      if (lcsResult[lcsIdx].status === 'correct') {
-        result.push(lcsResult[lcsIdx]);
-        userIdx++;
-      } else {
-        result.push(lcsResult[lcsIdx]);
-      }
-      sourceIdx++;
-      lcsIdx++;
-    } else {
-      // Character not in LCS - check if it's wrong or missing
-      if (userIdx < user.length && source[sourceIdx] !== user[userIdx]) {
-        // Different character at this position - wrong
-        result.push({
-          original: source[sourceIdx],
-          status: 'wrong',
-          userChar: user[userIdx]
-        });
-        sourceIdx++;
-        userIdx++;
-      } else {
-        // User didn't provide this character - missing
-        result.push({
-          original: source[sourceIdx],
-          status: 'missing',
-          userChar: null
-        });
-        sourceIdx++;
-      }
-    }
-  }
-
-  return result;
-}
-
-/**
  * Compare source text with user input at character level using LCS algorithm
  */
 export function compareTextLCS(sourceText: string, userText: string): ComparisonResult {
@@ -161,7 +110,6 @@ export function compareTextLCS(sourceText: string, userText: string): Comparison
 
   // Calculate statistics
   const correctCount = diffResult.filter(d => d.status === 'correct').length;
-  const wrongCount = diffResult.filter(d => d.status === 'wrong').length;
   const missedCount = diffResult.filter(d => d.status === 'missing').length;
   const accuracy = sourceChars.length > 0 
     ? ((correctCount / sourceChars.length) * 100).toFixed(1)
@@ -172,7 +120,6 @@ export function compareTextLCS(sourceText: string, userText: string): Comparison
     accuracy,
     total: sourceChars.length,
     correct: correctCount,
-    wrong: wrongCount,
     missed: missedCount
   };
 }

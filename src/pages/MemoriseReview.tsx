@@ -137,7 +137,7 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
               {analysis && (
                 <div className="space-y-6">
                   {/* Stats */}
-                  <div className="grid grid-cols-4 gap-4 text-center p-4 bg-muted rounded-lg">
+                  <div className="grid grid-cols-3 gap-4 text-center p-4 bg-muted rounded-lg">
                     <div>
                       <div className="text-2xl font-bold text-primary">{analysis.accuracy}%</div>
                       <div className="text-xs text-muted-foreground">Accuracy</div>
@@ -145,10 +145,6 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                     <div>
                       <div className="text-2xl font-bold text-green-600">{analysis.correct}</div>
                       <div className="text-xs text-muted-foreground">Correct</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-red-600">{analysis.wrong}</div>
-                      <div className="text-xs text-muted-foreground">Wrong</div>
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-gray-500">{analysis.missed}</div>
@@ -165,19 +161,6 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                           return (
                             <span key={index} className="text-green-600 font-medium">
                               {item.original}
-                            </span>
-                          );
-                        } else if (item.status === 'wrong') {
-                          return (
-                            <span
-                              key={index}
-                              className="relative text-red-600 font-medium cursor-pointer hover:bg-red-100 px-0.5 rounded group"
-                              title={`You wrote: ${item.userChar}`}
-                            >
-                              {item.original}
-                              <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                                You wrote: {item.userChar}
-                              </span>
                             </span>
                           );
                         } else {
@@ -202,10 +185,6 @@ const MemorizingMode: React.FC<MemorizingModeProps> = ({ textKey, text, onBack }
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 bg-green-600 rounded"></span>
                         <span>Correct</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="w-3 h-3 bg-red-600 rounded"></span>
-                        <span>Wrong (hover to see what you wrote)</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="w-3 h-3 bg-gray-400 rounded"></span>
