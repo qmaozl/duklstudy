@@ -62,12 +62,17 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in customer-portal", { message: errorMessage });
+    logStep("ERROR in customer-portal", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
     
-    // Check if it's a permissions error
+    // Check for common error patterns
     let userFriendlyMessage = errorMessage;
-    if (errorMessage.includes("rak_customer_portal_write") || errorMessage.includes("required permissions")) {
-      userFriendlyMessage = "Your Stripe API key doesn't have permission to manage subscriptions. Please use a full Secret Key (starts with sk_) instead of a Restricted Key, or add 'customer_portal_write' permission to your restricted key in the Stripe Dashboard.";
+    
+    if (errorMessage.includes("customer portal") || errorMessage.includes("billing portal")) {
+      userFriendlyMessage = "Stripe Customer Portal is not activated. Please activate it at: https://dashboard.stripe.com/settings/billing/portal";
+    } else if (errorMessage.includes("permission") || errorMessage.includes("restricted")) {
+      userFriendlyMessage = "Your Stripe API key lacks necessary permissions. Please use a full Secret Key (sk_live_...) or add required permissions in Stripe Dashboard.";
+    } else if (errorMessage.includes("No Stripe customer found")) {
+      userFriendlyMessage = "No subscription found for your account. Please subscribe first.";
     }
     
     return new Response(JSON.stringify({ 
