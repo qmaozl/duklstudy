@@ -7,6 +7,8 @@ import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat,
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PlaylistItem {
   id: string;
@@ -20,9 +22,11 @@ interface PlaylistMakerProps {
 }
 
 const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
+  const { user } = useAuth();
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [showVideo, setShowVideo] = useState(false);
   const [localPlaylist, setLocalPlaylist] = useState<PlaylistItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const {
     playerRef,
@@ -41,6 +45,50 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     isMinimized,
     setIsMinimized
   } = useMediaPlayerContext();
+
+  // Load playlist from database on mount
+  useEffect(() => {
+    if (!user) return;
+    
+    const loadPlaylist = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('user_playlists')
+        .select('videos')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data && !error) {
+        const videos = data.videos as unknown as PlaylistItem[];
+        setLocalPlaylist(videos || []);
+      }
+      setIsLoading(false);
+    };
+
+    loadPlaylist();
+  }, [user]);
+
+  // Save playlist to database whenever it changes
+  useEffect(() => {
+    if (!user || isLoading) return;
+
+    const savePlaylist = async () => {
+      const { error } = await supabase
+        .from('user_playlists')
+        .upsert([{
+          user_id: user.id,
+          videos: localPlaylist as any
+        }], {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        console.error('Error saving playlist:', error);
+      }
+    };
+
+    savePlaylist();
+  }, [localPlaylist, user, isLoading]);
 
   // Sync local playlist with global context
   useEffect(() => {

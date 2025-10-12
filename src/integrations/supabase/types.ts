@@ -734,6 +734,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_playlists: {
+        Row: {
+          created_at: string
+          updated_at: string
+          user_id: string
+          videos: Json
+        }
+        Insert: {
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          videos?: Json
+        }
+        Update: {
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          videos?: Json
+        }
+        Relationships: []
+      }
       wrong_answers: {
         Row: {
           correct_answer: string
