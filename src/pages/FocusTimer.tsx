@@ -1,11 +1,11 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTimerContext } from '@/contexts/TimerContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, Square, RotateCcw, Clock, Zap } from 'lucide-react';
-import { useStudyGroupTimer } from '@/hooks/useStudyGroupTimer';
+import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
 import TwitchStyleChat from '@/components/TwitchStyleChat';
@@ -17,9 +17,14 @@ const FocusTimer = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [isInRoom, setIsInRoom] = useState(false);
   const studyGroupManagerRef = useRef<{ leaveRoom: () => void }>(null);
-  const timer = useStudyGroupTimer(selectedGroupId);
+  const { timer, setGroupId, setIsMinimized } = useTimerContext();
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
+
+  // Sync group ID with context
+  useEffect(() => {
+    setGroupId(selectedGroupId);
+  }, [selectedGroupId, setGroupId]);
 
   useEffect(() => {
     startSoundRef.current = new Audio('/audio/timer-start.mp3');
@@ -138,6 +143,10 @@ const FocusTimer = () => {
                     <Square className="h-4 w-4 mr-2" />
                     Stop
                   </Button>
+                  <Button onClick={() => setIsMinimized(true)} variant="ghost" size="lg">
+                    <Minimize2 className="h-4 w-4 mr-2" />
+                    Minimize
+                  </Button>
                 </>
               )}
 
@@ -150,6 +159,10 @@ const FocusTimer = () => {
                   <Button onClick={handleStop} variant="destructive" size="lg">
                     <Square className="h-4 w-4 mr-2" />
                     Stop
+                  </Button>
+                  <Button onClick={() => setIsMinimized(true)} variant="ghost" size="lg">
+                    <Minimize2 className="h-4 w-4 mr-2" />
+                    Minimize
                   </Button>
                 </>
               )}

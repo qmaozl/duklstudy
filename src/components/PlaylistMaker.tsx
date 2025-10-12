@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle } from 'lucide-react';
+import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
 
 interface PlaylistItem {
   id: string;
@@ -20,18 +21,31 @@ interface PlaylistMakerProps {
 
 const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
-  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(-1);
   const [showVideo, setShowVideo] = useState(false);
-  const [isAudioOnly, setIsAudioOnly] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLooping, setIsLooping] = useState(false);
-  const [isShuffling, setIsShuffling] = useState(false);
-  const [dragPosition, setDragPosition] = useState({ x: window.innerWidth - 450, y: window.innerHeight - 250 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const playerRef = useRef<any>(null);
+  const [localPlaylist, setLocalPlaylist] = useState<PlaylistItem[]>([]);
+  
+  const {
+    playerRef,
+    currentVideo: currentVideoId,
+    setCurrentVideo: setCurrentVideoId,
+    isPlaying,
+    setIsPlaying,
+    isLooping,
+    setIsLooping,
+    isShuffling,
+    setIsShuffling,
+    currentIndex,
+    setCurrentIndex,
+    playlist,
+    setPlaylist,
+    isMinimized,
+    setIsMinimized
+  } = useMediaPlayerContext();
+
+  // Sync local playlist with global context
+  useEffect(() => {
+    setPlaylist(localPlaylist);
+  }, [localPlaylist, setPlaylist]);
 
   useEffect(() => {
     const tag = document.createElement('script');
@@ -69,7 +83,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     }
 
     // Check if already in playlist
-    if (playlist.some(item => item.videoId === videoId)) {
+    if (localPlaylist.some(item => item.videoId === videoId)) {
       toast({
         title: "Already in playlist",
         description: "This video is already in your playlist",
@@ -81,11 +95,11 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     const newItem: PlaylistItem = {
       id: Date.now().toString(),
       videoId,
-      title: `Video ${playlist.length + 1}`,
+      title: `Video ${localPlaylist.length + 1}`,
       thumbnail: `https://img.youtube.com/vi/${videoId}/default.jpg`
     };
 
-    setPlaylist([...playlist, newItem]);
+    setLocalPlaylist([...localPlaylist, newItem]);
     setYoutubeUrl('');
     
     toast({
@@ -99,11 +113,11 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     if (index !== undefined) {
       setCurrentIndex(index);
     } else {
-      const idx = playlist.findIndex(item => item.videoId === videoId);
+      const idx = localPlaylist.findIndex(item => item.videoId === videoId);
       setCurrentIndex(idx);
     }
     setShowVideo(true);
-    setIsAudioOnly(false);
+    setIsMinimized(false);
     setIsPlaying(true);
 
     if (playerRef.current) {
@@ -142,42 +156,39 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
 
   const handleVideoEnd = () => {
     if (isLooping) {
-      // Replay current video
       playerRef.current?.playVideo();
-    } else if (playlist.length > 0) {
-      // Play next video
+    } else if (localPlaylist.length > 0) {
       playNextVideo();
     }
   };
 
   const playNextVideo = () => {
-    if (playlist.length === 0) return;
+    if (localPlaylist.length === 0) return;
 
     let nextIndex: number;
     if (isShuffling) {
-      nextIndex = Math.floor(Math.random() * playlist.length);
+      nextIndex = Math.floor(Math.random() * localPlaylist.length);
     } else {
-      nextIndex = (currentIndex + 1) % playlist.length;
+      nextIndex = (currentIndex + 1) % localPlaylist.length;
     }
 
-    playVideo(playlist[nextIndex].videoId, nextIndex);
+    playVideo(localPlaylist[nextIndex].videoId, nextIndex);
   };
 
   const playPreviousVideo = () => {
-    if (playlist.length === 0 || currentIndex <= 0) return;
+    if (localPlaylist.length === 0 || currentIndex <= 0) return;
     const prevIndex = currentIndex - 1;
-    playVideo(playlist[prevIndex].videoId, prevIndex);
+    playVideo(localPlaylist[prevIndex].videoId, prevIndex);
   };
 
   const closeVideoPopup = () => {
     setShowVideo(false);
-    setIsAudioOnly(true);
-    // Keep playing audio
+    setIsMinimized(true);
   };
 
   const reopenVideo = () => {
     setShowVideo(true);
-    setIsAudioOnly(false);
+    setIsMinimized(false);
   };
 
   const togglePlayPause = () => {
@@ -196,143 +207,48 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     }
     setCurrentVideoId(null);
     setShowVideo(false);
-    setIsAudioOnly(false);
+    setIsMinimized(false);
     setIsPlaying(false);
   };
 
   const removeFromPlaylist = (id: string) => {
-    setPlaylist(playlist.filter(item => item.id !== id));
+    setLocalPlaylist(localPlaylist.filter(item => item.id !== id));
   };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - dragPosition.x,
-      y: e.clientY - dragPosition.y
-    });
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      setDragPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, dragOffset]);
 
   return (
     <div className="space-y-4">
-      {/* Video Popup - Always mounted but conditionally visible */}
-      {currentVideoId && (
-        <div className={cn(
-          "fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden transition-opacity duration-200",
-          showVideo ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}>
+      {/* Video Popup */}
+      {currentVideoId && showVideo && (
+        <div className="fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
             <span className="text-sm font-medium">Now Playing</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={closeVideoPopup}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeVideoPopup}
+                className="h-6 w-6 p-0"
+              >
+                <Minimize2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={stopPlayback}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <div id="youtube-player" className="w-full aspect-video"></div>
         </div>
       )}
 
-      {/* Audio-Only Controller - Draggable */}
-      {isAudioOnly && currentVideoId && (
-        <div 
-          className="fixed z-50 bg-background border-2 border-primary rounded-lg shadow-2xl"
-          style={{
-            left: `${dragPosition.x}px`,
-            top: `${dragPosition.y}px`,
-            width: '320px',
-            cursor: isDragging ? 'grabbing' : 'grab'
-          }}
-        >
-          <div 
-            className="bg-primary/10 px-3 py-2 cursor-grab active:cursor-grabbing"
-            onMouseDown={handleMouseDown}
-          >
-            <p className="text-sm font-medium">Playing Audio</p>
-            <p className="text-xs text-muted-foreground">Drag to move</p>
-          </div>
-          <div className="p-4 space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={playPreviousVideo}
-                disabled={currentIndex <= 0}
-              >
-                <SkipBack className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={togglePlayPause}
-              >
-                {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={playNextVideo}
-              >
-                <SkipForward className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={reopenVideo}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={stopPlayback}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex justify-center gap-2">
-              <Button
-                variant={isLooping ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsLooping(!isLooping)}
-              >
-                <Repeat className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={isShuffling ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setIsShuffling(!isShuffling)}
-              >
-                <Shuffle className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+      {/* Hidden YouTube Player for minimized state */}
+      {currentVideoId && !showVideo && (
+        <div className="fixed opacity-0 pointer-events-none">
+          <div id="youtube-player"></div>
         </div>
       )}
 
@@ -357,7 +273,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                 Add
               </Button>
             </div>
-            {currentVideoId && !showVideo && !isAudioOnly && (
+            {currentVideoId && !showVideo && (
               <p className="text-sm text-muted-foreground">
                 Click a video from your playlist to play
               </p>
@@ -368,17 +284,17 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
         {/* Playlist Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Playlist ({playlist.length})</CardTitle>
+            <CardTitle>Your Playlist ({localPlaylist.length})</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-64">
-              {playlist.length === 0 ? (
+              {localPlaylist.length === 0 ? (
                 <div className="text-center py-8 text-sm text-muted-foreground">
                   No videos in playlist. Add some to get started!
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {playlist.map((item, index) => (
+                  {localPlaylist.map((item, index) => (
                     <div
                       key={item.id}
                       className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 transition-colors"

@@ -56,7 +56,7 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, [groupId, activeUsers]);
+  }, [groupId]);
 
   const fetchActiveUsers = async () => {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -90,11 +90,13 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
   };
 
   const updateTimers = () => {
-    const newTimers: { [key: string]: string } = {};
-    activeUsers.forEach(user => {
-      newTimers[user.id] = calculateStudyTime(user.started_at);
+    setTimers(prevTimers => {
+      const newTimers: { [key: string]: string } = {};
+      activeUsers.forEach(user => {
+        newTimers[user.id] = calculateStudyTime(user.started_at);
+      });
+      return newTimers;
     });
-    setTimers(newTimers);
   };
 
   const calculateStudyTime = (startedAt: string): string => {
