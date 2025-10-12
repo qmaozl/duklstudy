@@ -114,7 +114,7 @@ const MemorisePro = () => {
                     key={paragraph.id}
                     variant="outline"
                     className="h-auto py-4 px-4 text-left justify-start hover:bg-primary/10"
-                    onClick={() => navigate(`/memorise-pro/custom/${paragraph.id}`)}
+                    onClick={() => navigate(`/memorise-pro/custom-review/${paragraph.id}`)}
                   >
                     <span className="text-sm font-medium">{paragraph.title}</span>
                   </Button>
