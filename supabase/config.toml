@@ -44,3 +44,6 @@ verify_jwt = true
 
 [functions.ai-schedule-planner]
 verify_jwt = true
+
+[functions.create-study-group]
+verify_jwt = true

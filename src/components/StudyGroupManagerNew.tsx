@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import StudyRoomLive from './StudyRoomLive';
+import { z } from 'zod';
 
 interface StudyGroup {
   id: string;
@@ -71,20 +72,26 @@ const StudyGroupManagerNew = () => {
     setLoading(true);
     
     try {
-      const { data: group, error: groupError } = await supabase
-        .from('study_groups')
-        .insert({
-          name: newGroupName.trim(),
-          description: newGroupDescription.trim() || null,
-          owner_id: user.id
-        })
-        .select()
-        .single();
+      // Validate inputs
+      const schema = z.object({
+        name: z.string().trim().min(1).max(100),
+        description: z.string().trim().max(200).nullable().optional(),
+      });
+      const payload = schema.parse({
+        name: newGroupName.trim(),
+        description: newGroupDescription.trim() ? newGroupDescription.trim() : null,
+      });
 
-      if (groupError) {
-        console.error('Group creation error:', groupError);
-        throw groupError;
+      const { data, error } = await supabase.functions.invoke('create-study-group', {
+        body: payload,
+      });
+
+      if (error || !data?.success) {
+        console.error('Group creation error:', error || data);
+        throw new Error(data?.details || 'Failed to create');
       }
+
+      const group = data.group;
 
       toast({
         title: "Study room created!",
