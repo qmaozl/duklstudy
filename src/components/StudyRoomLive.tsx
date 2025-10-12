@@ -22,7 +22,8 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName, onRoomJoin }) => {
+const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void }, StudyRoomLiveProps>(
+  ({ groupId, groupName, onRoomJoin }, ref) => {
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [mySessionId, setMySessionId] = useState<string | null>(null);
@@ -149,6 +150,11 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName, onRoo
     });
   };
 
+  // Expose leaveRoom via ref
+  React.useImperativeHandle(ref, () => ({
+    leaveRoom
+  }));
+
 
   return (
     <div className="space-y-4">
@@ -221,6 +227,8 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName, onRoo
       </div>
     </div>
   );
-};
+});
+
+StudyRoomLive.displayName = 'StudyRoomLive';
 
 export default StudyRoomLive;

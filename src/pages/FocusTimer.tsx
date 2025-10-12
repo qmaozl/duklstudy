@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
@@ -16,6 +16,7 @@ const FocusTimer = () => {
   const { user, loading } = useAuth();
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [isInRoom, setIsInRoom] = useState(false);
+  const studyGroupManagerRef = useRef<{ leaveRoom: () => void }>(null);
   const timer = useStudyGroupTimer(selectedGroupId);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -35,6 +36,14 @@ const FocusTimer = () => {
     timer.start();
     startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
   };
+
+  const handleStop = useCallback(async () => {
+    await timer.stop();
+    // Leave room when timer stops to reset Active Studiers display
+    if (isInRoom) {
+      studyGroupManagerRef.current?.leaveRoom();
+    }
+  }, [timer, isInRoom]);
 
   const getTimerColor = () => {
     switch (timer.state) {
@@ -74,6 +83,7 @@ const FocusTimer = () => {
       <div className="p-6 space-y-6 pr-[22rem]">
         {/* Study Rooms */}
         <StudyGroupManagerNew 
+          ref={studyGroupManagerRef}
           onGroupSelect={setSelectedGroupId}
           onRoomJoin={setIsInRoom}
         />
@@ -124,7 +134,7 @@ const FocusTimer = () => {
                     <Pause className="h-4 w-4 mr-2" />
                     Pause
                   </Button>
-                  <Button onClick={timer.stop} variant="destructive" size="lg">
+                  <Button onClick={handleStop} variant="destructive" size="lg">
                     <Square className="h-4 w-4 mr-2" />
                     Stop
                   </Button>
@@ -137,7 +147,7 @@ const FocusTimer = () => {
                     <Play className="h-4 w-4 mr-2" />
                     Resume
                   </Button>
-                  <Button onClick={timer.stop} variant="destructive" size="lg">
+                  <Button onClick={handleStop} variant="destructive" size="lg">
                     <Square className="h-4 w-4 mr-2" />
                     Stop
                   </Button>

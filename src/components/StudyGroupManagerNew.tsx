@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -24,11 +24,10 @@ interface StudyGroupManagerNewProps {
   onRoomJoin?: (isJoined: boolean) => void;
 }
 
-const StudyGroupManagerNew: React.FC<StudyGroupManagerNewProps> = ({ 
-  onGroupSelect, 
-  onRoomJoin 
-}) => {
+const StudyGroupManagerNew = forwardRef<{ leaveRoom: () => void }, StudyGroupManagerNewProps>(
+  ({ onGroupSelect, onRoomJoin }, ref) => {
   const { user } = useAuth();
+  const studyRoomRef = useRef<{ leaveRoom: () => void }>(null);
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -37,6 +36,13 @@ const StudyGroupManagerNew: React.FC<StudyGroupManagerNewProps> = ({
   const [newGroupDescription, setNewGroupDescription] = useState('');
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Expose leaveRoom via ref
+  useImperativeHandle(ref, () => ({
+    leaveRoom: () => {
+      studyRoomRef.current?.leaveRoom();
+    }
+  }));
 
   useEffect(() => {
     if (user) {
@@ -308,6 +314,7 @@ const StudyGroupManagerNew: React.FC<StudyGroupManagerNewProps> = ({
       {/* Live Study Room */}
       {selectedGroup ? (
         <StudyRoomLive 
+          ref={studyRoomRef}
           groupId={selectedGroup.id} 
           groupName={selectedGroup.name}
           onRoomJoin={onRoomJoin}
@@ -324,6 +331,8 @@ const StudyGroupManagerNew: React.FC<StudyGroupManagerNewProps> = ({
       )}
     </div>
   );
-};
+});
+
+StudyGroupManagerNew.displayName = 'StudyGroupManagerNew';
 
 export default StudyGroupManagerNew;
