@@ -5,7 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
-import DashboardOverview from "./pages/DashboardOverview";
+import FocusTimer from "./pages/FocusTimer";
 import Auth from "./pages/Auth";
 import AITutor from "./pages/AITutor";
 import VideoSummarizer from "./pages/VideoSummarizer";
@@ -29,10 +29,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<DashboardOverview />} />
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/dashboard" element={<Index />} />
+          <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/focus-timer" element={<FocusTimer />} />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/ai-tutor" element={<AITutor />} />
           <Route path="/video-summarizer" element={<VideoSummarizer />} />
           <Route path="/study-hub" element={<StudyHub />} />

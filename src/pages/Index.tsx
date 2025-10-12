@@ -4,7 +4,6 @@ import { Brain, Gift, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import Navigation from '@/components/Navigation';
 import UserProfile from '@/components/UserProfile';
-import StudyTimer from '@/components/StudyTimer';
 import FeatureCards from '@/components/FeatureCards';
 import { SubscriptionButton } from '@/components/SubscriptionButton';
 import { Button } from '@/components/ui/button';
@@ -82,18 +81,9 @@ const Index = () => {
       <div className="pt-20 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-8">
 
-          {/* Main Dashboard Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-            
-            {/* Left Column - User Profile */}
-            <div className="lg:col-span-1">
-              <UserProfile />
-            </div>
-
-            {/* Right Column - Study Timer */}
-            <div className="lg:col-span-1">
-              <StudyTimer />
-            </div>
+          {/* User Profile with Leveling System */}
+          <div className="max-w-2xl mx-auto">
+            <UserProfile />
           </div>
 
           {/* Feature Cards */}

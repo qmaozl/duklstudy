@@ -9,7 +9,7 @@ import { Play, Pause, Square, RotateCcw, Clock, Zap, X } from 'lucide-react';
 import { useTimer } from '@/hooks/useTimer';
 import { useStudyGroupTimer } from '@/hooks/useStudyGroupTimer';
 import { cn } from '@/lib/utils';
-import StudyGroupManager from '@/components/StudyGroupManager';
+import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
 import { toast } from '@/hooks/use-toast';
 
 const FocusTimer = () => {
@@ -177,8 +177,8 @@ const FocusTimer = () => {
           </CardContent>
         </Card>
 
-        {/* Study Groups */}
-        <StudyGroupManager />
+        {/* Study Rooms */}
+        <StudyGroupManagerNew />
 
         {/* Timer */}
         <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
