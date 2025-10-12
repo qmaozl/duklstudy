@@ -56,7 +56,7 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, [groupId]);
+  }, [groupId, activeUsers]);
 
   const fetchActiveUsers = async () => {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();

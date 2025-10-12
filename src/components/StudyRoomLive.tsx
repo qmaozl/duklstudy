@@ -14,13 +14,6 @@ interface StudyRoomLiveProps {
   groupName: string;
 }
 
-interface ActiveUser {
-  id: string;
-  pseudonym: string;
-  started_at: string;
-  user_id: string;
-}
-
 interface ChatMessage {
   id: string;
   user_id: string;
@@ -32,29 +25,18 @@ interface ChatMessage {
 }
 
 interface LeaderboardEntry {
-  pseudonym: string;
+  user_id: string;
+  full_name: string;
   total_minutes: number;
   rank: number;
 }
 
-const PSEUDONYM_ADJECTIVES = ['Focused', 'Determined', 'Brilliant', 'Diligent', 'Studious', 'Sharp', 'Quick', 'Smart'];
-const PSEUDONYM_NOUNS = ['Scholar', 'Learner', 'Student', 'Thinker', 'Mind', 'Brain', 'Genius', 'Ace'];
-
-const generatePseudonym = () => {
-  const adj = PSEUDONYM_ADJECTIVES[Math.floor(Math.random() * PSEUDONYM_ADJECTIVES.length)];
-  const noun = PSEUDONYM_NOUNS[Math.floor(Math.random() * PSEUDONYM_NOUNS.length)];
-  const num = Math.floor(Math.random() * 100);
-  return `${adj} ${noun} ${num}`;
-};
-
 const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => {
   const { user } = useAuth();
-  const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [mySessionId, setMySessionId] = useState<string | null>(null);
-  const [myPseudonym, setMyPseudonym] = useState('');
   const [isInRoom, setIsInRoom] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
@@ -63,27 +45,10 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
     if (!user || !groupId) return;
 
     // Fetch initial data
-    fetchActiveUsers();
     fetchChatMessages();
     fetchLeaderboard();
 
     // Subscribe to real-time updates
-    const activeUsersChannel = supabase
-      .channel(`study-room-${groupId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'study_room_sessions',
-          filter: `group_id=eq.${groupId}`
-        },
-        () => {
-          fetchActiveUsers();
-        }
-      )
-      .subscribe();
-
     const chatChannel = supabase
       .channel(`chat-${groupId}`)
       .on(
@@ -101,7 +66,6 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
       .subscribe();
 
     return () => {
-      supabase.removeChannel(activeUsersChannel);
       supabase.removeChannel(chatChannel);
       if (heartbeatInterval.current) {
         clearInterval(heartbeatInterval.current);
@@ -113,24 +77,6 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
-  const fetchActiveUsers = async () => {
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-    
-    const { data, error } = await supabase
-      .from('study_room_sessions')
-      .select('*')
-      .eq('group_id', groupId)
-      .eq('is_active', true)
-      .gte('last_heartbeat', fiveMinutesAgo)
-      .order('started_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching active users:', error);
-      return;
-    }
-
-    setActiveUsers(data || []);
-  };
 
   const fetchChatMessages = async () => {
     const { data, error } = await supabase
@@ -179,17 +125,25 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
       return;
     }
 
-    // Aggregate by user and create pseudonyms
+    // Aggregate by user
     const userTotals: { [key: string]: number } = {};
     data?.forEach(session => {
       userTotals[session.user_id] = (userTotals[session.user_id] || 0) + session.duration_minutes;
     });
 
+    // Fetch user profiles
+    const userIds = Object.keys(userTotals);
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('user_id, full_name')
+      .in('user_id', userIds);
+
     const leaderboardData = Object.entries(userTotals)
-      .map(([userId, minutes], index) => ({
-        pseudonym: generatePseudonym(),
+      .map(([userId, minutes]) => ({
+        user_id: userId,
+        full_name: profiles?.find(p => p.user_id === userId)?.full_name || 'Anonymous',
         total_minutes: minutes,
-        rank: index + 1
+        rank: 0
       }))
       .sort((a, b) => b.total_minutes - a.total_minutes)
       .slice(0, 10)
@@ -201,15 +155,12 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
   const joinRoom = async () => {
     if (!user) return;
 
-    const pseudonym = generatePseudonym();
-    setMyPseudonym(pseudonym);
-
     const { data, error } = await supabase
       .from('study_room_sessions')
       .insert({
         group_id: groupId,
         user_id: user.id,
-        pseudonym: pseudonym,
+        pseudonym: '',
         is_active: true
       })
       .select()
@@ -238,7 +189,7 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
 
     toast({
       title: 'Joined study room!',
-      description: `You're now studying as "${pseudonym}"`
+      description: 'You are now in the study room'
     });
   };
 
@@ -256,7 +207,6 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
 
     setMySessionId(null);
     setIsInRoom(false);
-    setMyPseudonym('');
 
     toast({
       title: 'Left study room',
@@ -283,17 +233,6 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
     setNewMessage('');
   };
 
-  const getStudyTime = (startedAt: string) => {
-    const started = new Date(startedAt);
-    const now = new Date();
-    const minutes = Math.floor((now.getTime() - started.getTime()) / 60000);
-    
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
-
   return (
     <div className="space-y-4">
       {/* Room Header */}
@@ -316,50 +255,15 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="h-4 w-4" />
-            <span>{activeUsers.length} studying now</span>
-            {isInRoom && (
-              <Badge variant="default" className="ml-2">
-                You: {myPseudonym}
-              </Badge>
-            )}
-          </div>
+          {isInRoom && (
+            <Badge variant="default">
+              You're in the room
+            </Badge>
+          )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Active Users */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base">Active Studiers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-64">
-              <div className="space-y-2">
-                {activeUsers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No one studying yet. Be the first!
-                  </p>
-                ) : (
-                  activeUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className="flex items-center justify-between p-2 rounded bg-muted/50"
-                    >
-                      <span className="text-sm font-medium">{user.pseudonym}</span>
-                      <Badge variant="outline" className="text-xs">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {getStudyTime(user.started_at)}
-                      </Badge>
-                    </div>
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Chat */}
         <Card className="lg:col-span-1">
           <CardHeader>
@@ -419,7 +323,7 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
                         <Badge variant={entry.rank === 1 ? 'default' : 'secondary'}>
                           #{entry.rank}
                         </Badge>
-                        <span className="text-sm font-medium">{entry.pseudonym}</span>
+                        <span className="text-sm font-medium">{entry.full_name}</span>
                       </div>
                       <span className="text-sm text-muted-foreground">
                         {entry.total_minutes}m
