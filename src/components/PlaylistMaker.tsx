@@ -265,40 +265,38 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
 
   return (
     <div className="space-y-4">
-      {/* Video Popup */}
-      {currentVideoId && showVideo && (
-        <div className="fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
-            <span className="text-sm font-medium">Now Playing</span>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeVideoPopup}
-                className="h-6 w-6 p-0"
-              >
-                <Minimize2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={stopPlayback}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+      {/* YouTube Player Container - Always in DOM */}
+      <div className={cn(
+        "fixed z-50",
+        showVideo ? "bottom-6 right-[21rem] w-[28rem]" : "opacity-0 pointer-events-none w-0 h-0"
+      )}>
+        {showVideo && (
+          <div className="bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
+              <span className="text-sm font-medium">Now Playing</span>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={closeVideoPopup}
+                  className="h-6 w-6 p-0"
+                >
+                  <Minimize2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={stopPlayback}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
-          <div id="youtube-player" className="w-full aspect-video"></div>
-        </div>
-      )}
-
-      {/* Hidden YouTube Player for minimized state */}
-      {currentVideoId && !showVideo && (
-        <div className="fixed opacity-0 pointer-events-none">
-          <div id="youtube-player"></div>
-        </div>
-      )}
+        )}
+        <div id="youtube-player" className={cn("w-full", showVideo ? "aspect-video" : "w-0 h-0")}></div>
+      </div>
 
       {/* Main Playlist Maker */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

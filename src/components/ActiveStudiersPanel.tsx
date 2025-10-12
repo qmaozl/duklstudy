@@ -47,16 +47,30 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
       )
       .subscribe();
 
-    // Update timers every second
+    // Update timers every second - independent of activeUsers
     const interval = setInterval(() => {
-      updateTimers();
+      setTimers(prevTimers => {
+        const newTimers: { [key: string]: string } = {};
+        activeUsers.forEach(user => {
+          const started = new Date(user.started_at);
+          const now = new Date();
+          const totalSeconds = Math.floor((now.getTime() - started.getTime()) / 1000);
+          
+          const hours = Math.floor(totalSeconds / 3600);
+          const minutes = Math.floor((totalSeconds % 3600) / 60);
+          const seconds = totalSeconds % 60;
+          
+          newTimers[user.id] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        });
+        return newTimers;
+      });
     }, 1000);
 
     return () => {
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, [groupId]);
+  }, [groupId, activeUsers]);
 
   const fetchActiveUsers = async () => {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
@@ -87,28 +101,21 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
     }));
 
     setActiveUsers(usersWithProfiles);
-  };
-
-  const updateTimers = () => {
-    setTimers(prevTimers => {
-      const newTimers: { [key: string]: string } = {};
-      activeUsers.forEach(user => {
-        newTimers[user.id] = calculateStudyTime(user.started_at);
-      });
-      return newTimers;
+    
+    // Initialize timers for new users
+    const newTimers: { [key: string]: string } = {};
+    usersWithProfiles.forEach(user => {
+      const started = new Date(user.started_at);
+      const now = new Date();
+      const totalSeconds = Math.floor((now.getTime() - started.getTime()) / 1000);
+      
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      
+      newTimers[user.id] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     });
-  };
-
-  const calculateStudyTime = (startedAt: string): string => {
-    const started = new Date(startedAt);
-    const now = new Date();
-    const totalSeconds = Math.floor((now.getTime() - started.getTime()) / 1000);
-    
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    setTimers(newTimers);
   };
 
   const getInitials = (name: string): string => {
