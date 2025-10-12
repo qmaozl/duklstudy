@@ -17,24 +17,6 @@ const FeatureCards = () => {
 
   const features = [
     {
-      title: "Generate Materials",
-      description: "Input your study text and let AI create summaries, flashcards, and quizzes instantly",
-      icon: <Upload className="h-8 w-8" />,
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-500/20",
-      action: () => navigate('/study-materials'),
-    },
-    {
-      title: "Summarize Video",
-      description: "Paste a YouTube link and get AI-generated summaries, flashcards, and quizzes",
-      icon: <Youtube className="h-8 w-8" />,
-      color: "text-red-500",
-      bgColor: "bg-red-500/10",
-      borderColor: "border-red-500/20",
-      action: () => navigate('/video-summarizer'),
-    },
-    {
       title: "Study Hub",
       description: "Access all your generated flashcards, quizzes, and summaries in one place",
       icon: <Book className="h-8 w-8" />,

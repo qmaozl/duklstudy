@@ -182,7 +182,6 @@ const App = () => (
               <Route path="/calendar" element={<Calendar />} />
               <Route path="/friends" element={<Friends />} />
               <Route path="/subscription" element={<Subscription />} />
-              <Route path="/settings" element={<Settings />} />
               <Route path="/memorise-pro" element={<MemorisePro />} />
               <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
               <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />

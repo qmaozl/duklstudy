@@ -23,23 +23,6 @@ const Navigation = () => {
           <li><Link className="text-white/90 hover:text-white story-link" to="/home">Home</Link></li>
           <li><Link className="text-white/90 hover:text-white story-link" to="/">Dashboard</Link></li>
           <li><SubscriptionButton /></li>
-          {profile && (
-            <li>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/settings')}
-                className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10"
-              >
-                <Avatar className="h-7 w-7">
-                  <AvatarFallback className="bg-white/10 text-white text-xs">
-                    {profile.full_name?.charAt(0).toUpperCase() || profile.email?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden sm:inline">{profile.full_name || 'Profile'}</span>
-              </Button>
-            </li>
-          )}
         </ul>
       </nav>
     </header>
