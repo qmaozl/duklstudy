@@ -1,4 +1,4 @@
-import { Home, Clock, Brain, Video, Calendar, Users, BookOpen, Crown } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, Users, BookOpen, Crown, Settings } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -23,6 +23,7 @@ const menuItems = [
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },
   { title: "Calendar", url: "/calendar", icon: Calendar },
   { title: "Friends", url: "/friends", icon: Users },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {

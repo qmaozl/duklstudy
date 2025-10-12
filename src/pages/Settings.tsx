@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import UserProfile from '@/components/UserProfile';
+import AvatarUploader from '@/components/AvatarUploader';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import UIModeSwitcher from '@/components/UIModeSwitcher';
 
 const Settings = () => {
   const { user, loading } = useAuth();
@@ -27,7 +30,27 @@ const Settings = () => {
       <div className="p-6">
         <div className="container mx-auto max-w-2xl">
           <h1 className="text-3xl font-bold mb-8">Settings</h1>
-          <UserProfile />
+
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="preferences">Preferences</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile" className="space-y-4">
+              <AvatarUploader />
+              <UserProfile />
+            </TabsContent>
+
+            <TabsContent value="account" className="space-y-4">
+              <p className="text-sm text-muted-foreground">Manage email and password (coming soon).</p>
+            </TabsContent>
+
+            <TabsContent value="preferences" className="space-y-4">
+              <UIModeSwitcher />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </DashboardLayout>
