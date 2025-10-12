@@ -11,6 +11,7 @@ import AITutor from "./pages/AITutor";
 import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
 import Subscription from "./pages/Subscription";
+import Settings from "./pages/Settings";
 import Calendar from "./pages/Calendar";
 import Friends from "./pages/Friends";
 import MemorisePro from "./pages/MemorisePro";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/friends" element={<Friends />} />
           <Route path="/subscription" element={<Subscription />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/memorise-pro" element={<MemorisePro />} />
           <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
           <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
