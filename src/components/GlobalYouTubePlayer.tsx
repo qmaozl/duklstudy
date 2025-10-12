@@ -68,7 +68,13 @@ export function GlobalYouTubePlayer() {
           events: {
             onReady: (event: any) => {
               console.log('YouTube player ready');
-              event.target.playVideo();
+              try {
+                event.target.unMute?.();
+                event.target.setVolume?.(100);
+                event.target.playVideo();
+              } catch (e) {
+                console.warn('YouTube onReady play failed', e);
+              }
               setIsPlaying(true);
             },
             onStateChange: (event: any) => {

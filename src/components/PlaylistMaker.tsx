@@ -146,6 +146,17 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   };
 
   const playVideo = (videoId: string, index?: number) => {
+    const finalizePlay = () => {
+      try {
+        playerRef.current?.unMute?.();
+        playerRef.current?.setVolume?.(100);
+        playerRef.current?.loadVideoById?.(videoId);
+        playerRef.current?.playVideo?.();
+      } catch (e) {
+        console.warn('Player not ready yet, will retry', e);
+      }
+    };
+
     setCurrentVideoId(videoId);
     if (index !== undefined) {
       setCurrentIndex(index);
@@ -156,7 +167,21 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     setShowVideo(true);
     setIsMinimized(false);
     setIsPlaying(true);
-    
+
+    if (playerRef.current?.loadVideoById) {
+      finalizePlay();
+    } else {
+      // Retry shortly until the player is ready
+      let attempts = 0;
+      const t = setInterval(() => {
+        attempts++;
+        if (playerRef.current?.loadVideoById || attempts > 15) {
+          clearInterval(t);
+          finalizePlay();
+        }
+      }, 150);
+    }
+
     onVideoPlay?.(videoId);
   };
 

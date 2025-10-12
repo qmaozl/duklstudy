@@ -63,9 +63,13 @@ function FloatingComponents() {
   const handleMediaPlayPause = () => {
     if (!playerRef.current) return;
     if (isPlaying) {
-      playerRef.current.pauseVideo();
+      playerRef.current.pauseVideo?.();
     } else {
-      playerRef.current.playVideo();
+      try {
+        playerRef.current.unMute?.();
+        playerRef.current.setVolume?.(100);
+      } catch {}
+      playerRef.current.playVideo?.();
     }
   };
 
@@ -81,7 +85,11 @@ function FloatingComponents() {
     setCurrentVideo(playlist[nextIndex].videoId);
     if (playerRef.current) {
       playerRef.current.loadVideoById(playlist[nextIndex].videoId);
-      playerRef.current.playVideo();
+      try {
+        playerRef.current.unMute?.();
+        playerRef.current.setVolume?.(100);
+      } catch {}
+      playerRef.current.playVideo?.();
     }
   };
 
@@ -92,7 +100,11 @@ function FloatingComponents() {
     setCurrentVideo(playlist[prevIndex].videoId);
     if (playerRef.current) {
       playerRef.current.loadVideoById(playlist[prevIndex].videoId);
-      playerRef.current.playVideo();
+      try {
+        playerRef.current.unMute?.();
+        playerRef.current.setVolume?.(100);
+      } catch {}
+      playerRef.current.playVideo?.();
     }
   };
 
