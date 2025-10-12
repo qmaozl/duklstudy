@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send } from 'lucide-react';
+import { Send, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -21,9 +21,10 @@ interface ChatMessage {
 interface TwitchStyleChatProps {
   groupId: string;
   isInRoom: boolean;
+  onClose?: () => void;
 }
 
-const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom }) => {
+const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, onClose }) => {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -107,11 +108,23 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom }) 
   return (
     <div className="fixed top-0 right-0 h-screen w-80 bg-background border-l flex flex-col z-40">
       {/* Header */}
-      <div className="bg-primary/10 border-b px-4 py-3">
-        <h3 className="font-semibold text-sm">Study Chat</h3>
-        <p className="text-xs text-muted-foreground">
-          {isInRoom ? 'Connected' : 'Join room to chat'}
-        </p>
+      <div className="bg-primary/10 border-b px-4 py-3 flex items-start justify-between">
+        <div>
+          <h3 className="font-semibold text-sm">Study Chat</h3>
+          <p className="text-xs text-muted-foreground">
+            {isInRoom ? 'Connected' : 'Join room to chat'}
+          </p>
+        </div>
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 -mt-1"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Messages */}
