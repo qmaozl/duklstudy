@@ -19,7 +19,7 @@ export function GlobalYouTubePlayer() {
   }, []);
 
   useEffect(() => {
-    if (!currentVideo || !playerRef.current) return;
+    if (!currentVideo) return;
 
     const handleVideoEnd = () => {
       if (isLooping) {
@@ -28,44 +28,57 @@ export function GlobalYouTubePlayer() {
         const nextIndex = (currentIndex + 1) % playlist.length;
         setCurrentIndex(nextIndex);
         setCurrentVideo(playlist[nextIndex].videoId);
-        if (playerRef.current) {
+        if (playerRef.current?.loadVideoById) {
           playerRef.current.loadVideoById(playlist[nextIndex].videoId);
           playerRef.current.playVideo();
         }
       }
     };
 
-    // Initialize player if not already created
-    if (!playerRef.current && (window as any).YT && (window as any).YT.Player) {
-      playerRef.current = new (window as any).YT.Player('global-youtube-player', {
-        videoId: currentVideo,
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0
-        },
-        events: {
-          onReady: (event: any) => {
-            event.target.playVideo();
-            setIsPlaying(true);
+    const initPlayer = () => {
+      if (!playerRef.current && (window as any).YT?.Player) {
+        playerRef.current = new (window as any).YT.Player('global-youtube-player', {
+          videoId: currentVideo,
+          playerVars: {
+            autoplay: 1,
+            controls: 0,
+            modestbranding: 1,
+            rel: 0,
+            playsinline: 1,
+            origin: window.location.origin
           },
-          onStateChange: (event: any) => {
-            setIsPlaying(event.data === 1);
-            if (event.data === 0) {
-              handleVideoEnd();
+          events: {
+            onReady: (event: any) => {
+              event.target.playVideo();
+              setIsPlaying(true);
+            },
+            onStateChange: (event: any) => {
+              setIsPlaying(event.data === 1);
+              if (event.data === 0) handleVideoEnd();
             }
           }
+        });
+      } else if (playerRef.current?.loadVideoById) {
+        playerRef.current.loadVideoById(currentVideo);
+        playerRef.current.playVideo();
+      }
+    };
+
+    if (!(window as any).YT?.Player) {
+      const interval = setInterval(() => {
+        if ((window as any).YT?.Player) {
+          clearInterval(interval);
+          initPlayer();
         }
-      });
-    } else if (playerRef.current && playerRef.current.loadVideoById) {
-      playerRef.current.loadVideoById(currentVideo);
-      playerRef.current.playVideo();
+      }, 200);
+      return () => clearInterval(interval);
+    } else {
+      initPlayer();
     }
-  }, [currentVideo]);
+  }, [currentVideo, isLooping, playlist, currentIndex]);
 
   return (
-    <div className="fixed pointer-events-none opacity-0 w-0 h-0 overflow-hidden">
+    <div className="fixed pointer-events-none opacity-0 w-px h-px overflow-hidden">
       <div id="global-youtube-player"></div>
     </div>
   );
