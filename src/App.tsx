@@ -172,10 +172,10 @@ const App = () => (
             <GlobalYouTubePlayer />
             <FloatingComponents />
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/focus-timer" element={<FocusTimer />} />
-              <Route path="/dashboard" element={<Index />} />
+              <Route path="/home" element={<HomePage />} />
               
               <Route path="/video-summarizer" element={<VideoSummarizer />} />
               <Route path="/study-hub" element={<StudyHub />} />
