@@ -22,7 +22,7 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void }, StudyRoomLiveProps>(
+const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudying: (active: boolean) => Promise<void> }, StudyRoomLiveProps>(
   ({ groupId, groupName, onRoomJoin }, ref) => {
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -95,7 +95,7 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void }, StudyRoomLiveP
         group_id: groupId,
         user_id: user.id,
         pseudonym: '',
-        is_active: true
+        is_active: false
       })
       .select()
       .single();
@@ -150,9 +150,18 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void }, StudyRoomLiveP
     });
   };
 
-  // Expose leaveRoom via ref
+  // Expose methods via ref
   React.useImperativeHandle(ref, () => ({
-    leaveRoom
+    leaveRoom,
+    setActiveStudying: async (active: boolean) => {
+      if (!mySessionId) return;
+      const update: Record<string, any> = { is_active: active };
+      if (active) update.started_at = new Date().toISOString();
+      await supabase
+        .from('study_room_sessions')
+        .update(update)
+        .eq('id', mySessionId);
+    }
   }));
 
 

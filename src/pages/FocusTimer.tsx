@@ -16,7 +16,7 @@ const FocusTimer = () => {
   const { user, loading } = useAuth();
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [isInRoom, setIsInRoom] = useState(false);
-  const studyGroupManagerRef = useRef<{ leaveRoom: () => void }>(null);
+  const studyGroupManagerRef = useRef<{ leaveRoom: () => void; setActiveStudying: (active: boolean) => Promise<void> }>(null);
   const { timer, setGroupId, setIsMinimized } = useTimerContext();
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
@@ -39,9 +39,11 @@ const FocusTimer = () => {
 
   const handleLockIn = () => {
     timer.start();
+    if (isInRoom) {
+      studyGroupManagerRef.current?.setActiveStudying(true);
+    }
     startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
   };
-
   const handleStop = useCallback(async () => {
     await timer.stop();
     // Leave room when timer stops to reset Active Studiers display

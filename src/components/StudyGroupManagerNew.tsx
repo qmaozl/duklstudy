@@ -24,10 +24,10 @@ interface StudyGroupManagerNewProps {
   onRoomJoin?: (isJoined: boolean) => void;
 }
 
-const StudyGroupManagerNew = forwardRef<{ leaveRoom: () => void }, StudyGroupManagerNewProps>(
+const StudyGroupManagerNew = forwardRef<{ leaveRoom: () => void; setActiveStudying: (active: boolean) => Promise<void> }, StudyGroupManagerNewProps>(
   ({ onGroupSelect, onRoomJoin }, ref) => {
   const { user } = useAuth();
-  const studyRoomRef = useRef<{ leaveRoom: () => void }>(null);
+  const studyRoomRef = useRef<{ leaveRoom: () => void; setActiveStudying: (active: boolean) => Promise<void> }>(null);
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -37,10 +37,13 @@ const StudyGroupManagerNew = forwardRef<{ leaveRoom: () => void }, StudyGroupMan
   const [joinCode, setJoinCode] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Expose leaveRoom via ref
+  // Expose methods via ref
   useImperativeHandle(ref, () => ({
     leaveRoom: () => {
       studyRoomRef.current?.leaveRoom();
+    },
+    setActiveStudying: async (active: boolean) => {
+      await studyRoomRef.current?.setActiveStudying(active);
     }
   }));
 
