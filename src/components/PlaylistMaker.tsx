@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, X, Maximize2, Trash2, Plus } from 'lucide-react';
+import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -22,9 +22,15 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [playlist, setPlaylist] = useState<PlaylistItem[]>([]);
   const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [showVideo, setShowVideo] = useState(false);
   const [isAudioOnly, setIsAudioOnly] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLooping, setIsLooping] = useState(false);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [dragPosition, setDragPosition] = useState({ x: window.innerWidth - 450, y: window.innerHeight - 250 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const playerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -88,8 +94,14 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     });
   };
 
-  const playVideo = (videoId: string) => {
+  const playVideo = (videoId: string, index?: number) => {
     setCurrentVideoId(videoId);
+    if (index !== undefined) {
+      setCurrentIndex(index);
+    } else {
+      const idx = playlist.findIndex(item => item.videoId === videoId);
+      setCurrentIndex(idx);
+    }
     setShowVideo(true);
     setIsAudioOnly(false);
     setIsPlaying(true);
@@ -114,6 +126,10 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
               },
               onStateChange: (event: any) => {
                 setIsPlaying(event.data === 1);
+                // When video ends
+                if (event.data === 0) {
+                  handleVideoEnd();
+                }
               }
             }
           });
@@ -122,6 +138,35 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     }
 
     onVideoPlay?.(videoId);
+  };
+
+  const handleVideoEnd = () => {
+    if (isLooping) {
+      // Replay current video
+      playerRef.current?.playVideo();
+    } else if (playlist.length > 0) {
+      // Play next video
+      playNextVideo();
+    }
+  };
+
+  const playNextVideo = () => {
+    if (playlist.length === 0) return;
+
+    let nextIndex: number;
+    if (isShuffling) {
+      nextIndex = Math.floor(Math.random() * playlist.length);
+    } else {
+      nextIndex = (currentIndex + 1) % playlist.length;
+    }
+
+    playVideo(playlist[nextIndex].videoId, nextIndex);
+  };
+
+  const playPreviousVideo = () => {
+    if (playlist.length === 0 || currentIndex <= 0) return;
+    const prevIndex = currentIndex - 1;
+    playVideo(playlist[prevIndex].videoId, prevIndex);
   };
 
   const closeVideoPopup = () => {
@@ -159,6 +204,38 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     setPlaylist(playlist.filter(item => item.id !== id));
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - dragPosition.x,
+      y: e.clientY - dragPosition.y
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      setDragPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+
   return (
     <div className="space-y-4">
       {/* Video Popup - Always mounted but conditionally visible */}
@@ -182,21 +259,47 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
         </div>
       )}
 
-      {/* Audio-Only Controller */}
+      {/* Audio-Only Controller - Draggable */}
       {isAudioOnly && currentVideoId && (
-        <div className="fixed bottom-6 right-[21rem] z-50 w-80 bg-background border-2 border-primary rounded-lg shadow-2xl p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium">Playing Audio</p>
-              <p className="text-xs text-muted-foreground">Video minimized</p>
-            </div>
-            <div className="flex gap-2">
+        <div 
+          className="fixed z-50 bg-background border-2 border-primary rounded-lg shadow-2xl"
+          style={{
+            left: `${dragPosition.x}px`,
+            top: `${dragPosition.y}px`,
+            width: '320px',
+            cursor: isDragging ? 'grabbing' : 'grab'
+          }}
+        >
+          <div 
+            className="bg-primary/10 px-3 py-2 cursor-grab active:cursor-grabbing"
+            onMouseDown={handleMouseDown}
+          >
+            <p className="text-sm font-medium">Playing Audio</p>
+            <p className="text-xs text-muted-foreground">Drag to move</p>
+          </div>
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={playPreviousVideo}
+                disabled={currentIndex <= 0}
+              >
+                <SkipBack className="h-4 w-4" />
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={togglePlayPause}
               >
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={playNextVideo}
+              >
+                <SkipForward className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
@@ -211,6 +314,22 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                 onClick={stopPlayback}
               >
                 <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex justify-center gap-2">
+              <Button
+                variant={isLooping ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setIsLooping(!isLooping)}
+              >
+                <Repeat className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={isShuffling ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setIsShuffling(!isShuffling)}
+              >
+                <Shuffle className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -277,7 +396,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => playVideo(item.videoId)}
+                          onClick={() => playVideo(item.videoId, index)}
                         >
                           <Play className="h-4 w-4" />
                         </Button>

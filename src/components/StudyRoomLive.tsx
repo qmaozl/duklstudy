@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Trophy, Send, Clock } from 'lucide-react';
+import { Users, Trophy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -12,16 +12,7 @@ import { toast } from '@/hooks/use-toast';
 interface StudyRoomLiveProps {
   groupId: string;
   groupName: string;
-}
-
-interface ChatMessage {
-  id: string;
-  user_id: string;
-  message: string;
-  created_at: string;
-  profiles?: {
-    full_name: string;
-  };
+  onRoomJoin?: (isJoined: boolean) => void;
 }
 
 interface LeaderboardEntry {
@@ -31,85 +22,27 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => {
+const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName, onRoomJoin }) => {
   const { user } = useAuth();
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [newMessage, setNewMessage] = useState('');
   const [mySessionId, setMySessionId] = useState<string | null>(null);
   const [isInRoom, setIsInRoom] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!user || !groupId) return;
 
     // Fetch initial data
-    fetchChatMessages();
     fetchLeaderboard();
 
-    // Subscribe to real-time updates
-    const chatChannel = supabase
-      .channel(`chat-${groupId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'study_group_chat',
-          filter: `group_id=eq.${groupId}`
-        },
-        (payload) => {
-          fetchChatMessages();
-        }
-      )
-      .subscribe();
-
     return () => {
-      supabase.removeChannel(chatChannel);
       if (heartbeatInterval.current) {
         clearInterval(heartbeatInterval.current);
       }
     };
   }, [user, groupId]);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages]);
 
-
-  const fetchChatMessages = async () => {
-    const { data, error } = await supabase
-      .from('study_group_chat')
-      .select('id, user_id, message, created_at')
-      .eq('group_id', groupId)
-      .order('created_at', { ascending: true })
-      .limit(50);
-
-    if (error) {
-      console.error('Error fetching chat messages:', error);
-      return;
-    }
-
-    if (!data) {
-      setChatMessages([]);
-      return;
-    }
-
-    // Fetch profiles separately
-    const userIds = [...new Set(data.map(msg => msg.user_id))];
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, full_name')
-      .in('user_id', userIds);
-
-    const messagesWithProfiles = data.map(msg => ({
-      ...msg,
-      profiles: profiles?.find(p => p.user_id === msg.user_id) || { full_name: 'Anonymous' }
-    }));
-
-    setChatMessages(messagesWithProfiles);
-  };
 
   const fetchLeaderboard = async () => {
     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -178,6 +111,7 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
 
     setMySessionId(data.id);
     setIsInRoom(true);
+    onRoomJoin?.(true);
 
     // Start heartbeat
     heartbeatInterval.current = setInterval(async () => {
@@ -207,6 +141,7 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
 
     setMySessionId(null);
     setIsInRoom(false);
+    onRoomJoin?.(false);
 
     toast({
       title: 'Left study room',
@@ -214,24 +149,6 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
     });
   };
 
-  const sendMessage = async () => {
-    if (!user || !newMessage.trim()) return;
-
-    const { error } = await supabase
-      .from('study_group_chat')
-      .insert({
-        group_id: groupId,
-        user_id: user.id,
-        message: newMessage.trim()
-      });
-
-    if (error) {
-      console.error('Error sending message:', error);
-      return;
-    }
-
-    setNewMessage('');
-  };
 
   return (
     <div className="space-y-4">
@@ -263,43 +180,9 @@ const StudyRoomLive: React.FC<StudyRoomLiveProps> = ({ groupId, groupName }) => 
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Chat */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base">Group Chat</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <ScrollArea className="h-48">
-              <div className="space-y-2">
-                {chatMessages.map((msg) => (
-                  <div key={msg.id} className="text-sm">
-                    <span className="font-medium text-primary">
-                      {msg.profiles?.full_name || 'Anonymous'}:
-                    </span>{' '}
-                    <span>{msg.message}</span>
-                  </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-            </ScrollArea>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                disabled={!isInRoom}
-              />
-              <Button onClick={sendMessage} size="icon" disabled={!isInRoom || !newMessage.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid grid-cols-1 gap-4">
         {/* Leaderboard */}
-        <Card className="lg:col-span-1">
+        <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Trophy className="h-4 w-4 text-yellow-500" />

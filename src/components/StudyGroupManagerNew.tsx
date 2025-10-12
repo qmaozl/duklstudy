@@ -307,7 +307,11 @@ const StudyGroupManagerNew: React.FC<StudyGroupManagerNewProps> = ({
 
       {/* Live Study Room */}
       {selectedGroup ? (
-        <StudyRoomLive groupId={selectedGroup.id} groupName={selectedGroup.name} />
+        <StudyRoomLive 
+          groupId={selectedGroup.id} 
+          groupName={selectedGroup.name}
+          onRoomJoin={onRoomJoin}
+        />
       ) : (
         <Card>
           <CardContent className="text-center py-12">
