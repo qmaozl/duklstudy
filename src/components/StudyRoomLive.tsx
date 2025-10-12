@@ -30,8 +30,34 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
   const [isInRoom, setIsInRoom] = useState(false);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
 
+  // Restore room session from localStorage on mount
   useEffect(() => {
     if (!user || !groupId) return;
+
+    const storageKey = `room_session_${groupId}_${user.id}`;
+    const savedSession = localStorage.getItem(storageKey);
+    
+    if (savedSession) {
+      try {
+        const { sessionId, inRoom } = JSON.parse(savedSession);
+        setMySessionId(sessionId);
+        setIsInRoom(inRoom);
+        onRoomJoin?.(inRoom);
+        
+        // Restart heartbeat for existing session
+        if (inRoom && sessionId) {
+          heartbeatInterval.current = setInterval(async () => {
+            await supabase
+              .from('study_room_sessions')
+              .update({ last_heartbeat: new Date().toISOString() })
+              .eq('id', sessionId);
+          }, 30000);
+        }
+      } catch (e) {
+        console.error('Error restoring session:', e);
+        localStorage.removeItem(storageKey);
+      }
+    }
 
     // Fetch initial data
     fetchLeaderboard();
@@ -40,6 +66,7 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
       if (heartbeatInterval.current) {
         clearInterval(heartbeatInterval.current);
       }
+      // Don't leave room on unmount - only when user explicitly leaves
     };
   }, [user, groupId]);
 
@@ -114,6 +141,13 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
     setIsInRoom(true);
     onRoomJoin?.(true);
 
+    // Save session to localStorage
+    const storageKey = `room_session_${groupId}_${user.id}`;
+    localStorage.setItem(storageKey, JSON.stringify({
+      sessionId: data.id,
+      inRoom: true
+    }));
+
     // Start heartbeat
     heartbeatInterval.current = setInterval(async () => {
       await supabase
@@ -129,7 +163,7 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
   };
 
   const leaveRoom = async () => {
-    if (!mySessionId) return;
+    if (!mySessionId || !user) return;
 
     if (heartbeatInterval.current) {
       clearInterval(heartbeatInterval.current);
@@ -139,6 +173,10 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
       .from('study_room_sessions')
       .update({ is_active: false })
       .eq('id', mySessionId);
+
+    // Clear session from localStorage
+    const storageKey = `room_session_${groupId}_${user.id}`;
+    localStorage.removeItem(storageKey);
 
     setMySessionId(null);
     setIsInRoom(false);
