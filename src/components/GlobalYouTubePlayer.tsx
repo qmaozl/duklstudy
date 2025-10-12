@@ -3,6 +3,23 @@ import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
 
 export function GlobalYouTubePlayer() {
   const { playerRef, setIsPlaying, currentVideo, isLooping, playlist, currentIndex, setCurrentIndex, setCurrentVideo } = useMediaPlayerContext();
+  
+  // Use refs to access latest values without causing re-renders
+  const isLoopingRef = React.useRef(isLooping);
+  const playlistRef = React.useRef(playlist);
+  const currentIndexRef = React.useRef(currentIndex);
+  
+  React.useEffect(() => {
+    isLoopingRef.current = isLooping;
+  }, [isLooping]);
+  
+  React.useEffect(() => {
+    playlistRef.current = playlist;
+  }, [playlist]);
+  
+  React.useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
   useEffect(() => {
     // Load YouTube API
@@ -22,14 +39,14 @@ export function GlobalYouTubePlayer() {
     if (!currentVideo) return;
 
     const handleVideoEnd = () => {
-      if (isLooping) {
+      if (isLoopingRef.current) {
         playerRef.current?.playVideo();
-      } else if (playlist.length > 0) {
-        const nextIndex = (currentIndex + 1) % playlist.length;
+      } else if (playlistRef.current.length > 0) {
+        const nextIndex = (currentIndexRef.current + 1) % playlistRef.current.length;
         setCurrentIndex(nextIndex);
-        setCurrentVideo(playlist[nextIndex].videoId);
+        setCurrentVideo(playlistRef.current[nextIndex].videoId);
         if (playerRef.current?.loadVideoById) {
-          playerRef.current.loadVideoById(playlist[nextIndex].videoId);
+          playerRef.current.loadVideoById(playlistRef.current[nextIndex].videoId);
           playerRef.current.playVideo();
         }
       }
@@ -37,6 +54,7 @@ export function GlobalYouTubePlayer() {
 
     const initPlayer = () => {
       if (!playerRef.current && (window as any).YT?.Player) {
+        console.log('Initializing YouTube player with video:', currentVideo);
         playerRef.current = new (window as any).YT.Player('global-youtube-player', {
           videoId: currentVideo,
           playerVars: {
@@ -49,6 +67,7 @@ export function GlobalYouTubePlayer() {
           },
           events: {
             onReady: (event: any) => {
+              console.log('YouTube player ready');
               event.target.playVideo();
               setIsPlaying(true);
             },
@@ -59,6 +78,7 @@ export function GlobalYouTubePlayer() {
           }
         });
       } else if (playerRef.current?.loadVideoById) {
+        console.log('Loading new video:', currentVideo);
         playerRef.current.loadVideoById(currentVideo);
         playerRef.current.playVideo();
       }
@@ -75,7 +95,7 @@ export function GlobalYouTubePlayer() {
     } else {
       initPlayer();
     }
-  }, [currentVideo, isLooping, playlist, currentIndex]);
+  }, [currentVideo]);
 
   return (
     <div className="fixed pointer-events-none opacity-0 w-px h-px overflow-hidden">
