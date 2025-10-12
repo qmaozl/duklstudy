@@ -81,7 +81,10 @@ const StudyGroupManagerNew = () => {
         .select()
         .single();
 
-      if (groupError) throw groupError;
+      if (groupError) {
+        console.error('Group creation error:', groupError);
+        throw groupError;
+      }
 
       toast({
         title: "Study room created!",
