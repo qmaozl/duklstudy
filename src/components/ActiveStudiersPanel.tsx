@@ -155,7 +155,7 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
                     {getInitials(user.profiles?.full_name || 'AN')}
                   </AvatarFallback>
                 </Avatar>
-                <p className="font-medium text-sm text-center mb-1 truncate w-full">
+                <p className="font-medium text-sm text-center mb-1 truncate w-full text-white">
                   {user.profiles?.full_name || user.pseudonym}
                 </p>
                 <Badge variant="secondary" className="text-xs font-mono">
