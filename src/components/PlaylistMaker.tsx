@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Play, Pause, X, Maximize2, Trash2, Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface PlaylistItem {
   id: string;
@@ -95,22 +96,28 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
 
     if (playerRef.current) {
       playerRef.current.loadVideoById(videoId);
+      playerRef.current.playVideo();
     } else {
       setTimeout(() => {
-        playerRef.current = new (window as any).YT.Player('youtube-player', {
-          videoId: videoId,
-          playerVars: {
-            autoplay: 1,
-            controls: 1,
-            modestbranding: 1,
-            rel: 0
-          },
-          events: {
-            onStateChange: (event: any) => {
-              setIsPlaying(event.data === 1);
+        if ((window as any).YT && (window as any).YT.Player) {
+          playerRef.current = new (window as any).YT.Player('youtube-player', {
+            videoId: videoId,
+            playerVars: {
+              autoplay: 1,
+              controls: 1,
+              modestbranding: 1,
+              rel: 0
+            },
+            events: {
+              onReady: (event: any) => {
+                event.target.playVideo();
+              },
+              onStateChange: (event: any) => {
+                setIsPlaying(event.data === 1);
+              }
             }
-          }
-        });
+          });
+        }
       }, 100);
     }
 
@@ -154,9 +161,12 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
 
   return (
     <div className="space-y-4">
-      {/* Video Popup */}
-      {showVideo && currentVideoId && (
-        <div className="fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
+      {/* Video Popup - Always mounted but conditionally visible */}
+      {currentVideoId && (
+        <div className={cn(
+          "fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden transition-opacity duration-200",
+          showVideo ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}>
           <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
             <span className="text-sm font-medium">Now Playing</span>
             <Button
