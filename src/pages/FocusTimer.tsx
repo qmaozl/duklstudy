@@ -4,38 +4,25 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Play, Pause, Square, RotateCcw, Clock, Zap, X } from 'lucide-react';
-import { useTimer } from '@/hooks/useTimer';
+import { Play, Pause, Square, RotateCcw, Clock, Zap } from 'lucide-react';
 import { useStudyGroupTimer } from '@/hooks/useStudyGroupTimer';
 import { cn } from '@/lib/utils';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
-import { toast } from '@/hooks/use-toast';
+import TwitchStyleChat from '@/components/TwitchStyleChat';
+import PlaylistMaker from '@/components/PlaylistMaker';
+import ActiveStudiersPanel from '@/components/ActiveStudiersPanel';
 
 const FocusTimer = () => {
   const { user, loading } = useAuth();
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
+  const [isInRoom, setIsInRoom] = useState(false);
   const timer = useStudyGroupTimer(selectedGroupId);
-  const [youtubeUrl, setYoutubeUrl] = useState('');
-  const [currentVideoId, setCurrentVideoId] = useState<string | null>(null);
-  const [showPlayer, setShowPlayer] = useState(false);
-  const playerRef = useRef<any>(null);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     startSoundRef.current = new Audio('/audio/timer-start.mp3');
     endSoundRef.current = new Audio('/audio/timer-end.mp3');
-
-    // Load YouTube IFrame API
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-    (window as any).onYouTubeIframeAPIReady = () => {
-      console.log('YouTube API ready');
-    };
   }, []);
 
   useEffect(() => {
@@ -43,60 +30,6 @@ const FocusTimer = () => {
       endSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
     }
   }, [timer.state, timer.seconds]);
-
-  const extractVideoId = (url: string): string | null => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-      /youtube\.com\/embed\/([^&\n?#]+)/
-    ];
-    
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match && match[1]) {
-        return match[1];
-      }
-    }
-    return null;
-  };
-
-  const handleLoadVideo = () => {
-    const videoId = extractVideoId(youtubeUrl);
-    if (!videoId) {
-      toast({
-        title: "Invalid URL",
-        description: "Please enter a valid YouTube URL",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setCurrentVideoId(videoId);
-    setShowPlayer(true);
-    
-    // Initialize or update player
-    if (playerRef.current) {
-      playerRef.current.loadVideoById(videoId);
-    } else {
-      setTimeout(() => {
-        playerRef.current = new (window as any).YT.Player('youtube-player', {
-          videoId: videoId,
-          playerVars: {
-            autoplay: 1,
-            controls: 1,
-            modestbranding: 1,
-            rel: 0
-          }
-        });
-      }, 100);
-    }
-  };
-
-  const handleClosePlayer = () => {
-    if (playerRef.current && playerRef.current.pauseVideo) {
-      playerRef.current.pauseVideo();
-    }
-    setShowPlayer(false);
-  };
 
   const handleLockIn = () => {
     timer.start();
@@ -133,52 +66,25 @@ const FocusTimer = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
-        {/* Floating YouTube Player */}
-        {showPlayer && currentVideoId && (
-          <div className="fixed bottom-6 right-6 z-50 w-80 bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
-              <span className="text-sm font-medium">Now Playing</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClosePlayer}
-                className="h-6 w-6 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div id="youtube-player" className="w-full aspect-video"></div>
-          </div>
+      {/* Twitch-Style Chat - Fixed Right */}
+      {selectedGroupId && (
+        <TwitchStyleChat groupId={selectedGroupId} isInRoom={isInRoom} />
+      )}
+
+      <div className="p-6 space-y-6 pr-[22rem]">
+        {/* Study Rooms */}
+        <StudyGroupManagerNew 
+          onGroupSelect={setSelectedGroupId}
+          onRoomJoin={setIsInRoom}
+        />
+
+        {/* Active Studiers Panel */}
+        {selectedGroupId && (
+          <ActiveStudiersPanel groupId={selectedGroupId} />
         )}
 
-        {/* YouTube Media Player */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Study Media Player</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                placeholder="Paste YouTube URL here..."
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleLoadVideo} disabled={!youtubeUrl.trim()}>
-                Load Video
-              </Button>
-            </div>
-            {showPlayer && (
-              <p className="text-sm text-muted-foreground">
-                Video is playing in the floating player at the bottom right
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Study Rooms */}
-        <StudyGroupManagerNew />
+        {/* Playlist Maker */}
+        <PlaylistMaker />
 
         {/* Timer */}
         <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>

@@ -19,7 +19,15 @@ interface StudyGroup {
   owner_id: string;
 }
 
-const StudyGroupManagerNew = () => {
+interface StudyGroupManagerNewProps {
+  onGroupSelect?: (groupId: string | undefined) => void;
+  onRoomJoin?: (isJoined: boolean) => void;
+}
+
+const StudyGroupManagerNew: React.FC<StudyGroupManagerNewProps> = ({ 
+  onGroupSelect, 
+  onRoomJoin 
+}) => {
   const { user } = useAuth();
   const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<StudyGroup | null>(null);
@@ -35,6 +43,10 @@ const StudyGroupManagerNew = () => {
       fetchGroups();
     }
   }, [user]);
+
+  useEffect(() => {
+    onGroupSelect?.(selectedGroup?.id);
+  }, [selectedGroup, onGroupSelect]);
 
   const fetchGroups = async () => {
     if (!user) return;
