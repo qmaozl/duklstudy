@@ -2,7 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-const deepseekApiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY');
+const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,7 +26,7 @@ serve(async (req) => {
   try {
     console.log('Processing study materials generation request');
     
-    if (!deepseekApiKey) {
+    if (!lovableApiKey) {
       return new Response(JSON.stringify({ 
         success: false,
         error: 'API key not configured'
@@ -62,12 +62,12 @@ serve(async (req) => {
 
     const hasImages = images && images.length > 0;
     if (hasImages) {
-      console.log('WARNING: Images detected but DeepSeek does not support vision. Processing text only.');
+      console.log('WARNING: Images detected but will be ignored in processing.');
     }
     
-    const apiKey = deepseekApiKey;
-    const baseUrl = 'https://api.deepseek.com';
-    const model = 'deepseek-chat';
+    const apiKey = lovableApiKey;
+    const baseUrl = 'https://ai.gateway.lovable.dev';
+    const model = 'google/gemini-2.5-flash';
     
     const messageContent = `Text to analyze: "${inputText || 'No text provided'}"\n\nGenerate exactly ${clampedQuestions} quiz questions.`;
 
@@ -144,12 +144,14 @@ Return ONLY the JSON object, no other text.`
     }
 
     if (!response.ok) {
-      console.error('DeepSeek API error:', response.status);
-      throw new Error(`DeepSeek API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('AI API error:', response.status, errorText);
+      throw new Error(`AI API error: ${response.status}`);
     }
 
     const data = await response.json();
     const result = data.choices[0].message.content;
+    console.log('AI response received, length:', result?.length);
     
     let cleanedResult = '';
     try {
@@ -174,6 +176,7 @@ Return ONLY the JSON object, no other text.`
       }
 
       const parsedResult = JSON.parse(cleanedResult);
+      console.log('Successfully parsed AI response');
       
       return new Response(JSON.stringify({
         success: true,
@@ -182,7 +185,8 @@ Return ONLY the JSON object, no other text.`
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
-      console.error('Failed to parse AI response as JSON');
+      console.error('Failed to parse AI response as JSON:', parseError);
+      console.error('Cleaned result:', cleanedResult.substring(0, 500));
       
       return new Response(JSON.stringify({
         success: true,

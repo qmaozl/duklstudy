@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Youtube, Book, MessageCircle, Upload, Sparkles } from 'lucide-react';
+import { Book, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const FeatureCards = () => {
@@ -25,19 +25,10 @@ const FeatureCards = () => {
       borderColor: "border-green-500/20",
       action: () => navigate('/study-hub'),
     },
-    {
-      title: "AI Tutor",
-      description: "Chat with StudyBot, your personal AI tutor available 24/7 for any questions",
-      icon: <MessageCircle className="h-8 w-8" />,
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-      borderColor: "border-purple-500/20",
-      action: () => navigate('/ai-tutor'),
-    },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 gap-6">
       {features.map((feature, index) => (
         <Card
           key={index}

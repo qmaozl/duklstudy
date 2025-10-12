@@ -9,13 +9,13 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import FocusTimer from "./pages/FocusTimer";
 import Auth from "./pages/Auth";
-import AITutor from "./pages/AITutor";
+
 import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
 import Subscription from "./pages/Subscription";
 import Settings from "./pages/Settings";
 import Calendar from "./pages/Calendar";
-import Friends from "./pages/Friends";
+
 import MemorisePro from "./pages/MemorisePro";
 import MemoriseReview from "./pages/MemoriseReview";
 import CustomParagraphNew from "./pages/CustomParagraphNew";
@@ -176,11 +176,11 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/focus-timer" element={<FocusTimer />} />
               <Route path="/home" element={<HomePage />} />
-              <Route path="/ai-tutor" element={<AITutor />} />
+              
               <Route path="/video-summarizer" element={<VideoSummarizer />} />
               <Route path="/study-hub" element={<StudyHub />} />
               <Route path="/calendar" element={<Calendar />} />
-              <Route path="/friends" element={<Friends />} />
+              
               <Route path="/subscription" element={<Subscription />} />
               <Route path="/memorise-pro" element={<MemorisePro />} />
               <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
