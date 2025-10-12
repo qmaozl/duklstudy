@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Brain, Gift, Sparkles, Loader2 } from 'lucide-react';
+import { Gift, Sparkles, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import Navigation from '@/components/Navigation';
+import { DashboardLayout } from '@/components/DashboardLayout';
 import UserProfile from '@/components/UserProfile';
 import FeatureCards from '@/components/FeatureCards';
-import { SubscriptionButton } from '@/components/SubscriptionButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -76,15 +75,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-
-          {/* User Profile with Leveling System */}
-          <div className="max-w-2xl mx-auto">
-            <UserProfile />
-          </div>
+    <DashboardLayout>
+      <div className="p-6 space-y-8">
+        {/* User Profile with Leveling System */}
+        <div className="max-w-2xl mx-auto">
+          <UserProfile />
+        </div>
 
           {/* Feature Cards */}
           <div className="space-y-6">
@@ -97,51 +93,50 @@ const Index = () => {
             <FeatureCards />
           </div>
 
-          {/* Footer */}
-          <div className="text-center py-8 text-sm text-muted-foreground">
-            <p>© 2024 Dukl - Powered by AI for smarter learning</p>
-          </div>
-
-          {/* Promotional Code Section */}
-          <Card className="border-2 border-dashed border-primary/20 max-w-md mx-auto">
-            <CardHeader className="text-center">
-              <CardTitle className="flex items-center justify-center gap-2 text-primary">
-                <Gift className="h-5 w-5" />
-                Have a Promo Code?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Input
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                  placeholder="Enter promo code"
-                  disabled={isActivatingPromo}
-                  className="flex-1"
-                  onKeyPress={(e) => e.key === 'Enter' && activatePromoCode()}
-                />
-                <Button 
-                  onClick={activatePromoCode}
-                  disabled={isActivatingPromo || !promoCode.trim()}
-                  className="gap-2 whitespace-nowrap"
-                  variant="secondary"
-                >
-                  {isActivatingPromo ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {isActivatingPromo ? 'Activating...' : 'Activate Code'}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground text-center mt-3">
-                Unlock premium features with valid promo codes
-              </p>
-            </CardContent>
-          </Card>
+        {/* Footer */}
+        <div className="text-center py-8 text-sm text-muted-foreground">
+          <p>© 2024 Dukl - Powered by AI for smarter learning</p>
         </div>
+
+        {/* Promotional Code Section */}
+        <Card className="border-2 border-dashed border-primary/20 max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2 text-primary">
+              <Gift className="h-5 w-5" />
+              Have a Promo Code?
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Input
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Enter promo code"
+                disabled={isActivatingPromo}
+                className="flex-1"
+                onKeyPress={(e) => e.key === 'Enter' && activatePromoCode()}
+              />
+              <Button 
+                onClick={activatePromoCode}
+                disabled={isActivatingPromo || !promoCode.trim()}
+                className="gap-2 whitespace-nowrap"
+                variant="secondary"
+              >
+                {isActivatingPromo ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4" />
+                )}
+                {isActivatingPromo ? 'Activating...' : 'Activate Code'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Unlock premium features with valid promo codes
+            </p>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 
