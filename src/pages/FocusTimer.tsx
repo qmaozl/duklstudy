@@ -44,10 +44,25 @@ const FocusTimer = () => {
     }
     startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
   };
+
+  const handlePause = () => {
+    timer.pause();
+    if (isInRoom) {
+      studyGroupManagerRef.current?.setActiveStudying(false);
+    }
+  };
+
+  const handleResume = () => {
+    timer.start();
+    if (isInRoom) {
+      studyGroupManagerRef.current?.setActiveStudying(true);
+    }
+  };
+
   const handleStop = useCallback(async () => {
     await timer.stop();
-    // Leave room when timer stops to reset Active Studiers display
     if (isInRoom) {
+      studyGroupManagerRef.current?.setActiveStudying(false);
       studyGroupManagerRef.current?.leaveRoom();
     }
   }, [timer, isInRoom]);
@@ -137,7 +152,7 @@ const FocusTimer = () => {
 
               {timer.state === 'running' && (
                 <>
-                  <Button onClick={timer.pause} variant="outline" size="lg">
+                  <Button onClick={handlePause} variant="outline" size="lg">
                     <Pause className="h-4 w-4 mr-2" />
                     Pause
                   </Button>
@@ -154,7 +169,7 @@ const FocusTimer = () => {
 
               {timer.state === 'paused' && (
                 <>
-                  <Button onClick={timer.start} size="lg" className="gradient-primary">
+                  <Button onClick={handleResume} size="lg" className="gradient-primary">
                     <Play className="h-4 w-4 mr-2" />
                     Resume
                   </Button>

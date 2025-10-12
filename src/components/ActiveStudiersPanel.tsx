@@ -47,7 +47,7 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
       )
       .subscribe();
 
-    // Update timers every second - independent of activeUsers
+    // Update timers every second
     const interval = setInterval(() => {
       setTimers(prevTimers => {
         const newTimers: { [key: string]: string } = {};
@@ -140,7 +140,7 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
           <div className="text-center py-12 text-muted-foreground">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p className="text-sm">No one studying yet</p>
-            <p className="text-xs">Be the first to join!</p>
+            <p className="text-xs">Be the first to start!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

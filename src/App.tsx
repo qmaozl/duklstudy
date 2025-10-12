@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import AIChatbot from "./components/AIChatbot";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
+import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
 import { useNavigate } from "react-router-dom";
 
 function FloatingComponents() {
@@ -156,6 +157,7 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+            <GlobalYouTubePlayer />
             <FloatingComponents />
             <Routes>
               <Route path="/" element={<Index />} />

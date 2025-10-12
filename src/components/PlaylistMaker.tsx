@@ -90,21 +90,10 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     savePlaylist();
   }, [localPlaylist, user, isLoading]);
 
-  // Sync local playlist with global context
   useEffect(() => {
+    // Sync local playlist with global context
     setPlaylist(localPlaylist);
   }, [localPlaylist, setPlaylist]);
-
-  useEffect(() => {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-    (window as any).onYouTubeIframeAPIReady = () => {
-      console.log('YouTube API ready');
-    };
-  }, []);
 
   const extractVideoId = (url: string): string | null => {
     const patterns = [
@@ -167,47 +156,8 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     setShowVideo(true);
     setIsMinimized(false);
     setIsPlaying(true);
-
-    if (playerRef.current) {
-      playerRef.current.loadVideoById(videoId);
-      playerRef.current.playVideo();
-    } else {
-      setTimeout(() => {
-        if ((window as any).YT && (window as any).YT.Player) {
-          playerRef.current = new (window as any).YT.Player('youtube-player', {
-            videoId: videoId,
-            playerVars: {
-              autoplay: 1,
-              controls: 1,
-              modestbranding: 1,
-              rel: 0
-            },
-            events: {
-              onReady: (event: any) => {
-                event.target.playVideo();
-              },
-              onStateChange: (event: any) => {
-                setIsPlaying(event.data === 1);
-                // When video ends
-                if (event.data === 0) {
-                  handleVideoEnd();
-                }
-              }
-            }
-          });
-        }
-      }, 100);
-    }
-
+    
     onVideoPlay?.(videoId);
-  };
-
-  const handleVideoEnd = () => {
-    if (isLooping) {
-      playerRef.current?.playVideo();
-    } else if (localPlaylist.length > 0) {
-      playNextVideo();
-    }
   };
 
   const playNextVideo = () => {
@@ -265,38 +215,35 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
 
   return (
     <div className="space-y-4">
-      {/* YouTube Player Container - Always in DOM */}
-      <div className={cn(
-        "fixed z-50",
-        showVideo ? "bottom-6 right-[21rem] w-[28rem]" : "opacity-0 pointer-events-none w-0 h-0"
-      )}>
-        {showVideo && (
-          <div className="bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
-            <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
-              <span className="text-sm font-medium">Now Playing</span>
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={closeVideoPopup}
-                  className="h-6 w-6 p-0"
-                >
-                  <Minimize2 className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={stopPlayback}
-                  className="h-6 w-6 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+      {/* Video Display Overlay - Only shows when not minimized */}
+      {currentVideoId && showVideo && (
+        <div className="fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
+            <span className="text-sm font-medium">Now Playing</span>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeVideoPopup}
+                className="h-6 w-6 p-0"
+              >
+                <Minimize2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={stopPlayback}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </div>
-        )}
-        <div id="youtube-player" className={cn("w-full", showVideo ? "aspect-video" : "w-0 h-0")}></div>
-      </div>
+          <div className="w-full aspect-video bg-black flex items-center justify-center text-white">
+            <p className="text-sm">Audio playing...</p>
+          </div>
+        </div>
+      )}
 
       {/* Main Playlist Maker */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
