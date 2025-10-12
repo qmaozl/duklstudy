@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import timerShot from "@/assets/timer.png";
-import youtubeShot from "@/assets/youtube.png";
+import roomShot from "@/assets/room-feature.png";
+import playlistShot from "@/assets/playlist-feature.png";
+import flashShot from "@/assets/flash-feature.png";
 
 const HomePage = () => {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
@@ -51,68 +52,100 @@ const HomePage = () => {
         {/* Features with white section */}
         <section className="py-20" style={{ background: 'hsl(var(--white-bg))' }}>
           <div className="max-w-7xl mx-auto px-6 space-y-24">
-            {/* Timer Feature */}
+            {/* Room Feature */}
             <div 
-              id="timer-feature"
+              id="room-feature"
               data-fade-up
               className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
-                visibleSections.has('timer-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                visibleSections.has('room-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               }`}
             >
               <div>
-                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Built for deep focus</h2>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Find Your Focus, Together.</h2>
                 <p className="text-lg leading-8 mb-8" style={{ color: 'hsl(0 0% 30%)' }}>
-                  Lock in with an immersive focus timer featuring animated environments. Choose from ocean waves, gentle rain, or pure white noise to create your perfect study atmosphere.
+                  Welcome to Dukl – where productivity meets friends.
+                  Join a study room with friends, achieve your goals through the power of shared focus.
                 </p>
                 <ul className="space-y-3 text-base" style={{ color: 'hsl(0 0% 25%)' }}>
-                  <li>• Animated focus environments (Ocean, Rain, White Noise)</li>
-                  <li>• Study groups & collaborative timers</li>
-                  <li>• Track your focus streaks & progress</li>
+                  <li>• Track your time</li>
+                  <li>• chat with peers</li>
+                  <li>• build the discipline you need to succeed.</li>
                 </ul>
               </div>
               <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="bg-black rounded-xl p-3 shadow-2xl">
+                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   </div>
                   <div className="rounded-lg overflow-hidden">
-                    <img src={timerShot} alt="DUKL focus timer UI screenshot" className="w-full h-auto" loading="lazy" />
+                    <img src={roomShot} alt="DUKL study room UI screenshot" className="w-full h-auto" loading="lazy" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* YouTube AI Feature */}
+            {/* Playlist Feature */}
             <div 
-              id="youtube-feature"
+              id="playlist-feature"
               data-fade-up
               className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
-                visibleSections.has('youtube-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                visibleSections.has('playlist-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               }`}
             >
               <div className="md:order-2">
-                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>AI-Powered YouTube Learning</h2>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Never Break Focus Again.</h2>
                 <p className="text-lg leading-8 mb-8" style={{ color: 'hsl(0 0% 30%)' }}>
-                  Transform any YouTube video into comprehensive study materials. Our AI extracts transcripts, generates summaries, creates flashcards, and builds custom quizzes tailored to your learning needs.
+                  The last tab you'll ever need for study music.
+                  Our Playlist Maker solves this by bringing YouTube's vast audio library directly to your study environment.
                 </p>
                 <ul className="space-y-3 text-base" style={{ color: 'hsl(0 0% 25%)' }}>
-                  <li>• Instant video summarization</li>
-                  <li>• Auto-generated flashcards & quizzes</li>
-                  <li>• Key concept extraction</li>
-                  <li>• Smart YouTube video search</li>
+                  <li>• Copy & Paste any YouTube music URL</li>
+                  <li>• Build & Organize your ideal study sequence</li>
+                  <li>• Press Play & Focus - control everything without leaving your workflow</li>
                 </ul>
               </div>
               <div className="md:order-1 max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="bg-black rounded-xl p-3 shadow-2xl">
+                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div className="w-3 h-3 rounded-full bg-green-500"></div>
                   </div>
                   <div className="rounded-lg overflow-hidden">
-                    <img src={youtubeShot} alt="DUKL AI YouTube summarizer UI screenshot" className="w-full h-auto" loading="lazy" />
+                    <img src={playlistShot} alt="DUKL playlist maker UI screenshot" className="w-full h-auto" loading="lazy" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Flashcards Feature */}
+            <div 
+              id="flash-feature"
+              data-fade-up
+              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
+                visibleSections.has('flash-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              }`}
+            >
+              <div>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Transform Your Notes into Knowledge</h2>
+                <p className="text-lg leading-8 mb-6" style={{ color: 'hsl(0 0% 30%)' }}>
+                  Create. Review. Remember.
+                </p>
+                <p className="text-base leading-7" style={{ color: 'hsl(0 0% 25%)' }}>
+                  Flashcards that adapt to your learning pace. Build your deck once, and let our smart system handle the rest.
+                </p>
+              </div>
+              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
+                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden">
+                    <img src={flashShot} alt="DUKL flashcards UI screenshot" className="w-full h-auto" loading="lazy" />
                   </div>
                 </div>
               </div>
