@@ -54,8 +54,13 @@ const AIChatbot: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('ai-tutor', {
         body: { 
-          message: inputValue.trim(),
-          context: "study_assistant"
+          user_message: inputValue.trim(),
+          conversation_history: messages
+            .filter(m => !m.isBot || messages.indexOf(m) > 0)
+            .map(m => ({
+              role: m.isBot ? 'assistant' : 'user',
+              content: m.content
+            }))
         }
       });
 
@@ -63,7 +68,7 @@ const AIChatbot: React.FC = () => {
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response || "I'm sorry, I couldn't process that request. Please try again.",
+        content: data.message || "I'm sorry, I couldn't process that request. Please try again.",
         isBot: true,
         timestamp: new Date()
       };
