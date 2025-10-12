@@ -63,7 +63,17 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in customer-portal", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    
+    // Check if it's a permissions error
+    let userFriendlyMessage = errorMessage;
+    if (errorMessage.includes("rak_customer_portal_write") || errorMessage.includes("required permissions")) {
+      userFriendlyMessage = "Your Stripe API key doesn't have permission to manage subscriptions. Please use a full Secret Key (starts with sk_) instead of a Restricted Key, or add 'customer_portal_write' permission to your restricted key in the Stripe Dashboard.";
+    }
+    
+    return new Response(JSON.stringify({ 
+      error: userFriendlyMessage,
+      technical_details: errorMessage 
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
