@@ -8,6 +8,7 @@ import { TimerProvider, useTimerContext } from "@/contexts/TimerContext";
 import { MediaPlayerProvider, useMediaPlayerContext } from "@/contexts/MediaPlayerContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
+import DashboardOverview from "./pages/DashboardOverview";
 import FocusTimer from "./pages/FocusTimer";
 import Auth from "./pages/Auth";
 
@@ -189,7 +190,7 @@ const App = () => {
                 <Route path="/" element={<HomePage />} />
                 
                 {/* Dashboard at /dashboard */}
-                <Route path="/dashboard" element={<Index />} />
+                <Route path="/dashboard" element={<DashboardOverview />} />
                 
                 {/* Redirect old /home to landing page */}
                 <Route path="/home" element={<Navigate to="/" replace />} />
