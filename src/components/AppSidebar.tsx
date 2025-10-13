@@ -1,4 +1,4 @@
-import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, FileText } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -18,6 +18,7 @@ import logo from "@/assets/logo.png";
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Study Group", url: "/focus-timer", icon: Clock },
+  { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },
