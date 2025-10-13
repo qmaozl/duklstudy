@@ -9,6 +9,7 @@ interface FloatingMediaPlayerProps {
   isShuffling: boolean;
   currentIndex: number;
   playlistLength: number;
+  currentVideoTitle: string;
   onTogglePlay: () => void;
   onNext: () => void;
   onPrevious: () => void;
@@ -24,6 +25,7 @@ export function FloatingMediaPlayer({
   isShuffling,
   currentIndex,
   playlistLength,
+  currentVideoTitle,
   onTogglePlay,
   onNext,
   onPrevious,
@@ -85,7 +87,7 @@ export function FloatingMediaPlayer({
         className="bg-primary/10 px-3 py-2 cursor-grab active:cursor-grabbing"
         onMouseDown={handleMouseDown}
       >
-        <p className="text-sm font-medium">Playing Audio</p>
+        <p className="text-sm font-medium truncate">{currentVideoTitle || 'Playing Audio'}</p>
         <p className="text-xs text-muted-foreground">Drag to move</p>
       </div>
       <div className="p-4 space-y-3">

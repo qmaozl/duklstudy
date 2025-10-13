@@ -118,9 +118,9 @@ const FocusTimer = () => {
         />
       )}
 
-      <div className={cn("p-6 space-y-6 transition-all", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
+      <div className={cn("p-6 space-y-6 transition-all mt-16", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
         {/* Study Rooms */}
-        <StudyGroupManagerNew 
+        <StudyGroupManagerNew
           ref={studyGroupManagerRef}
           onGroupSelect={setSelectedGroupId}
           onRoomJoin={setIsInRoom}

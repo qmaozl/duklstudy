@@ -47,7 +47,8 @@ function FloatingComponents() {
     setIsShuffling,
     currentIndex,
     setCurrentIndex,
-    playlist
+    playlist,
+    currentVideoTitle
   } = useMediaPlayerContext();
 
   const isOnFocusTimer = location.pathname === '/focus-timer';
@@ -148,6 +149,7 @@ function FloatingComponents() {
           isShuffling={isShuffling}
           currentIndex={currentIndex}
           playlistLength={playlist.length}
+          currentVideoTitle={currentVideoTitle}
           onTogglePlay={handleMediaPlayPause}
           onNext={handleMediaNext}
           onPrevious={handleMediaPrevious}

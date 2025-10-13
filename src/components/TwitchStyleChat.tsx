@@ -106,7 +106,7 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
   };
 
   return (
-    <div className="fixed top-0 right-0 h-screen w-80 bg-background border-l flex flex-col z-40">
+    <div className="fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-background border-l flex flex-col z-40">
       {/* Header */}
       <div className="bg-primary/10 border-b px-4 py-3 flex items-start justify-between">
         <div>
