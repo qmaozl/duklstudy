@@ -196,9 +196,10 @@ const App = () => {
                 {/* Redirect old /home to landing page */}
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 
-                {/* Keep all other routes the same */}
+                {/* Authentication and Main App Routes */}
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/focus-timer" element={<FocusTimer />} />
+                <Route path="/note-summarizer" element={<NoteSummarizer />} />
                 <Route path="/notes-summarizer" element={<NoteSummarizer />} />
                 <Route path="/video-summarizer" element={<VideoSummarizer />} />
                 <Route path="/study-hub" element={<StudyHub />} />
