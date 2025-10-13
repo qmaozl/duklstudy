@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import ImageOCR from '@/components/ImageOCR';
 import MindMapView from '@/components/MindMapView';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { DashboardLayout } from '@/components/DashboardLayout';
 
 interface StudyMaterial {
   summary: string;
@@ -26,12 +27,24 @@ interface StudyMaterial {
 
 const NoteSummarizer = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [extractedText, setExtractedText] = useState('');
   const [studyMaterial, setStudyMaterial] = useState<StudyMaterial | null>(null);
   const [uploadedFileName, setUploadedFileName] = useState('');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   const handlePDFUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -150,15 +163,16 @@ const NoteSummarizer = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-          Notes Summarizer
-        </h1>
-        <p className="text-muted-foreground">
-          Upload your notes in PDF or image format to generate summaries, flashcards, and mind maps
-        </p>
-      </div>
+    <DashboardLayout>
+      <div className="container mx-auto p-6 max-w-7xl">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            Notes Summarizer
+          </h1>
+          <p className="text-muted-foreground">
+            Upload your notes in PDF or image format to generate summaries, flashcards, and mind maps
+          </p>
+        </div>
 
       {/* Upload Section */}
       {!studyMaterial && (
@@ -347,7 +361,8 @@ const NoteSummarizer = () => {
           </Tabs>
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   );
 };
 
