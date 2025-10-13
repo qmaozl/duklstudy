@@ -21,6 +21,7 @@ const menuItems = [
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
+  { title: "test", icon: FileText }
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },
   { title: "Calendar", url: "/calendar", icon: Calendar },
 ];
