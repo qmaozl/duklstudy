@@ -45,8 +45,23 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
           table: 'study_group_chat',
           filter: `group_id=eq.${groupId}`
         },
-        () => {
-          fetchMessages();
+        async (payload) => {
+          const newMsg = payload.new as ChatMessage;
+          
+          // Fetch the profile for the new message
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_id, full_name')
+            .eq('user_id', newMsg.user_id)
+            .single();
+
+          const messageWithProfile = {
+            ...newMsg,
+            profiles: profile || { full_name: 'Anonymous' }
+          };
+
+          // Add the new message to the state in realtime
+          setMessages(prev => [...prev, messageWithProfile]);
         }
       )
       .subscribe();
