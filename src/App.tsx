@@ -24,6 +24,7 @@ import CustomParagraphNew from "./pages/CustomParagraphNew";
 import CustomParagraphReview from "./pages/CustomParagraphReview";
 import Flashcards from "./pages/Flashcards";
 import FlashcardStudy from "./pages/FlashcardStudy";
+import NotesSummarizer from "./pages/NotesSummarizer";
 import NotFound from "./pages/NotFound";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
@@ -199,6 +200,7 @@ const App = () => {
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/focus-timer" element={<FocusTimer />} />
                 <Route path="/video-summarizer" element={<VideoSummarizer />} />
+                <Route path="/notes-summarizer" element={<NotesSummarizer />} />
                 <Route path="/study-hub" element={<StudyHub />} />
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/subscription" element={<Subscription />} />
