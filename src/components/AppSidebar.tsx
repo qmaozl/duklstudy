@@ -16,12 +16,11 @@ import {
 import logo from "@/assets/logo.png";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: Home },
+  { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Study Group", url: "/focus-timer", icon: Clock },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
-  { title: "test", icon: FileText },
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },
   { title: "Calendar", url: "/calendar", icon: Calendar },
 ];
@@ -35,6 +34,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => {
+    if (path === "/dashboard") return currentPath === "/dashboard";
     if (path === "/") return currentPath === "/";
     return currentPath.startsWith(path);
   };
