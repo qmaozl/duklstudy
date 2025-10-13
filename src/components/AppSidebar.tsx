@@ -21,7 +21,7 @@ const menuItems = [
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
-  { title: "test", icon: FileText }
+  { title: "test", icon: FileText },
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },
   { title: "Calendar", url: "/calendar", icon: Calendar },
 ];
@@ -39,18 +39,18 @@ export function AppSidebar() {
     return currentPath.startsWith(path);
   };
 
-  const isPro = subscription?.subscription_tier === 'pro';
+  const isPro = subscription?.subscription_tier === "pro";
 
   return (
-    <Sidebar 
-      className={`transition-all duration-300 ${collapsed ? "w-14" : "w-64"}`} 
-      collapsible="icon"
-    >
+    <Sidebar className={`transition-all duration-300 ${collapsed ? "w-14" : "w-64"}`} collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           <img src={logo} alt="DUKL Study" className="h-8 w-8" />
           {!collapsed && (
-            <span className="text-xl font-extralight tracking-wide" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
+            <span
+              className="text-xl font-extralight tracking-wide"
+              style={{ fontFamily: "Helvetica Neue, Arial, sans-serif" }}
+            >
               STUDY
             </span>
           )}
@@ -82,12 +82,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => navigate('/subscription')}
-                  className="w-full"
-                >
+                <SidebarMenuButton onClick={() => navigate("/subscription")} className="w-full">
                   <Crown className="h-4 w-4" />
-                  {!collapsed && <span>{isPro ? 'Pro Member' : 'Upgrade'}</span>}
+                  {!collapsed && <span>{isPro ? "Pro Member" : "Upgrade"}</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
