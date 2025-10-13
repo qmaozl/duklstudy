@@ -1,4 +1,4 @@
-import { useEffect } from 'react'; // ADD THIS IMPORT
+import { useEffect } from 'react'; // ADD THIS
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,7 +24,6 @@ import CustomParagraphReview from "./pages/CustomParagraphReview";
 import Flashcards from "./pages/Flashcards";
 import FlashcardStudy from "./pages/FlashcardStudy";
 import NotFound from "./pages/NotFound";
-import AIChatbot from "./components/AIChatbot";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
 import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
@@ -208,7 +207,6 @@ const App = () => {
                 <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <AIChatbot />
             </BrowserRouter>
           </TooltipProvider>
         </MediaPlayerProvider>
