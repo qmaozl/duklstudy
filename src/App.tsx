@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import DashboardOverview from "./pages/DashboardOverview";
 import FocusTimer from "./pages/FocusTimer";
-import NoteSummarizer from "./pages/NoteSummarizer";
 import Auth from "./pages/Auth";
 
 import VideoSummarizer from "./pages/VideoSummarizer";
@@ -196,12 +195,9 @@ const App = () => {
                 {/* Redirect old /home to landing page */}
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 
-                {/* Authentication */}
+                {/* Keep all other routes the same */}
                 <Route path="/auth" element={<Auth />} />
-                
-                {/* Main App Routes */}
                 <Route path="/focus-timer" element={<FocusTimer />} />
-                <Route path="/notes-summarizer" element={<NoteSummarizer />} />
                 <Route path="/video-summarizer" element={<VideoSummarizer />} />
                 <Route path="/study-hub" element={<StudyHub />} />
                 <Route path="/calendar" element={<Calendar />} />
