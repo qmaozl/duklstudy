@@ -299,7 +299,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Paste YouTube "
+                placeholder="Paste YouTube Music URL..."
                 value={youtubeUrl}
                 onChange={(e) => setYoutubeUrl(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && addToPlaylist()}
