@@ -1,14 +1,26 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useEffect, useRef } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Play,
+  Pause,
+  X,
+  Maximize2,
+  Trash2,
+  Plus,
+  SkipForward,
+  SkipBack,
+  Repeat,
+  Shuffle,
+  Minimize2,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { useMediaPlayerContext } from "@/contexts/MediaPlayerContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PlaylistItem {
   id: string;
@@ -23,11 +35,11 @@ interface PlaylistMakerProps {
 
 const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const { user } = useAuth();
-  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState("");
   const [showVideo, setShowVideo] = useState(false);
   const [localPlaylist, setLocalPlaylist] = useState<PlaylistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const {
     playerRef,
     currentVideo: currentVideoId,
@@ -47,20 +59,16 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     currentVideoTitle,
     setCurrentVideoTitle,
     currentVideoThumbnail,
-    setCurrentVideoThumbnail
+    setCurrentVideoThumbnail,
   } = useMediaPlayerContext();
 
   // Load playlist from database on mount
   useEffect(() => {
     if (!user) return;
-    
+
     const loadPlaylist = async () => {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('user_playlists')
-        .select('videos')
-        .eq('user_id', user.id)
-        .single();
+      const { data, error } = await supabase.from("user_playlists").select("videos").eq("user_id", user.id).single();
 
       if (data && !error) {
         const videos = data.videos as unknown as PlaylistItem[];
@@ -77,17 +85,20 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     if (!user || isLoading) return;
 
     const savePlaylist = async () => {
-      const { error } = await supabase
-        .from('user_playlists')
-        .upsert([{
-          user_id: user.id,
-          videos: localPlaylist as any
-        }], {
-          onConflict: 'user_id'
-        });
+      const { error } = await supabase.from("user_playlists").upsert(
+        [
+          {
+            user_id: user.id,
+            videos: localPlaylist as any,
+          },
+        ],
+        {
+          onConflict: "user_id",
+        },
+      );
 
       if (error) {
-        console.error('Error saving playlist:', error);
+        console.error("Error saving playlist:", error);
       }
     };
 
@@ -100,11 +111,8 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   }, [localPlaylist, setPlaylist]);
 
   const extractVideoId = (url: string): string | null => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
-      /youtube\.com\/embed\/([^&\n?#]+)/
-    ];
-    
+    const patterns = [/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/, /youtube\.com\/embed\/([^&\n?#]+)/];
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match && match[1]) return match[1];
@@ -118,17 +126,17 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
       toast({
         title: "Invalid URL",
         description: "Please enter a valid YouTube URL",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     // Check if already in playlist
-    if (localPlaylist.some(item => item.videoId === videoId)) {
+    if (localPlaylist.some((item) => item.videoId === videoId)) {
       toast({
         title: "Already in playlist",
         description: "This video is already in your playlist",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
@@ -142,22 +150,22 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
         videoTitle = data.title;
       }
     } catch (error) {
-      console.error('Error fetching video title:', error);
+      console.error("Error fetching video title:", error);
     }
 
     const newItem: PlaylistItem = {
       id: Date.now().toString(),
       videoId,
       title: videoTitle,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/default.jpg`
+      thumbnail: `https://img.youtube.com/vi/${videoId}/default.jpg`,
     };
 
     setLocalPlaylist([...localPlaylist, newItem]);
-    setYoutubeUrl('');
-    
+    setYoutubeUrl("");
+
     toast({
       title: "Added to playlist",
-      description: "Video added successfully"
+      description: "Video added successfully",
     });
   };
 
@@ -169,21 +177,21 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
         playerRef.current?.loadVideoById?.(videoId);
         playerRef.current?.playVideo?.();
       } catch (e) {
-        console.warn('Player not ready yet, will retry', e);
+        console.warn("Player not ready yet, will retry", e);
       }
     };
 
     setCurrentVideoId(videoId);
-    
-    const idx = index !== undefined ? index : localPlaylist.findIndex(item => item.videoId === videoId);
+
+    const idx = index !== undefined ? index : localPlaylist.findIndex((item) => item.videoId === videoId);
     setCurrentIndex(idx);
-    
+
     // Set video title and thumbnail
     if (idx >= 0 && idx < localPlaylist.length) {
       setCurrentVideoTitle(localPlaylist[idx].title);
       setCurrentVideoThumbnail(localPlaylist[idx].thumbnail);
     }
-    
+
     setShowVideo(true);
     setIsMinimized(false);
     setIsPlaying(true);
@@ -236,7 +244,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
 
   const togglePlayPause = () => {
     if (!playerRef.current) return;
-    
+
     if (isPlaying) {
       playerRef.current.pauseVideo();
     } else {
@@ -255,7 +263,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   };
 
   const removeFromPlaylist = (id: string) => {
-    setLocalPlaylist(localPlaylist.filter(item => item.id !== id));
+    setLocalPlaylist(localPlaylist.filter((item) => item.id !== id));
   };
 
   return (
@@ -266,30 +274,16 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
           <div className="flex items-center justify-between bg-primary/10 px-3 py-2">
             <span className="text-sm font-medium">Now Playing</span>
             <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeVideoPopup}
-                className="h-6 w-6 p-0"
-              >
+              <Button variant="ghost" size="sm" onClick={closeVideoPopup} className="h-6 w-6 p-0">
                 <Minimize2 className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={stopPlayback}
-                className="h-6 w-6 p-0"
-              >
+              <Button variant="ghost" size="sm" onClick={stopPlayback} className="h-6 w-6 p-0">
                 <X className="h-4 w-4" />
               </Button>
             </div>
           </div>
           <div className="p-4 space-y-3">
-            <img 
-              src={currentVideoThumbnail} 
-              alt={currentVideoTitle}
-              className="w-full rounded"
-            />
+            <img src={currentVideoThumbnail} alt={currentVideoTitle} className="w-full rounded" />
             <p className="text-sm font-medium text-center truncate">{currentVideoTitle}</p>
           </div>
         </div>
@@ -305,10 +299,10 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Paste YouTube Music URL..."
+                placeholder="Paste YouTube "
                 value={youtubeUrl}
                 onChange={(e) => setYoutubeUrl(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addToPlaylist()}
+                onKeyPress={(e) => e.key === "Enter" && addToPlaylist()}
                 className="flex-1"
               />
               <Button onClick={addToPlaylist} disabled={!youtubeUrl.trim()}>
@@ -317,9 +311,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
               </Button>
             </div>
             {currentVideoId && !showVideo && (
-              <p className="text-sm text-muted-foreground">
-                Click a video from your playlist to play
-              </p>
+              <p className="text-sm text-muted-foreground">Click a video from your playlist to play</p>
             )}
           </CardContent>
         </Card>
@@ -342,28 +334,16 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                       key={item.id}
                       className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 transition-colors"
                     >
-                      <img 
-                        src={item.thumbnail} 
-                        alt={item.title}
-                        className="w-16 h-12 object-cover rounded"
-                      />
+                      <img src={item.thumbnail} alt={item.title} className="w-16 h-12 object-cover rounded" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.title}</p>
                         <p className="text-xs text-muted-foreground">Track #{index + 1}</p>
                       </div>
                       <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => playVideo(item.videoId, index)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => playVideo(item.videoId, index)}>
                           <Play className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFromPlaylist(item.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => removeFromPlaylist(item.id)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
