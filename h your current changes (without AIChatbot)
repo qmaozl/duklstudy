@@ -1,0 +1,102 @@
+[1mdiff --cc src/App.tsx[m
+[1mindex 7bcc7ca,42e74ac..0000000[m
+[1m--- a/src/App.tsx[m
+[1m+++ b/src/App.tsx[m
+[36m@@@ -162,59 -160,40 +161,97 @@@[m [mfunction FloatingComponents() [m
+    );[m
+  }[m
+  [m
+[32m++<<<<<<< HEAD[m
+[32m +const App = () => {[m
+[32m +  // ADD THIS USEEFFECT FOR 404 REDIRECTS[m
+[32m +  useEffect(() => {[m
+[32m +    const redirectPath = sessionStorage.redirect;[m
+[32m +    if (redirectPath && redirectPath !== '/') {[m
+[32m +      delete sessionStorage.redirect;[m
+[32m +      // Use window.location for initial redirect since navigate isn't available here[m
+[32m +      window.location.href = redirectPath;[m
+[32m +    }[m
+[32m +  }, []);[m
+[32m +[m
+[32m +  return ([m
+[32m +    <AuthProvider>[m
+[32m +      <TimerProvider>[m
+[32m +        <MediaPlayerProvider>[m
+[32m +          <TooltipProvider>[m
+[32m +            <Toaster />[m
+[32m +            <Sonner />[m
+[32m +            <BrowserRouter>[m
+[32m +              <GlobalYouTubePlayer />[m
+[32m +              <FloatingComponents />[m
+[32m +              <Routes>[m
+[32m +                {/* Landing page at root */}[m
+[32m +                <Route path="/" element={<HomePage />} />[m
+[32m +                [m
+[32m +                {/* Dashboard at /dashboard */}[m
+[32m +                <Route path="/dashboard" element={<Index />} />[m
+[32m +                [m
+[32m +                {/* Redirect old /home to landing page */}[m
+[32m +                <Route path="/home" element={<Navigate to="/" replace />} />[m
+[32m +                [m
+[32m +                {/* Keep all other routes the same */}[m
+[32m +                <Route path="/auth" element={<Auth />} />[m
+[32m +                <Route path="/focus-timer" element={<FocusTimer />} />[m
+[32m +                <Route path="/video-summarizer" element={<VideoSummarizer />} />[m
+[32m +                <Route path="/study-hub" element={<StudyHub />} />[m
+[32m +                <Route path="/calendar" element={<Calendar />} />[m
+[32m +                <Route path="/subscription" element={<Subscription />} />[m
+[32m +                <Route path="/memorise-pro" element={<MemorisePro />} />[m
+[32m +                <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />[m
+[32m +                <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />[m
+[32m +                <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />[m
+[32m +                <Route path="/flashcards" element={<Flashcards />} />[m
+[32m +                <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />[m
+[32m +                <Route path="*" element={<NotFound />} />[m
+[32m +              </Routes>[m
+[32m +              <AIChatbot />[m
+[32m +            </BrowserRouter>[m
+[32m +          </TooltipProvider>[m
+[32m +        </MediaPlayerProvider>[m
+[32m +      </TimerProvider>[m
+[32m +    </AuthProvider>[m
+[32m +  );[m
+[32m +};[m
+[32m++=======[m
+[32m+ const App = () => ([m
+[32m+   <AuthProvider>[m
+[32m+     <TimerProvider>[m
+[32m+       <MediaPlayerProvider>[m
+[32m+         <TooltipProvider>[m
+[32m+           <Toaster />[m
+[32m+           <Sonner />[m
+[32m+           <BrowserRouter>[m
+[32m+             <GlobalYouTubePlayer />[m
+[32m+             <FloatingComponents />[m
+[32m+             <Routes>[m
+[32m+               <Route path="/" element={<Index />} />[m
+[32m+               <Route path="/auth" element={<Auth />} />[m
+[32m+               <Route path="/focus-timer" element={<FocusTimer />} />[m
+[32m+               <Route path="/home" element={<HomePage />} />[m
+[32m+               [m
+[32m+               <Route path="/video-summarizer" element={<VideoSummarizer />} />[m
+[32m+               <Route path="/study-hub" element={<StudyHub />} />[m
+[32m+               <Route path="/calendar" element={<Calendar />} />[m
+[32m+               [m
+[32m+               <Route path="/subscription" element={<Subscription />} />[m
+[32m+               <Route path="/memorise-pro" element={<MemorisePro />} />[m
+[32m+               <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />[m
+[32m+               <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />[m
+[32m+               <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />[m
+[32m+               <Route path="/flashcards" element={<Flashcards />} />[m
+[32m+               <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />[m
+[32m+               <Route path="*" element={<NotFound />} />[m
+[32m+             </Routes>[m
+[32m+           </BrowserRouter>[m
+[32m+         </TooltipProvider>[m
+[32m+       </MediaPlayerProvider>[m
+[32m+     </TimerProvider>[m
+[32m+   </AuthProvider>[m
+[32m+ );[m
+[32m++>>>>>>> d0dede6e80ac947558e5d6c05ac009a8cd7fdd90[m
+  [m
+  export default App;[m

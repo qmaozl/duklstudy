@@ -67,16 +67,25 @@ const Subscription = () => {
     try {
       const { data, error } = await supabase.functions.invoke('customer-portal');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Customer portal error:', error);
+        throw error;
+      }
+      
+      if (data?.error) {
+        console.error('Customer portal error details:', data.technical_details || data.error);
+        throw new Error(data.error);
+      }
       
       if (data?.url) {
         window.open(data.url, '_blank');
       }
     } catch (error) {
       console.error('Error opening customer portal:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to open subscription management. Please try again.";
       toast({
-        title: "Error",
-        description: "Failed to open subscription management. Please try again.",
+        title: "Stripe Configuration Issue",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

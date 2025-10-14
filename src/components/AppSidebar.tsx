@@ -17,7 +17,7 @@ import logo from "@/assets/logo.png";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
-  { title: "Focus Timer", url: "/focus-timer", icon: Clock },
+  { title: "Study Group", url: "/focus-timer", icon: Clock },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },

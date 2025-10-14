@@ -43,7 +43,11 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     playlist,
     setPlaylist,
     isMinimized,
-    setIsMinimized
+    setIsMinimized,
+    currentVideoTitle,
+    setCurrentVideoTitle,
+    currentVideoThumbnail,
+    setCurrentVideoThumbnail
   } = useMediaPlayerContext();
 
   // Load playlist from database on mount
@@ -129,10 +133,22 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
       return;
     }
 
+    // Fetch video title from YouTube
+    let videoTitle = `Video ${localPlaylist.length + 1}`;
+    try {
+      const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+      const data = await response.json();
+      if (data.title) {
+        videoTitle = data.title;
+      }
+    } catch (error) {
+      console.error('Error fetching video title:', error);
+    }
+
     const newItem: PlaylistItem = {
       id: Date.now().toString(),
       videoId,
-      title: `Video ${localPlaylist.length + 1}`,
+      title: videoTitle,
       thumbnail: `https://img.youtube.com/vi/${videoId}/default.jpg`
     };
 
@@ -158,12 +174,16 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     };
 
     setCurrentVideoId(videoId);
-    if (index !== undefined) {
-      setCurrentIndex(index);
-    } else {
-      const idx = localPlaylist.findIndex(item => item.videoId === videoId);
-      setCurrentIndex(idx);
+    
+    const idx = index !== undefined ? index : localPlaylist.findIndex(item => item.videoId === videoId);
+    setCurrentIndex(idx);
+    
+    // Set video title and thumbnail
+    if (idx >= 0 && idx < localPlaylist.length) {
+      setCurrentVideoTitle(localPlaylist[idx].title);
+      setCurrentVideoThumbnail(localPlaylist[idx].thumbnail);
     }
+    
     setShowVideo(true);
     setIsMinimized(false);
     setIsPlaying(true);
@@ -264,8 +284,13 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
               </Button>
             </div>
           </div>
-          <div className="w-full aspect-video bg-black flex items-center justify-center text-white">
-            <p className="text-sm">Audio playing...</p>
+          <div className="p-4 space-y-3">
+            <img 
+              src={currentVideoThumbnail} 
+              alt={currentVideoTitle}
+              className="w-full rounded"
+            />
+            <p className="text-sm font-medium text-center truncate">{currentVideoTitle}</p>
           </div>
         </div>
       )}

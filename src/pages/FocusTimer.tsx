@@ -16,14 +16,26 @@ const FocusTimer = () => {
   const { user, loading } = useAuth();
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [isInRoom, setIsInRoom] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
   const studyGroupManagerRef = useRef<{ leaveRoom: () => void; setActiveStudying: (active: boolean) => Promise<void> }>(null);
   const { timer, setGroupId, setIsMinimized } = useTimerContext();
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
 
-  // Sync group ID with context
+  // Set page title
+  useEffect(() => {
+    document.title = 'Study Group - Dukl';
+    return () => {
+      document.title = 'Dukl';
+    };
+  }, []);
+
+  // Sync group ID with context and open chat when group selected
   useEffect(() => {
     setGroupId(selectedGroupId);
+    if (selectedGroupId) {
+      setIsChatOpen(true);
+    }
   }, [selectedGroupId, setGroupId]);
 
   useEffect(() => {
@@ -98,13 +110,17 @@ const FocusTimer = () => {
   return (
     <DashboardLayout>
       {/* Twitch-Style Chat - Fixed Right */}
-      {selectedGroupId && (
-        <TwitchStyleChat groupId={selectedGroupId} isInRoom={isInRoom} />
+      {selectedGroupId && isChatOpen && (
+        <TwitchStyleChat 
+          groupId={selectedGroupId} 
+          isInRoom={isInRoom}
+          onClose={() => setIsChatOpen(false)}
+        />
       )}
 
-      <div className="p-6 space-y-6 pr-[22rem]">
+      <div className={cn("p-6 space-y-6 transition-all mt-16", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
         {/* Study Rooms */}
-        <StudyGroupManagerNew 
+        <StudyGroupManagerNew
           ref={studyGroupManagerRef}
           onGroupSelect={setSelectedGroupId}
           onRoomJoin={setIsInRoom}
