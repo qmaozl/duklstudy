@@ -28,6 +28,7 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [isOpen, setIsOpen] = useState(true);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -102,15 +103,28 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
   const sendMessage = async () => {
     if (!user || !newMessage.trim() || !isInRoom) return;
 
+    const messageText = newMessage.trim();
+    
+    // Optimistically add message to UI immediately
+    const optimisticMessage: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      user_id: user.id,
+      message: messageText,
+      created_at: new Date().toISOString(),
+      profiles: { full_name: 'You' }
+    };
+    
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage('');
+
+    // Then save to database (realtime will update with the real message)
     await supabase
       .from('study_group_chat')
       .insert({
         group_id: groupId,
         user_id: user.id,
-        message: newMessage.trim()
+        message: messageText
       });
-
-    setNewMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -121,7 +135,10 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
   };
 
   return (
-    <div className="fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-background border-l flex flex-col z-40">
+    <div className={cn(
+      "fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-background border-l flex flex-col z-40 transition-transform duration-300 ease-in-out",
+      isOpen ? "translate-x-0" : "translate-x-full"
+    )}>
       {/* Header */}
       <div className="bg-primary/10 border-b px-4 py-3 flex items-start justify-between">
         <div>
@@ -130,16 +147,17 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
             {isInRoom ? 'Connected' : 'Join room to chat'}
           </p>
         </div>
-        {onClose && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 -mt-1"
-            onClick={onClose}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 -mt-1"
+          onClick={() => {
+            setIsOpen(false);
+            setTimeout(() => onClose?.(), 300);
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Messages */}
