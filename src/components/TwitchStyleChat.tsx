@@ -136,7 +136,7 @@ const TwitchStyleChat: React.FC<TwitchStyleChatProps> = ({ groupId, isInRoom, on
 
   return (
     <div className={cn(
-      "fixed top-16 right-0 h-[calc(100vh-4rem)] w-80 bg-background border-l flex flex-col z-40 transition-transform duration-300 ease-in-out",
+      "fixed top-20 right-0 h-[calc(100vh-5rem)] w-80 bg-background border-l flex flex-col z-40 transition-transform duration-300 ease-in-out",
       isOpen ? "translate-x-0" : "translate-x-full"
     )}>
       {/* Header */}
