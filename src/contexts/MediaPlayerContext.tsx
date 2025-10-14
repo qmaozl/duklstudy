@@ -16,6 +16,10 @@ interface MediaPlayerContextType {
   setCurrentIndex: (val: number) => void;
   playlist: any[];
   setPlaylist: (val: any[]) => void;
+  currentVideoTitle: string;
+  setCurrentVideoTitle: (val: string) => void;
+  currentVideoThumbnail: string;
+  setCurrentVideoThumbnail: (val: string) => void;
 }
 
 const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -28,6 +32,8 @@ export function MediaPlayerProvider({ children }: { children: ReactNode }) {
   const [isShuffling, setIsShuffling] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [playlist, setPlaylist] = useState<any[]>([]);
+  const [currentVideoTitle, setCurrentVideoTitle] = useState('');
+  const [currentVideoThumbnail, setCurrentVideoThumbnail] = useState('');
   const playerRef = useRef<any>(null);
 
   return (
@@ -46,7 +52,11 @@ export function MediaPlayerProvider({ children }: { children: ReactNode }) {
       currentIndex,
       setCurrentIndex,
       playlist,
-      setPlaylist
+      setPlaylist,
+      currentVideoTitle,
+      setCurrentVideoTitle,
+      currentVideoThumbnail,
+      setCurrentVideoThumbnail
     }}>
       {children}
     </MediaPlayerContext.Provider>

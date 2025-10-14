@@ -1,4 +1,4 @@
-import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, FileText } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -16,10 +16,11 @@ import {
 import logo from "@/assets/logo.png";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: Home },
-  { title: "Focus Timer", url: "/focus-timer", icon: Clock },
+  { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Study Group", url: "/focus-timer", icon: Clock },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
+  { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
   { title: "Flashcards", url: "/flashcards", icon: BookOpen },
   { title: "Calendar", url: "/calendar", icon: Calendar },
 ];
@@ -33,22 +34,23 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => {
+    if (path === "/dashboard") return currentPath === "/dashboard";
     if (path === "/") return currentPath === "/";
     return currentPath.startsWith(path);
   };
 
-  const isPro = subscription?.subscription_tier === 'pro';
+  const isPro = subscription?.subscription_tier === "pro";
 
   return (
-    <Sidebar 
-      className={`transition-all duration-300 ${collapsed ? "w-14" : "w-64"}`} 
-      collapsible="icon"
-    >
+    <Sidebar className={`transition-all duration-300 ${collapsed ? "w-14" : "w-64"}`} collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
           <img src={logo} alt="DUKL Study" className="h-8 w-8" />
           {!collapsed && (
-            <span className="text-xl font-extralight tracking-wide" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
+            <span
+              className="text-xl font-extralight tracking-wide"
+              style={{ fontFamily: "Helvetica Neue, Arial, sans-serif" }}
+            >
               STUDY
             </span>
           )}
@@ -80,12 +82,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => navigate('/subscription')}
-                  className="w-full"
-                >
+                <SidebarMenuButton onClick={() => navigate("/subscription")} className="w-full">
                   <Crown className="h-4 w-4" />
-                  {!collapsed && <span>{isPro ? 'Pro Member' : 'Upgrade'}</span>}
+                  {!collapsed && <span>{isPro ? "Pro Member" : "Upgrade"}</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
