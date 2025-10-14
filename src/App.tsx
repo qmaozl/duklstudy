@@ -1,14 +1,12 @@
-import { useEffect } from 'react'; // ADD THIS
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TimerProvider, useTimerContext } from "@/contexts/TimerContext";
 import { MediaPlayerProvider, useMediaPlayerContext } from "@/contexts/MediaPlayerContext";
 import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
-import DashboardOverview from "./pages/DashboardOverview";
 import FocusTimer from "./pages/FocusTimer";
 import Auth from "./pages/Auth";
 
@@ -24,8 +22,8 @@ import CustomParagraphNew from "./pages/CustomParagraphNew";
 import CustomParagraphReview from "./pages/CustomParagraphReview";
 import Flashcards from "./pages/Flashcards";
 import FlashcardStudy from "./pages/FlashcardStudy";
-import NotesSummarizer from "./pages/NotesSummarizer";
 import NotFound from "./pages/NotFound";
+import AIChatbot from "./components/AIChatbot";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
 import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
@@ -49,8 +47,7 @@ function FloatingComponents() {
     setIsShuffling,
     currentIndex,
     setCurrentIndex,
-    playlist,
-    currentVideoTitle
+    playlist
   } = useMediaPlayerContext();
 
   const isOnFocusTimer = location.pathname === '/focus-timer';
@@ -151,7 +148,6 @@ function FloatingComponents() {
           isShuffling={isShuffling}
           currentIndex={currentIndex}
           playlistLength={playlist.length}
-          currentVideoTitle={currentVideoTitle}
           onTogglePlay={handleMediaPlayPause}
           onNext={handleMediaNext}
           onPrevious={handleMediaPrevious}
@@ -165,59 +161,41 @@ function FloatingComponents() {
   );
 }
 
-const App = () => {
-  // ADD THIS USEEFFECT FOR 404 REDIRECTS
-  useEffect(() => {
-    const redirectPath = sessionStorage.redirect;
-    if (redirectPath && redirectPath !== '/') {
-      delete sessionStorage.redirect;
-      // Use window.location for initial redirect since navigate isn't available here
-      window.location.href = redirectPath;
-    }
-  }, []);
-
-  return (
-    <AuthProvider>
-      <TimerProvider>
-        <MediaPlayerProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <GlobalYouTubePlayer />
-              <FloatingComponents />
-              <Routes>
-                {/* Landing page at root */}
-                <Route path="/" element={<HomePage />} />
-                
-                {/* Dashboard at /dashboard */}
-                <Route path="/dashboard" element={<DashboardOverview />} />
-                
-                {/* Redirect old /home to landing page */}
-                <Route path="/home" element={<Navigate to="/" replace />} />
-                
-                {/* Keep all other routes the same */}
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/focus-timer" element={<FocusTimer />} />
-                <Route path="/video-summarizer" element={<VideoSummarizer />} />
-                <Route path="/notes-summarizer" element={<NotesSummarizer />} />
-                <Route path="/study-hub" element={<StudyHub />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/subscription" element={<Subscription />} />
-                <Route path="/memorise-pro" element={<MemorisePro />} />
-                <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
-                <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
-                <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
-                <Route path="/flashcards" element={<Flashcards />} />
-                <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </MediaPlayerProvider>
-      </TimerProvider>
-    </AuthProvider>
-  );
-};
+const App = () => (
+  <AuthProvider>
+    <TimerProvider>
+      <MediaPlayerProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <GlobalYouTubePlayer />
+            <FloatingComponents />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/focus-timer" element={<FocusTimer />} />
+              <Route path="/home" element={<HomePage />} />
+              
+              <Route path="/video-summarizer" element={<VideoSummarizer />} />
+              <Route path="/study-hub" element={<StudyHub />} />
+              <Route path="/calendar" element={<Calendar />} />
+              
+              <Route path="/subscription" element={<Subscription />} />
+              <Route path="/memorise-pro" element={<MemorisePro />} />
+              <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
+              <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
+              <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
+              <Route path="/flashcards" element={<Flashcards />} />
+              <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <AIChatbot />
+          </BrowserRouter>
+        </TooltipProvider>
+      </MediaPlayerProvider>
+    </TimerProvider>
+  </AuthProvider>
+);
 
 export default App;

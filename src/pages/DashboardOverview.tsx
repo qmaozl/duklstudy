@@ -3,9 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Clock, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, TrendingUp, Target } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface StudyStats {
   totalHoursThisMonth: number;
@@ -23,8 +22,6 @@ const DashboardOverview = () => {
     longestStreak: 0,
   });
   const [loadingStats, setLoadingStats] = useState(true);
-  const [sessions, setSessions] = useState<any[]>([]);
-  const [weekStats, setWeekStats] = useState({ total: 0, average: 0 });
 
   useEffect(() => {
     if (user) {
@@ -41,22 +38,8 @@ const DashboardOverview = () => {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const firstDayStr = firstDayOfMonth.toISOString().split('T')[0];
 
-      // Get week start (last 7 days)
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const weekAgoStr = weekAgo.toISOString().split('T')[0];
-
-      // Fetch all sessions
-      const { data: allSessions, error: allError } = await supabase
-        .from('study_sessions')
-        .select('duration_minutes, date, subject')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-
-      if (allError) throw allError;
-
       // Fetch this month's sessions
-      const { data: monthSessions, error } = await supabase
+      const { data: sessions, error } = await supabase
         .from('study_sessions')
         .select('duration_minutes, date')
         .eq('user_id', user.id)
@@ -65,13 +48,6 @@ const DashboardOverview = () => {
 
       if (error) throw error;
 
-      // Fetch week sessions
-      const { data: weekSessions } = await supabase
-        .from('study_sessions')
-        .select('duration_minutes')
-        .eq('user_id', user.id)
-        .gte('date', weekAgoStr);
-
       // Fetch streak data
       const { data: streakData } = await supabase
         .from('study_streaks')
@@ -79,31 +55,18 @@ const DashboardOverview = () => {
         .eq('user_id', user.id)
         .single();
 
-      if (monthSessions) {
-        const totalMinutes = monthSessions.reduce((sum, s) => sum + s.duration_minutes, 0);
+      if (sessions) {
+        const totalMinutes = sessions.reduce((sum, s) => sum + s.duration_minutes, 0);
         const totalHours = totalMinutes / 60;
-        const avgMinutes = monthSessions.length > 0 ? totalMinutes / monthSessions.length : 0;
+        const avgMinutes = sessions.length > 0 ? totalMinutes / sessions.length : 0;
 
         setStats({
           totalHoursThisMonth: Math.round(totalHours * 10) / 10,
           averageSessionLength: Math.round(avgMinutes),
-          totalSessions: monthSessions.length,
+          totalSessions: sessions.length,
           longestStreak: streakData?.longest_streak || 0,
         });
       }
-
-      // Calculate week stats
-      if (weekSessions) {
-        const weekTotal = weekSessions.reduce((sum, s) => sum + s.duration_minutes, 0) / 60;
-        const weekAvg = weekSessions.length > 0 ? weekTotal / 7 : 0;
-        setWeekStats({
-          total: Math.round(weekTotal * 10) / 10,
-          average: Math.round(weekAvg * 10) / 10
-        });
-      }
-
-      // Set all sessions for display
-      setSessions(allSessions || []);
     } catch (error) {
       console.error('Error fetching study stats:', error);
     } finally {
@@ -127,10 +90,10 @@ const DashboardOverview = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Study Time</CardTitle>
+                  <CardTitle className="text-sm font-medium">Total Hours (This Month)</CardTitle>
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
@@ -138,22 +101,22 @@ const DashboardOverview = () => {
                     {loadingStats ? '...' : `${stats.totalHoursThisMonth}h`}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    This month
+                    Keep up the great work!
                   </p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">This Week</CardTitle>
+                  <CardTitle className="text-sm font-medium">Average Session</CardTitle>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {loadingStats ? '...' : `${weekStats.total}h`}
+                    {loadingStats ? '...' : `${stats.averageSessionLength} min`}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Avg {weekStats.average}h/day
+                    Per study session
                   </p>
                 </CardContent>
               </Card>
@@ -172,43 +135,32 @@ const DashboardOverview = () => {
                   </p>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Longest Streak</CardTitle>
+                  <Target className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {loadingStats ? '...' : `${stats.longestStreak} days`}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Personal best
+                  </p>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Study Sessions Log */}
+            {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>Recent Study Sessions</CardTitle>
+                <CardTitle>Quick Start</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-64">
-                  {loadingStats ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground">Loading...</div>
-                  ) : sessions.length === 0 ? (
-                    <div className="text-center py-8 text-sm text-muted-foreground">
-                      No study sessions yet. Start studying to see your progress!
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {sessions.slice(0, 20).map((session, idx) => (
-                        <div key={idx} className="flex justify-between items-center p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                          <div>
-                            <p className="text-sm font-medium">{session.subject || 'General Study'}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(session.date).toLocaleDateString('en-US', { 
-                                weekday: 'short', 
-                                month: 'short', 
-                                day: 'numeric' 
-                              })}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-bold">{session.duration_minutes} min</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </ScrollArea>
+                <p className="text-sm text-muted-foreground">
+                  Use the sidebar to navigate to different features or start a study session with the Focus Timer.
+                </p>
               </CardContent>
             </Card>
       </div>
