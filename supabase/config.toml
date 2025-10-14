@@ -1,7 +1,7 @@
 project_id = "vqbmbbuhdnxbuuatxmla"
 
 [functions.ai-tutor]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-custom-questions]
 verify_jwt = true

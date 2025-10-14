@@ -62,23 +62,8 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in customer-portal", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
-    
-    // Check for common error patterns
-    let userFriendlyMessage = errorMessage;
-    
-    if (errorMessage.includes("customer portal") || errorMessage.includes("billing portal")) {
-      userFriendlyMessage = "Stripe Customer Portal is not activated. Please activate it at: https://dashboard.stripe.com/settings/billing/portal";
-    } else if (errorMessage.includes("permission") || errorMessage.includes("restricted")) {
-      userFriendlyMessage = "Your Stripe API key lacks necessary permissions. Please use a full Secret Key (sk_live_...) or add required permissions in Stripe Dashboard.";
-    } else if (errorMessage.includes("No Stripe customer found")) {
-      userFriendlyMessage = "No subscription found for your account. Please subscribe first.";
-    }
-    
-    return new Response(JSON.stringify({ 
-      error: userFriendlyMessage,
-      technical_details: errorMessage 
-    }), {
+    logStep("ERROR in customer-portal", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

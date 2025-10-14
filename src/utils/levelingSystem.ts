@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Level thresholds for progression
-export const LEVEL_THRESHOLDS = [0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 5000, 7500, 10000, 15000, 20000, 30000, 40000, 55000, 70000, 90000, 120000];
+export const LEVEL_THRESHOLDS = [0, 100, 250, 500, 800, 1200, 1700, 2300, 3000, 5000];
 
 // Calculate level from points
 export const calculateLevel = (points: number): number => {
