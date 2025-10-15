@@ -133,23 +133,28 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
       return;
     }
 
-    // Fetch video title from YouTube
+    // Fetch video title from YouTube API
     let videoTitle = `Video ${localPlaylist.length + 1}`;
+    let videoThumbnail = `https://img.youtube.com/vi/${videoId}/default.jpg`;
+    
     try {
-      const response = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
-      const data = await response.json();
-      if (data.title) {
-        videoTitle = data.title;
+      const { data, error } = await supabase.functions.invoke('get-video-details', {
+        body: { videoId }
+      });
+
+      if (data?.success && data.video) {
+        videoTitle = data.video.title;
+        videoThumbnail = data.video.thumbnail;
       }
     } catch (error) {
-      console.error('Error fetching video title:', error);
+      console.error('Error fetching video details:', error);
     }
 
     const newItem: PlaylistItem = {
       id: Date.now().toString(),
       videoId,
       title: videoTitle,
-      thumbnail: `https://img.youtube.com/vi/${videoId}/default.jpg`
+      thumbnail: videoThumbnail
     };
 
     setLocalPlaylist([...localPlaylist, newItem]);

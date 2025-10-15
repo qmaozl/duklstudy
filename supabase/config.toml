@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.create-study-group]
 verify_jwt = true
+
+[functions.get-video-details]
+verify_jwt = false
