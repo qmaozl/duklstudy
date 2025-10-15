@@ -5,7 +5,7 @@ import { useTimerContext } from '@/contexts/TimerContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2 } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
 import TwitchStyleChat from '@/components/TwitchStyleChat';
@@ -116,6 +116,17 @@ const FocusTimer = () => {
           isInRoom={isInRoom}
           onClose={() => setIsChatOpen(false)}
         />
+      )}
+
+      {/* Reopen Chat Button - Fixed Right Bottom */}
+      {selectedGroupId && !isChatOpen && (
+        <Button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed right-6 bottom-6 z-40 shadow-lg rounded-full h-14 w-14 p-0"
+          size="lg"
+        >
+          <MessageSquare className="h-6 w-6" />
+        </Button>
       )}
 
       <div className={cn("p-6 space-y-6 transition-all mt-16", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
