@@ -319,6 +319,33 @@ export type Database = {
           },
         ]
       }
+      study_goals: {
+        Row: {
+          created_at: string
+          goal_type: string
+          id: string
+          target_hours: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal_type: string
+          id?: string
+          target_hours: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal_type?: string
+          id?: string
+          target_hours?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       study_group_chat: {
         Row: {
           created_at: string
