@@ -13,7 +13,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
   const { subscription } = useAuth();
   const { toggleSidebar } = useSidebar();
   const isPro = subscription?.subscription_tier === 'pro';
-  const isHomePage = location.pathname === '/home';
+  const isDashboardPage = location.pathname === '/dashboard';
 
   return (
     <div className="flex-1 flex flex-col w-full">
@@ -38,15 +38,15 @@ function DashboardContent({ children }: { children: ReactNode }) {
           </div>
           
           <div className="flex items-center gap-2">
-            {!isHomePage && (
+            {!isDashboardPage && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/home')}
+                onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-2"
               >
                 <Home className="h-4 w-4" />
-                <span className="hidden sm:inline">Home</span>
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
             )}
             
