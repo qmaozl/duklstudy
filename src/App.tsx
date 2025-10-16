@@ -45,6 +45,15 @@ function RedirectHandler() {
   return null;
 }
 
+function getBasename() {
+  const { hostname, pathname } = window.location;
+  if (hostname.endsWith('.github.io')) {
+    const first = pathname.split('/').filter(Boolean)[0];
+    return first ? `/${first}` : '';
+  }
+  return '';
+}
+
 function FloatingComponents() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -188,7 +197,7 @@ const App = () => {
             <TooltipProvider>
               <Toaster />
               <Sonner />
-              <BrowserRouter>
+              <BrowserRouter basename={getBasename()}>
                 <RedirectHandler />
                 <GlobalYouTubePlayer />
                 <FloatingComponents />
