@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TimerProvider, useTimerContext } from "@/contexts/TimerContext";
@@ -183,40 +184,43 @@ const App = () => {
     <AuthProvider>
       <TimerProvider>
         <MediaPlayerProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <RedirectHandler />
-              <GlobalYouTubePlayer />
-              <FloatingComponents />
-              <Routes>
-                {/* Landing page at root */}
-                <Route path="/" element={<HomePage />} />
-                
-                {/* Dashboard at /dashboard */}
-                <Route path="/dashboard" element={<DashboardOverview />} />
-                
-                {/* Redirect old /home to landing page */}
-                <Route path="/home" element={<Navigate to="/" replace />} />
-                
-                {/* Keep all other routes the same */}
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/focus-timer" element={<FocusTimer />} />
-                <Route path="/video-summarizer" element={<VideoSummarizer />} />
+          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <RedirectHandler />
+                <GlobalYouTubePlayer />
+                <FloatingComponents />
+                <Routes>
+                  {/* Landing page at root */}
+                  <Route path="/" element={<HomePage />} />
+                  
+                  {/* Dashboard at /dashboard */}
+                  <Route path="/dashboard" element={<DashboardOverview />} />
+                  
+                  {/* Redirect old /home to landing page */}
+                  <Route path="/home" element={<Navigate to="/" replace />} />
+                  
+                  {/* Keep all other routes the same */}
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/focus-timer" element={<FocusTimer />} />
+                  <Route path="/video-summarizer" element={<VideoSummarizer />} />
                 <Route path="/study-hub" element={<StudyHub />} />
                 <Route path="/calendar" element={<Calendar />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/subscription" element={<Subscription />} />
-                <Route path="/memorise-pro" element={<MemorisePro />} />
-                <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
-                <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
-                <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
-                <Route path="/flashcards" element={<Flashcards />} />
-                <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+                  <Route path="/memorise-pro" element={<MemorisePro />} />
+                  <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
+                  <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
+                  <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
+                  <Route path="/flashcards" element={<Flashcards />} />
+                  <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
         </MediaPlayerProvider>
       </TimerProvider>
     </AuthProvider>

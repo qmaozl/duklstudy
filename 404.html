@@ -4,11 +4,23 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
+      // Preserve the path for the SPA router
       sessionStorage.redirect = location.pathname + location.search + location.hash;
-      window.location.href = '/';
+      // Respect <base href> when present (e.g., GitHub Pages project sites)
+      var base = '/';
+      var baseEl = document.querySelector('base[href]');
+      if (baseEl && baseEl.getAttribute('href')) {
+        base = baseEl.getAttribute('href');
+      }
+      // Fallback detection for GitHub Pages project subpaths
+      if (base === '/' && location.hostname.endsWith('.github.io')) {
+        var parts = location.pathname.split('/').filter(Boolean);
+        if (parts.length > 0) base = '/' + parts[0] + '/';
+      }
+      location.replace(base);
     </script>
   </head>
   <body>
-    Redirecting to home page...
+    Redirecting to app…
   </body>
 </html>

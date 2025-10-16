@@ -6,6 +6,8 @@ import UserProfile from '@/components/UserProfile';
 import AvatarUploader from '@/components/AvatarUploader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import UIModeSwitcher from '@/components/UIModeSwitcher';
+import NicknameEditor from '@/components/NicknameEditor';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const Settings = () => {
   const { user, loading } = useAuth();
@@ -39,6 +41,7 @@ const Settings = () => {
             </TabsList>
 
             <TabsContent value="profile" className="space-y-4">
+              <NicknameEditor />
               <AvatarUploader />
               <UserProfile />
             </TabsContent>
@@ -48,6 +51,10 @@ const Settings = () => {
             </TabsContent>
 
             <TabsContent value="preferences" className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Appearance</h3>
+                <ThemeToggle />
+              </div>
               <UIModeSwitcher />
             </TabsContent>
           </Tabs>
