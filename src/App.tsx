@@ -181,10 +181,10 @@ function FloatingComponents() {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <TimerProvider>
-        <MediaPlayerProvider>
-          <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <AuthProvider>
+        <TimerProvider>
+          <MediaPlayerProvider>
             <TooltipProvider>
               <Toaster />
               <Sonner />
@@ -206,10 +206,10 @@ const App = () => {
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/focus-timer" element={<FocusTimer />} />
                   <Route path="/video-summarizer" element={<VideoSummarizer />} />
-                <Route path="/study-hub" element={<StudyHub />} />
-                <Route path="/calendar" element={<Calendar />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/subscription" element={<Subscription />} />
+                  <Route path="/study-hub" element={<StudyHub />} />
+                  <Route path="/calendar" element={<Calendar />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/subscription" element={<Subscription />} />
                   <Route path="/memorise-pro" element={<MemorisePro />} />
                   <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
                   <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
@@ -220,10 +220,10 @@ const App = () => {
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
-          </ThemeProvider>
-        </MediaPlayerProvider>
-      </TimerProvider>
-    </AuthProvider>
+          </MediaPlayerProvider>
+        </TimerProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 
