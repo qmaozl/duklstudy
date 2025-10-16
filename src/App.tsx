@@ -30,6 +30,20 @@ import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
 import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
 import { useNavigate } from "react-router-dom";
 
+function RedirectHandler() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const redirectPath = sessionStorage.redirect;
+    if (redirectPath && redirectPath !== '/') {
+      delete sessionStorage.redirect;
+      navigate(redirectPath, { replace: true });
+    }
+  }, [navigate]);
+
+  return null;
+}
+
 function FloatingComponents() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -165,16 +179,6 @@ function FloatingComponents() {
 }
 
 const App = () => {
-  // ADD THIS USEEFFECT FOR 404 REDIRECTS
-  useEffect(() => {
-    const redirectPath = sessionStorage.redirect;
-    if (redirectPath && redirectPath !== '/') {
-      delete sessionStorage.redirect;
-      // Use window.location for initial redirect since navigate isn't available here
-      window.location.href = redirectPath;
-    }
-  }, []);
-
   return (
     <AuthProvider>
       <TimerProvider>
@@ -183,6 +187,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <RedirectHandler />
               <GlobalYouTubePlayer />
               <FloatingComponents />
               <Routes>
