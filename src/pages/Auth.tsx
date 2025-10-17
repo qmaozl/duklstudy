@@ -61,8 +61,14 @@ const Auth = () => {
     }
 
     setIsResetting(true);
+    
+    // Use deployed URL instead of localhost for production
+    const redirectUrl = window.location.hostname === 'localhost' 
+      ? 'https://duklstudy.com/auth' 
+      : `${window.location.origin}/auth`;
+    
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: redirectUrl,
     });
 
     if (error) {
@@ -74,7 +80,7 @@ const Auth = () => {
     } else {
       toast({
         title: "Check your email",
-        description: "We sent you a password reset link",
+        description: "Password reset link sent! Check your inbox.",
       });
       setIsResetDialogOpen(false);
       setResetEmail('');
