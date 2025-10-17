@@ -12,6 +12,7 @@ import HomePage from "./pages/HomePage";
 import DashboardOverview from "./pages/DashboardOverview";
 import FocusTimer from "./pages/FocusTimer";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 
 import VideoSummarizer from "./pages/VideoSummarizer";
 import StudyHub from "./pages/StudyHub";
@@ -213,6 +214,7 @@ const App = () => {
                   
                   {/* Keep all other routes the same */}
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/focus-timer" element={<FocusTimer />} />
                   <Route path="/video-summarizer" element={<VideoSummarizer />} />
                   <Route path="/study-hub" element={<StudyHub />} />

@@ -62,10 +62,7 @@ const Auth = () => {
 
     setIsResetting(true);
     
-    // Use deployed URL instead of localhost for production
-    const redirectUrl = window.location.hostname === 'localhost' 
-      ? 'https://duklstudy.com/auth' 
-      : `${window.location.origin}/auth`;
+    const redirectUrl = `${window.location.origin}/reset-password`;
     
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
       redirectTo: redirectUrl,
