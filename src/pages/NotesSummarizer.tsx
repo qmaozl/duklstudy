@@ -10,6 +10,7 @@ import MindMap from '@/components/MindMap';
 import { Textarea } from '@/components/ui/textarea';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Skeleton } from '@/components/ui/skeleton';
+import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 
 const NotesSummarizer = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -20,6 +21,8 @@ const NotesSummarizer = () => {
   const [summary, setSummary] = useState('');
   const [flashcards, setFlashcards] = useState<Array<{ question: string; answer: string }>>([]);
   const [keyConcepts, setKeyConcepts] = useState<string[]>([]);
+  const [quiz, setQuiz] = useState<any>(null);
+  const [studyMaterialId, setStudyMaterialId] = useState<string>('');
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -102,10 +105,11 @@ const NotesSummarizer = () => {
       setSummary(studyData.summary || 'No summary generated');
       setFlashcards(studyData.flashcards || []);
       setKeyConcepts(studyData.key_concepts || []);
+      setQuiz(studyData.quiz || null);
 
       if (userId) {
         setProcessingStep('Saving to your library...');
-        const { error: saveError } = await supabase
+        const { data: savedData, error: saveError } = await supabase
           .from('study_materials')
           .insert([{
             user_id: userId,
@@ -116,11 +120,17 @@ const NotesSummarizer = () => {
             flashcards: studyData.flashcards,
             key_concepts: studyData.key_concepts,
             quiz: studyData.quiz,
-          }]);
+          }])
+          .select()
+          .single();
 
         if (saveError) {
           console.error('Save error:', saveError);
           throw saveError;
+        }
+
+        if (savedData) {
+          setStudyMaterialId(savedData.id);
         }
       }
 
@@ -252,9 +262,10 @@ const NotesSummarizer = () => {
           </Card>
         ) : !extractedText ? null : (
           <Tabs defaultValue="summary" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="summary">Summary</TabsTrigger>
               <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+              <TabsTrigger value="quiz">Quiz</TabsTrigger>
               <TabsTrigger value="mindmap">Mind Map</TabsTrigger>
               <TabsTrigger value="text">Extracted Text</TabsTrigger>
             </TabsList>
@@ -290,6 +301,24 @@ const NotesSummarizer = () => {
                   ))}
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="quiz">
+              {quiz && quiz.questions && quiz.questions.length > 0 ? (
+                <KahootStyleQuiz
+                  questions={quiz.questions}
+                  studyMaterialId={studyMaterialId}
+                  onPointsEarned={() => {}}
+                  onWrongAnswer={() => {}}
+                />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Quiz</CardTitle>
+                    <CardDescription>No quiz questions available</CardDescription>
+                  </CardHeader>
+                </Card>
+              )}
             </TabsContent>
 
             <TabsContent value="mindmap">
@@ -333,6 +362,8 @@ const NotesSummarizer = () => {
                 setSummary('');
                 setFlashcards([]);
                 setKeyConcepts([]);
+                setQuiz(null);
+                setStudyMaterialId('');
               }}
             >
               Upload Another File

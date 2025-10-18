@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { ArrowLeft, Book, Calendar, Search, Eye, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Book, Calendar, Search, Eye, Trash2, Folder, FileText, Youtube, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import KahootStyleQuiz from '@/components/KahootStyleQuiz';
+import FlashCard from '@/components/FlashCard';
 
 interface StudyMaterial {
   id: string;
@@ -33,6 +36,7 @@ const StudyHub = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMaterial, setSelectedMaterial] = useState<StudyMaterial | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string>('all');
 
   useEffect(() => {
     if (user) {
@@ -88,12 +92,23 @@ const StudyHub = () => {
     }
   };
 
-  const filteredMaterials = materials.filter(material =>
-    material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    material.key_concepts.some(concept => 
-      concept.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Extract unique subjects from materials (from first key concept or source type)
+  const subjects = ['all', ...new Set(materials.map(m => 
+    m.key_concepts?.[0] || m.source_type
+  ).filter(Boolean))];
+
+  const filteredMaterials = materials.filter((material) => {
+    const matchesSearch = material.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      material.key_concepts?.some(concept => 
+        concept.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    
+    const matchesSubject = selectedSubject === 'all' || 
+      material.key_concepts?.[0] === selectedSubject ||
+      (selectedSubject === material.source_type && !material.key_concepts?.[0]);
+    
+    return matchesSearch && matchesSubject;
+  });
 
   if (isLoading) {
     return (
@@ -109,22 +124,27 @@ const StudyHub = () => {
       <div className="pt-20 p-4 md:p-6">
         <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Folder className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Study Hub</h1>
+            </div>
+            <p className="text-muted-foreground">
+              All your study materials organized by subject
+            </p>
+          </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate('/')}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Dashboard
           </Button>
-          <div className="flex items-center gap-2">
-            <Book className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">Study Hub</h1>
-          </div>
         </div>
 
-        {/* Search and Stats */}
+        {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="flex-1">
             <div className="relative">
@@ -137,186 +157,308 @@ const StudyHub = () => {
               />
             </div>
           </div>
+          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="All Subjects" />
+            </SelectTrigger>
+            <SelectContent>
+              {subjects.map((subject) => (
+                <SelectItem key={subject} value={subject}>
+                  {subject === 'all' ? 'All Subjects' : subject}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex gap-4">
-            <Badge variant="secondary" className="px-3 py-1">
+            <Badge variant="secondary" className="px-3 py-1 flex items-center gap-1">
+              <FileText className="h-3 w-3" />
               {materials.length} Materials
             </Badge>
             <Badge variant="outline" className="px-3 py-1">
-              {materials.reduce((acc, m) => acc + (m.points_earned || 0), 0)} Points Earned
+              {materials.reduce((acc, m) => acc + (m.points_earned || 0), 0)} Points
             </Badge>
           </div>
         </div>
 
-        {/* Materials Grid */}
+        {/* Materials Grid - Organized by Subject */}
         {filteredMaterials.length === 0 ? (
           <Card>
             <CardContent className="p-8">
               <div className="text-center text-muted-foreground">
                 <Book className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">No Study Materials Yet</h3>
-                <p className="mb-4">Start creating study materials to see them here!</p>
-                <Button onClick={() => navigate('/study-materials')}>
+                <h3 className="text-lg font-semibold mb-2">No Study Materials Found</h3>
+                <p className="mb-4">Start creating study materials or adjust your filters!</p>
+                <Button onClick={() => navigate('/video-summarizer')}>
                   Create Study Materials
                 </Button>
               </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMaterials.map((material) => (
-              <Card key={material.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg line-clamp-2">
-                      {material.title}
-                    </CardTitle>
-                    <Badge variant="outline" className="shrink-0 ml-2">
-                      {material.source_type}
-                    </Badge>
+        ) : selectedSubject === 'all' ? (
+          // Group by subjects when "All Subjects" is selected
+          <div className="space-y-8">
+            {subjects.filter(s => s !== 'all').map((subject) => {
+              const subjectMaterials = filteredMaterials.filter(m => 
+                m.key_concepts?.[0] === subject || 
+                (subject === m.source_type && !m.key_concepts?.[0])
+              );
+              
+              if (subjectMaterials.length === 0) return null;
+              
+              return (
+                <div key={subject}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Folder className="h-5 w-5 text-primary" />
+                    <h2 className="text-2xl font-bold">{subject}</h2>
+                    <Badge variant="outline">{subjectMaterials.length}</Badge>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-3 w-3" />
-                    {new Date(material.created_at).toLocaleDateString()}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex flex-wrap gap-1">
-                    {material.key_concepts?.slice(0, 3).map((concept, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {concept}
-                      </Badge>
-                    ))}
-                    {material.key_concepts?.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{material.key_concepts.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="text-sm text-muted-foreground line-clamp-3">
-                    {material.summary}
-                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {subjectMaterials.map((material) => (
+                      <Card key={material.id} className="hover:shadow-lg transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              {material.source_type === 'youtube_video' && <Youtube className="h-4 w-4 text-red-500" />}
+                              {material.source_type === 'upload' && <Upload className="h-4 w-4 text-blue-500" />}
+                              {material.source_type === 'custom' && <FileText className="h-4 w-4 text-green-500" />}
+                              <Badge variant="outline" className="text-xs">{material.source_type}</Badge>
+                            </div>
+                          </div>
+                          <CardTitle className="text-base line-clamp-2">{material.title}</CardTitle>
+                          <CardDescription className="flex items-center gap-1 text-xs">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(material.created_at).toLocaleDateString()}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex flex-wrap gap-1">
+                            {material.key_concepts?.slice(0, 2).map((concept, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">{concept}</Badge>
+                            ))}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {material.flashcards?.length || 0} flashcards • {material.quiz?.questions?.length || 0} questions
+                          </div>
+                          <div className="flex gap-2">
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Button size="sm" variant="default" className="flex-1" onClick={() => setSelectedMaterial(material)}>
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  View
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-5xl max-h-[85vh]">
+                                <DialogHeader>
+                                  <DialogTitle>{material.title}</DialogTitle>
+                                </DialogHeader>
+                                {selectedMaterial && (
+                                  <ScrollArea className="h-[70vh] pr-4">
+                                    <Tabs defaultValue="summary" className="w-full">
+                                      <TabsList className="grid w-full grid-cols-4">
+                                        <TabsTrigger value="summary">Summary</TabsTrigger>
+                                        <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                                        <TabsTrigger value="quiz">Quiz</TabsTrigger>
+                                        <TabsTrigger value="sources">Sources</TabsTrigger>
+                                      </TabsList>
 
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="text-xs text-muted-foreground">
-                      {material.flashcards?.length || 0} flashcards, {material.quiz?.questions?.length || 0} quiz questions
-                    </div>
-                    <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => setSelectedMaterial(material)}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-4xl max-h-[80vh]">
-                          <DialogHeader>
-                            <DialogTitle>{material.title}</DialogTitle>
-                          </DialogHeader>
-                          {selectedMaterial && (
-                            <ScrollArea className="h-[60vh]">
-                              <Tabs defaultValue="summary" className="w-full">
-                                <TabsList className="grid w-full grid-cols-4">
-                                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                                  <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-                                  <TabsTrigger value="quiz">Quiz</TabsTrigger>
-                                  <TabsTrigger value="sources">Sources</TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent value="summary" className="space-y-4 mt-4">
-                                  <div>
-                                    <h4 className="font-semibold mb-2">Key Concepts</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                      {selectedMaterial.key_concepts?.map((concept, index) => (
-                                        <Badge key={index} variant="secondary">
-                                          {concept}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <h4 className="font-semibold mb-2">Summary</h4>
-                                    <p className="text-sm leading-relaxed">
-                                      {selectedMaterial.summary}
-                                    </p>
-                                  </div>
-                                </TabsContent>
-
-                                <TabsContent value="flashcards" className="space-y-3 mt-4">
-                                  {selectedMaterial.flashcards?.map((card, index) => (
-                                    <Card key={index} className="border-l-4 border-l-primary">
-                                      <CardContent className="p-4">
-                                        <div className="space-y-2">
-                                          <div>
-                                            <span className="text-xs font-medium text-muted-foreground">QUESTION</span>
-                                            <p className="text-sm font-medium">{card.question}</p>
-                                          </div>
-                                          <div>
-                                            <span className="text-xs font-medium text-muted-foreground">ANSWER</span>
-                                            <p className="text-sm">{card.answer}</p>
-                                          </div>
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </TabsContent>
-
-                                <TabsContent value="quiz" className="space-y-4 mt-4">
-                                  {selectedMaterial.quiz?.questions?.map((question, index) => (
-                                    <Card key={index} className="border-l-4 border-l-secondary">
-                                      <CardContent className="p-4">
-                                        <div className="space-y-3">
-                                          <p className="font-medium text-sm">
-                                            {index + 1}. {question.question}
-                                          </p>
-                                          <div className="grid grid-cols-1 gap-2">
-                                            {Object.entries(question.options || {}).map(([key, value]) => (
-                                              <div 
-                                                key={key} 
-                                                className={`p-2 rounded text-xs ${
-                                                  key === question.correct_answer 
-                                                    ? 'bg-green-100 border border-green-300 text-green-800' 
-                                                    : 'bg-gray-50 border border-gray-200'
-                                                }`}
-                                              >
-                                                <span className="font-medium">{key.toUpperCase()}.</span> {String(value)}
-                                                {key === question.correct_answer && (
-                                                  <span className="ml-2 text-green-600">✓ Correct</span>
-                                                )}
-                                              </div>
+                                      <TabsContent value="summary" className="space-y-4 mt-4">
+                                        <div>
+                                          <h4 className="font-semibold mb-2">Key Concepts</h4>
+                                          <div className="flex flex-wrap gap-2">
+                                            {selectedMaterial.key_concepts?.map((concept, index) => (
+                                              <Badge key={index} variant="secondary">{concept}</Badge>
                                             ))}
                                           </div>
                                         </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </TabsContent>
+                                        <div>
+                                          <h4 className="font-semibold mb-2">Summary</h4>
+                                          <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedMaterial.summary}</p>
+                                        </div>
+                                      </TabsContent>
 
-                                <TabsContent value="sources" className="space-y-3 mt-4">
-                                  {selectedMaterial.sources?.map((source, index) => (
+                                      <TabsContent value="flashcards" className="space-y-3 mt-4">
+                                        {selectedMaterial.flashcards?.map((card, index) => (
+                                          <FlashCard
+                                            key={index}
+                                            question={card.question}
+                                            answer={card.answer}
+                                            cardNumber={index + 1}
+                                          />
+                                        ))}
+                                      </TabsContent>
+
+                                      <TabsContent value="quiz" className="mt-4">
+                                        {selectedMaterial.quiz?.questions && selectedMaterial.quiz.questions.length > 0 ? (
+                                          <KahootStyleQuiz
+                                            questions={selectedMaterial.quiz.questions}
+                                            studyMaterialId={selectedMaterial.id}
+                                            onPointsEarned={() => {}}
+                                            onWrongAnswer={() => {}}
+                                          />
+                                        ) : (
+                                          <Card>
+                                            <CardHeader>
+                                              <CardTitle>No Quiz Available</CardTitle>
+                                              <CardDescription>This material doesn't have quiz questions yet.</CardDescription>
+                                            </CardHeader>
+                                          </Card>
+                                        )}
+                                      </TabsContent>
+
+                                      <TabsContent value="sources" className="space-y-3 mt-4">
+                                        {selectedMaterial.sources && selectedMaterial.sources.length > 0 ? (
+                                          selectedMaterial.sources.map((source, index) => (
+                                            <Card key={index} className="border-l-4 border-l-accent">
+                                              <CardContent className="p-4">
+                                                <p className="text-sm">{source}</p>
+                                              </CardContent>
+                                            </Card>
+                                          ))
+                                        ) : (
+                                          <Card>
+                                            <CardContent className="p-4">
+                                              <p className="text-sm text-muted-foreground">No sources available</p>
+                                            </CardContent>
+                                          </Card>
+                                        )}
+                                      </TabsContent>
+                                    </Tabs>
+                                  </ScrollArea>
+                                )}
+                              </DialogContent>
+                            </Dialog>
+                            <Button size="sm" variant="destructive" onClick={() => deleteMaterial(material.id)}>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          // Simple grid when specific subject is selected
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMaterials.map((material) => (
+              <Card key={material.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {material.source_type === 'youtube_video' && <Youtube className="h-4 w-4 text-red-500" />}
+                      {material.source_type === 'upload' && <Upload className="h-4 w-4 text-blue-500" />}
+                      {material.source_type === 'custom' && <FileText className="h-4 w-4 text-green-500" />}
+                      <Badge variant="outline" className="text-xs">{material.source_type}</Badge>
+                    </div>
+                  </div>
+                  <CardTitle className="text-base line-clamp-2">{material.title}</CardTitle>
+                  <CardDescription className="flex items-center gap-1 text-xs">
+                    <Calendar className="h-3 w-3" />
+                    {new Date(material.created_at).toLocaleDateString()}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-1">
+                    {material.key_concepts?.slice(0, 2).map((concept, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">{concept}</Badge>
+                    ))}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {material.flashcards?.length || 0} flashcards • {material.quiz?.questions?.length || 0} questions
+                  </div>
+                  <div className="flex gap-2">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="default" className="flex-1" onClick={() => setSelectedMaterial(material)}>
+                          <Eye className="h-3 w-3 mr-1" />
+                          View
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-5xl max-h-[85vh]">
+                        <DialogHeader>
+                          <DialogTitle>{material.title}</DialogTitle>
+                        </DialogHeader>
+                        {selectedMaterial && (
+                          <ScrollArea className="h-[70vh] pr-4">
+                            <Tabs defaultValue="summary" className="w-full">
+                              <TabsList className="grid w-full grid-cols-4">
+                                <TabsTrigger value="summary">Summary</TabsTrigger>
+                                <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                                <TabsTrigger value="quiz">Quiz</TabsTrigger>
+                                <TabsTrigger value="sources">Sources</TabsTrigger>
+                              </TabsList>
+
+                              <TabsContent value="summary" className="space-y-4 mt-4">
+                                <div>
+                                  <h4 className="font-semibold mb-2">Key Concepts</h4>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedMaterial.key_concepts?.map((concept, index) => (
+                                      <Badge key={index} variant="secondary">{concept}</Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold mb-2">Summary</h4>
+                                  <p className="text-sm leading-relaxed whitespace-pre-wrap">{selectedMaterial.summary}</p>
+                                </div>
+                              </TabsContent>
+
+                              <TabsContent value="flashcards" className="space-y-3 mt-4">
+                                {selectedMaterial.flashcards?.map((card, index) => (
+                                  <FlashCard
+                                    key={index}
+                                    question={card.question}
+                                    answer={card.answer}
+                                    cardNumber={index + 1}
+                                  />
+                                ))}
+                              </TabsContent>
+
+                              <TabsContent value="quiz" className="mt-4">
+                                {selectedMaterial.quiz?.questions && selectedMaterial.quiz.questions.length > 0 ? (
+                                  <KahootStyleQuiz
+                                    questions={selectedMaterial.quiz.questions}
+                                    studyMaterialId={selectedMaterial.id}
+                                    onPointsEarned={() => {}}
+                                    onWrongAnswer={() => {}}
+                                  />
+                                ) : (
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle>No Quiz Available</CardTitle>
+                                      <CardDescription>This material doesn't have quiz questions yet.</CardDescription>
+                                    </CardHeader>
+                                  </Card>
+                                )}
+                              </TabsContent>
+
+                              <TabsContent value="sources" className="space-y-3 mt-4">
+                                {selectedMaterial.sources && selectedMaterial.sources.length > 0 ? (
+                                  selectedMaterial.sources.map((source, index) => (
                                     <Card key={index} className="border-l-4 border-l-accent">
                                       <CardContent className="p-4">
                                         <p className="text-sm">{source}</p>
                                       </CardContent>
                                     </Card>
-                                  ))}
-                                </TabsContent>
-                              </Tabs>
-                            </ScrollArea>
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => deleteMaterial(material.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
+                                  ))
+                                ) : (
+                                  <Card>
+                                    <CardContent className="p-4">
+                                      <p className="text-sm text-muted-foreground">No sources available</p>
+                                    </CardContent>
+                                  </Card>
+                                )}
+                              </TabsContent>
+                            </Tabs>
+                          </ScrollArea>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                    <Button size="sm" variant="destructive" onClick={() => deleteMaterial(material.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
