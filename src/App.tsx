@@ -26,6 +26,7 @@ import CustomParagraphNew from "./pages/CustomParagraphNew";
 import CustomParagraphReview from "./pages/CustomParagraphReview";
 import Flashcards from "./pages/Flashcards";
 import FlashcardStudy from "./pages/FlashcardStudy";
+import NotesSummarizer from "./pages/NotesSummarizer";
 import NotFound from "./pages/NotFound";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
@@ -227,6 +228,7 @@ const App = () => {
                   <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
                   <Route path="/flashcards" element={<Flashcards />} />
                   <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
+                  <Route path="/notes-summarizer" element={<NotesSummarizer />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>

@@ -42,6 +42,9 @@ verify_jwt = false
 [functions.ocr-image-text]
 verify_jwt = true
 
+[functions.extract-notes]
+verify_jwt = true
+
 [functions.ai-schedule-planner]
 verify_jwt = true
 
