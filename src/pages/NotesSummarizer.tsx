@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2 } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import FlashCard from '@/components/FlashCard';
 import MindMap from '@/components/MindMap';
 import { Textarea } from '@/components/ui/textarea';
 import { DashboardLayout } from '@/components/DashboardLayout';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const NotesSummarizer = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStep, setProcessingStep] = useState('');
   const [extractedText, setExtractedText] = useState('');
   const [summary, setSummary] = useState('');
   const [flashcards, setFlashcards] = useState<Array<{ question: string; answer: string }>>([]);
@@ -46,6 +48,7 @@ const NotesSummarizer = () => {
     if (!file) return;
 
     setIsProcessing(true);
+    setProcessingStep('Uploading file...');
     try {
       // Convert file to base64
       const reader = new FileReader();
@@ -54,6 +57,7 @@ const NotesSummarizer = () => {
         const fileType = file.type.startsWith('image/') ? 'image' : 'pdf';
 
         // Extract text from file
+        setProcessingStep('Extracting text from your notes...');
         const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-notes', {
           body: { file: base64File, fileType }
         });
@@ -64,17 +68,20 @@ const NotesSummarizer = () => {
         setExtractedText(text);
 
         // Generate study materials
+        setProcessingStep('Generating AI summary and flashcards...');
         const { data: studyData, error: studyError } = await supabase.functions.invoke('generate-study-materials', {
           body: { corrected_text: text, num_questions: 10 }
         });
 
         if (studyError) throw studyError;
 
+        setProcessingStep('Creating mind map...');
         setSummary(studyData.summary || 'No summary generated');
         setFlashcards(studyData.flashcards || []);
         setKeyConcepts(studyData.key_concepts || []);
 
         if (userId) {
+          setProcessingStep('Saving to your library...');
           const { error: saveError } = await supabase
             .from('study_materials')
             .insert([{
@@ -91,6 +98,7 @@ const NotesSummarizer = () => {
           if (saveError) throw saveError;
         }
 
+        setProcessingStep('');
         toast({
           title: 'Success!',
           description: 'Your notes have been processed and saved',
@@ -100,6 +108,7 @@ const NotesSummarizer = () => {
       reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error processing file:', error);
+      setProcessingStep('');
       toast({
         title: 'Error',
         description: 'Failed to process your notes. Please try again.',
@@ -120,7 +129,76 @@ const NotesSummarizer = () => {
           </p>
         </div>
 
-        {!extractedText ? (
+        {isProcessing ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                Processing Your Notes
+              </CardTitle>
+              <CardDescription>
+                This may take a minute. Please don't close this page.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  {processingStep.includes('Uploading') ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  )}
+                  <span className="text-sm font-medium">Uploading file</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {processingStep.includes('Extracting') ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : processingStep.includes('Generating') || processingStep.includes('Creating') || processingStep.includes('Saving') ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-muted" />
+                  )}
+                  <span className="text-sm font-medium">Extracting text from your notes</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {processingStep.includes('Generating') ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : processingStep.includes('Creating') || processingStep.includes('Saving') ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-muted" />
+                  )}
+                  <span className="text-sm font-medium">Generating AI summary and flashcards</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {processingStep.includes('Creating') ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : processingStep.includes('Saving') ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-muted" />
+                  )}
+                  <span className="text-sm font-medium">Creating mind map</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  {processingStep.includes('Saving') ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                  ) : (
+                    <div className="h-5 w-5 rounded-full border-2 border-muted" />
+                  )}
+                  <span className="text-sm font-medium">Saving to your library</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-5/6" />
+                <Skeleton className="h-4 w-4/6" />
+                <Skeleton className="h-32 w-full mt-4" />
+              </div>
+            </CardContent>
+          </Card>
+        ) : !extractedText ? (
           <Card>
             <CardHeader>
               <CardTitle>Upload Your Notes</CardTitle>
