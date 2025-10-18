@@ -61,69 +61,80 @@ const NotesSummarizer = () => {
 
     setIsProcessing(true);
     setProcessingStep('Uploading file...');
+    
     try {
       // Convert file to base64
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64File = e.target?.result as string;
-        const fileType = file.type.startsWith('image/') ? 'image' : 'pdf';
+      const base64File = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.onerror = (e) => reject(new Error('Failed to read file'));
+        reader.readAsDataURL(file);
+      });
 
-        // Extract text from file
-        setProcessingStep('Extracting text from your notes...');
-        const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-notes', {
-          body: { file: base64File, fileType }
-        });
+      const fileType = file.type.startsWith('image/') ? 'image' : 'pdf';
 
-        if (extractError) throw extractError;
+      // Extract text from file
+      setProcessingStep('Extracting text from your notes...');
+      const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-notes', {
+        body: { file: base64File, fileType }
+      });
 
-        const text = extractData.text;
-        setExtractedText(text);
+      if (extractError) {
+        console.error('Extract error:', extractError);
+        throw new Error(extractError.message || 'Failed to extract text');
+      }
 
-        // Generate study materials
-        setProcessingStep('Generating AI summary and flashcards...');
-        const { data: studyData, error: studyError } = await supabase.functions.invoke('generate-study-materials', {
-          body: { corrected_text: text, num_questions: 10 }
-        });
+      const text = extractData.text;
+      setExtractedText(text);
 
-        if (studyError) throw studyError;
+      // Generate study materials
+      setProcessingStep('Generating AI summary and flashcards...');
+      const { data: studyData, error: studyError } = await supabase.functions.invoke('generate-study-materials', {
+        body: { corrected_text: text, num_questions: 10 }
+      });
 
-        setProcessingStep('Creating mind map...');
-        setSummary(studyData.summary || 'No summary generated');
-        setFlashcards(studyData.flashcards || []);
-        setKeyConcepts(studyData.key_concepts || []);
+      if (studyError) {
+        console.error('Study data error:', studyError);
+        throw new Error(studyError.message || 'Failed to generate study materials');
+      }
 
-        if (userId) {
-          setProcessingStep('Saving to your library...');
-          const { error: saveError } = await supabase
-            .from('study_materials')
-            .insert([{
-              user_id: userId,
-              source_type: 'upload',
-              title: file.name,
-              original_content: text,
-              summary: studyData.summary,
-              flashcards: studyData.flashcards,
-              key_concepts: studyData.key_concepts,
-              quiz: studyData.quiz,
-            }]);
+      setProcessingStep('Creating mind map...');
+      setSummary(studyData.summary || 'No summary generated');
+      setFlashcards(studyData.flashcards || []);
+      setKeyConcepts(studyData.key_concepts || []);
 
-          if (saveError) throw saveError;
+      if (userId) {
+        setProcessingStep('Saving to your library...');
+        const { error: saveError } = await supabase
+          .from('study_materials')
+          .insert([{
+            user_id: userId,
+            source_type: 'upload',
+            title: file.name,
+            original_content: text,
+            summary: studyData.summary,
+            flashcards: studyData.flashcards,
+            key_concepts: studyData.key_concepts,
+            quiz: studyData.quiz,
+          }]);
+
+        if (saveError) {
+          console.error('Save error:', saveError);
+          throw saveError;
         }
+      }
 
-        setProcessingStep('');
-        toast({
-          title: 'Success!',
-          description: 'Your notes have been processed and saved',
-        });
-      };
-
-      reader.readAsDataURL(file);
-    } catch (error) {
+      setProcessingStep('');
+      toast({
+        title: 'Success!',
+        description: 'Your notes have been processed and saved',
+      });
+    } catch (error: any) {
       console.error('Error processing file:', error);
       setProcessingStep('');
       toast({
         title: 'Error',
-        description: 'Failed to process your notes. Please try again.',
+        description: error.message || 'Failed to process your notes. Please try again.',
         variant: 'destructive',
       });
     } finally {
