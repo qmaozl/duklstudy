@@ -23,28 +23,43 @@ serve(async (req) => {
     let extractedText = '';
 
     if (fileType === 'image') {
-      // Use Google Cloud Vision API for OCR
-      const GOOGLE_CLOUD_API_KEY = Deno.env.get('GOOGLE_CLOUD_API_KEY');
-      if (!GOOGLE_CLOUD_API_KEY) {
-        throw new Error('Google Cloud API key not configured');
+      // Use Lovable AI for OCR
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      if (!LOVABLE_API_KEY) {
+        throw new Error('Lovable API key not configured');
       }
 
-      const visionResponse = await fetch(
-        `https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_CLOUD_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            requests: [{
-              image: { content: file.replace(/^data:image\/\w+;base64,/, '') },
-              features: [{ type: 'TEXT_DETECTION' }]
-            }]
-          })
-        }
-      );
+      const aiResponse = await fetch('https://api.lovable.app/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                source: {
+                  type: 'base64',
+                  media_type: file.match(/^data:(image\/\w+);base64,/)?.[1] || 'image/jpeg',
+                  data: file.replace(/^data:image\/\w+;base64,/, '')
+                }
+              },
+              {
+                type: 'text',
+                text: 'Extract all text from this image. Return ONLY the extracted text, nothing else. If there are handwritten notes, typed text, or any written content, transcribe it accurately.'
+              }
+            ]
+          }],
+          max_tokens: 4096
+        })
+      });
 
-      const visionData = await visionResponse.json();
-      extractedText = visionData.responses?.[0]?.textAnnotations?.[0]?.description || '';
+      const aiData = await aiResponse.json();
+      extractedText = aiData.choices?.[0]?.message?.content || '';
     } else if (fileType === 'pdf') {
       // For PDF, extract text using a simple approach
       // Note: This is a basic implementation. For production, consider using pdf-parse or similar
