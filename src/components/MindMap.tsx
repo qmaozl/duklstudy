@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -7,7 +7,8 @@ import ReactFlow, {
   useNodesState,
   useEdgesState,
   MarkerType,
-} from 'react-flow-renderer';
+} from 'reactflow';
+import 'reactflow/dist/style.css';
 import { Card } from './ui/card';
 
 interface MindMapProps {
