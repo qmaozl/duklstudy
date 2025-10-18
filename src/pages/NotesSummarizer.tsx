@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const NotesSummarizer = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
   const [extractedText, setExtractedText] = useState('');
@@ -34,6 +35,17 @@ const NotesSummarizer = () => {
       const fileType = selectedFile.type;
       if (fileType === 'application/pdf' || fileType.startsWith('image/')) {
         setFile(selectedFile);
+        
+        // Create preview for images
+        if (fileType.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            setFilePreview(event.target?.result as string);
+          };
+          reader.readAsDataURL(selectedFile);
+        } else {
+          setFilePreview(null);
+        }
       } else {
         toast({
           title: 'Invalid file type',
@@ -198,7 +210,7 @@ const NotesSummarizer = () => {
               </div>
             </CardContent>
           </Card>
-        ) : !extractedText ? (
+        ) : !extractedText && !file ? (
           <Card>
             <CardHeader>
               <CardTitle>Upload Your Notes</CardTitle>
@@ -218,37 +230,16 @@ const NotesSummarizer = () => {
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                   <p className="text-lg font-medium mb-2">
-                    {file ? file.name : 'Click to upload or drag and drop'}
+                    Click to upload or drag and drop
                   </p>
                   <p className="text-sm text-muted-foreground">
                     PDF or images up to 10MB
                   </p>
                 </label>
               </div>
-
-              {file && (
-                <Button
-                  onClick={processFile}
-                  disabled={isProcessing}
-                  className="w-full"
-                  size="lg"
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Process Notes
-                    </>
-                  )}
-                </Button>
-              )}
             </CardContent>
           </Card>
-        ) : (
+        ) : !extractedText ? null : (
           <Tabs defaultValue="summary" className="space-y-4">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="summary">Summary</TabsTrigger>
@@ -326,6 +317,7 @@ const NotesSummarizer = () => {
               variant="outline"
               onClick={() => {
                 setFile(null);
+                setFilePreview(null);
                 setExtractedText('');
                 setSummary('');
                 setFlashcards([]);
@@ -335,6 +327,56 @@ const NotesSummarizer = () => {
               Upload Another File
             </Button>
           </div>
+        )}
+        
+        {file && !extractedText && !isProcessing && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>File Preview</CardTitle>
+              <CardDescription>Review your file before processing</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {filePreview ? (
+                <div className="border rounded-lg overflow-hidden">
+                  <img 
+                    src={filePreview} 
+                    alt="File preview" 
+                    className="w-full h-auto max-h-96 object-contain"
+                  />
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
+                  <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium">{file.name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    PDF file ready to process
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button
+                  onClick={processFile}
+                  disabled={isProcessing}
+                  className="flex-1"
+                  size="lg"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Process Notes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setFile(null);
+                    setFilePreview(null);
+                  }}
+                  size="lg"
+                >
+                  Remove
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </DashboardLayout>
