@@ -29,23 +29,21 @@ serve(async (req) => {
         throw new Error('Lovable API key not configured');
       }
 
-      const aiResponse = await fetch('https://api.lovable.app/v1/chat/completions', {
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${LOVABLE_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
+          model: 'google/gemini-2.5-flash',
           messages: [{
             role: 'user',
             content: [
               {
-                type: 'image',
-                source: {
-                  type: 'base64',
-                  media_type: file.match(/^data:(image\/\w+);base64,/)?.[1] || 'image/jpeg',
-                  data: file.replace(/^data:image\/\w+;base64,/, '')
+                type: 'image_url',
+                image_url: {
+                  url: file
                 }
               },
               {
@@ -53,10 +51,15 @@ serve(async (req) => {
                 text: 'Extract all text from this image. Return ONLY the extracted text, nothing else. If there are handwritten notes, typed text, or any written content, transcribe it accurately.'
               }
             ]
-          }],
-          max_tokens: 4096
+          }]
         })
       });
+
+      if (!aiResponse.ok) {
+        const errorText = await aiResponse.text();
+        console.error('AI API error:', aiResponse.status, errorText);
+        throw new Error(`AI API failed with status ${aiResponse.status}`);
+      }
 
       const aiData = await aiResponse.json();
       extractedText = aiData.choices?.[0]?.message?.content || '';
