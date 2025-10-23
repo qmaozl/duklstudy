@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import PlaylistMaker from '@/components/PlaylistMaker';
 import { useAuth } from '@/contexts/AuthContext';
