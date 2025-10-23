@@ -48,7 +48,7 @@ const PlaylistMakerPage: React.FC = () => {
       let hasAudioData = false;
       
       if (analyserRef.current && dataArray && audioEnabled) {
-        (analyserRef.current as any).getByteFrequencyData(dataArray as any);
+        analyserRef.current.getByteFrequencyData(dataArray as Uint8Array<ArrayBuffer>);
         // Check if we're getting real audio data
         const sum = dataArray.reduce((a, b) => a + b, 0);
         hasAudioData = sum > 0;
@@ -185,7 +185,7 @@ const PlaylistMakerPage: React.FC = () => {
       source.connect(analyser);
       
       const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
+      const dataArray: Uint8Array<ArrayBuffer> = new Uint8Array(new ArrayBuffer(bufferLength));
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
@@ -213,13 +213,6 @@ const PlaylistMakerPage: React.FC = () => {
       // no alerts, just fail silently and keep canvas static
     }
   }, []);
-
-  // Auto-start tab audio capture when playlist plays
-  useEffect(() => {
-    if (isPlaying && !isInitialized && !audioEnabled) {
-      enableTabAudioCapture();
-    }
-  }, [isPlaying, isInitialized, audioEnabled, enableTabAudioCapture]);
 
   // Cleanup audio on unmount
   useEffect(() => {
