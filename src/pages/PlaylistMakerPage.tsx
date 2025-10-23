@@ -11,7 +11,7 @@ const PlaylistMakerPage: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
+  const dataArrayRef = useRef<Uint8Array | null>(null);
   const animationRef = useRef<number | null>(null);
   const { isPlaying, playerRef } = useMediaPlayerContext();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -79,8 +79,8 @@ const PlaylistMakerPage: React.FC = () => {
             // Combine frequencies with different weights
             intensity = 1 + (lowFreq * 0.8 + midFreq * 1.2 + highFreq * 0.6);
           } else {
-            // Idle animation when not capturing audio
-            intensity = 1 + Math.sin(time * 2 + i * 0.3 + layer * 0.5) * 0.15;
+            // No audio -> no movement
+            intensity = 0;
           }
           
           // Create wave distortion
@@ -145,8 +145,8 @@ const PlaylistMakerPage: React.FC = () => {
       ctx.shadowBlur = 0;
 
       // Update animation parameters
-      time += hasAudioData ? 0.05 : 0.03;
-      hue = (hue + (hasAudioData ? 1 : 0.5)) % 360;
+      time += hasAudioData ? 0.05 : 0;
+      hue = (hue + (hasAudioData ? 1 : 0)) % 360;
 
       animationRef.current = requestAnimationFrame(drawVisualizer);
     };
@@ -160,13 +160,14 @@ const PlaylistMakerPage: React.FC = () => {
     };
   }, [audioEnabled]);
 
-  // Initialize audio context and capture microphone to visualize audio
-  const enableAudioCapture = useCallback(async () => {
+  // Initialize audio context and capture tab audio (includes YouTube audio)
+  const enableTabAudioCapture = useCallback(async () => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
-      // Request microphone access to capture system audio
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      // Request tab/system audio via screen capture (user chooses "This Tab")
+      const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+        video: true, // required by some browsers to allow audio capture
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
@@ -184,7 +185,7 @@ const PlaylistMakerPage: React.FC = () => {
       source.connect(analyser);
       
       const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(new ArrayBuffer(bufferLength));
+      const dataArray: Uint8Array<ArrayBuffer> = new Uint8Array(new ArrayBuffer(bufferLength));
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
@@ -192,17 +193,24 @@ const PlaylistMakerPage: React.FC = () => {
       mediaStreamRef.current = stream;
       sourceNodeRef.current = source;
       
+      // If the user stops sharing, disable visualizer
+      stream.getAudioTracks().forEach(track => {
+        track.addEventListener('ended', () => {
+          setAudioEnabled(false);
+        });
+      });
+      
       setIsInitialized(true);
       setAudioEnabled(true);
 
-      console.log('Audio capture enabled', { 
+      console.log('Tab audio capture enabled', { 
         sampleRate: audioContext.sampleRate,
         fftSize: analyser.fftSize,
         bufferLength
       });
     } catch (error) {
-      console.error('Error enabling audio capture:', error);
-      alert('Please enable microphone access to visualize audio. Make sure to play your system audio near the microphone.');
+      console.error('Error enabling tab audio capture:', error);
+      // no alerts, just fail silently and keep canvas static
     }
   }, []);
 
@@ -243,23 +251,6 @@ const PlaylistMakerPage: React.FC = () => {
 
         {/* MilkDrop Visualizer */}
         <div className="flex flex-col items-center gap-4 my-8">
-          {!audioEnabled && (
-            <div className="text-center space-y-3 mb-4">
-              <p className="text-sm text-muted-foreground">
-                Enable audio visualization to see the music come alive!
-              </p>
-              <button
-                onClick={enableAudioCapture}
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg"
-              >
-                Enable Audio Visualizer
-              </button>
-              <p className="text-xs text-muted-foreground">
-                This will request microphone access to capture and visualize your audio
-              </p>
-            </div>
-          )}
-          
           <div className="relative">
             <canvas
               ref={canvasRef}
@@ -270,12 +261,6 @@ const PlaylistMakerPage: React.FC = () => {
               <Music className="w-12 h-12 text-primary-foreground drop-shadow-lg" />
             </div>
           </div>
-          
-          {audioEnabled && (
-            <p className="text-xs text-green-500 font-medium">
-              🎵 Audio visualization active
-            </p>
-          )}
         </div>
 
         {/* Playlist Maker Component */}
