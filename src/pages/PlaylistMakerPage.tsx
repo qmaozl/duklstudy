@@ -48,7 +48,7 @@ const PlaylistMakerPage: React.FC = () => {
       let hasAudioData = false;
       
       if (analyserRef.current && dataArray && audioEnabled) {
-        analyserRef.current.getByteFrequencyData(dataArray);
+        analyserRef.current.getByteFrequencyData(dataArray as Uint8Array<ArrayBuffer>);
         // Check if we're getting real audio data
         const sum = dataArray.reduce((a, b) => a + b, 0);
         hasAudioData = sum > 0;
