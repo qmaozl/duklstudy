@@ -9,15 +9,8 @@ import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
 const PlaylistMakerPage: React.FC = () => {
   const { user, loading } = useAuth();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const dataArrayRef = useRef<Uint8Array | null>(null);
   const animationRef = useRef<number | null>(null);
-  const { isPlaying, playerRef } = useMediaPlayerContext();
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [audioEnabled, setAudioEnabled] = useState(false);
-  const mediaStreamRef = useRef<MediaStream | null>(null);
-  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const { isPlaying } = useMediaPlayerContext();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -43,16 +36,16 @@ const PlaylistMakerPage: React.FC = () => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Get audio data if available
-      let dataArray = dataArrayRef.current;
-      let hasAudioData = false;
+      // Simulate audio data when playing
+      const hasAudioData = isPlaying;
       
-      if (analyserRef.current && dataArray && audioEnabled) {
-        analyserRef.current.getByteFrequencyData(dataArray);
-        // Check if we're getting real audio data
-        const sum = dataArray.reduce((a, b) => a + b, 0);
-        hasAudioData = sum > 0;
-      }
+      // Generate simulated frequency data for visualization
+      const simulatedData = hasAudioData ? Array.from({ length: 128 }, (_, i) => {
+        const bassFreq = Math.sin(time * 2 + i * 0.1) * 80 + 100;
+        const midFreq = Math.sin(time * 3 + i * 0.15) * 60 + 80;
+        const highFreq = Math.sin(time * 4 + i * 0.2) * 40 + 60;
+        return Math.max(0, Math.min(255, bassFreq + midFreq * 0.5 + highFreq * 0.3));
+      }) : Array(128).fill(0);
 
       // Draw multiple wave layers (MilkDrop style)
       const layers = 8;
@@ -65,22 +58,19 @@ const PlaylistMakerPage: React.FC = () => {
           const angle = (i / points) * Math.PI * 2;
           
           // Get audio intensity for this point
-          let intensity = 1;
-          if (dataArray && hasAudioData) {
-            // Map point to frequency data
-            const dataIndex = Math.floor((i / points) * dataArray.length);
-            const freqValue = dataArray[dataIndex] / 255;
+          let intensity = 0;
+          if (hasAudioData) {
+            // Map point to simulated frequency data
+            const dataIndex = Math.floor((i / points) * simulatedData.length);
+            const freqValue = simulatedData[dataIndex] / 255;
             
             // Use multiple frequency bands for richer visualization
-            const lowFreq = dataArray[Math.floor(dataIndex * 0.5)] / 255;
-            const midFreq = dataArray[dataIndex] / 255;
-            const highFreq = dataArray[Math.min(Math.floor(dataIndex * 1.5), dataArray.length - 1)] / 255;
+            const lowFreq = simulatedData[Math.floor(dataIndex * 0.5)] / 255;
+            const midFreq = simulatedData[dataIndex] / 255;
+            const highFreq = simulatedData[Math.min(Math.floor(dataIndex * 1.5), simulatedData.length - 1)] / 255;
             
             // Combine frequencies with different weights
             intensity = 1 + (lowFreq * 0.8 + midFreq * 1.2 + highFreq * 0.6);
-          } else {
-            // No audio -> no movement
-            intensity = 0;
           }
           
           // Create wave distortion
@@ -106,8 +96,8 @@ const PlaylistMakerPage: React.FC = () => {
         let alpha = 0.3 - layer * 0.03;
         
         // Boost alpha when audio is present
-        if (hasAudioData && dataArray) {
-          const avgIntensity = dataArray.reduce((a, b) => a + b, 0) / (dataArray.length * 255);
+        if (hasAudioData) {
+          const avgIntensity = simulatedData.reduce((a, b) => a + b, 0) / (simulatedData.length * 255);
           alpha += avgIntensity * 0.3;
         }
         
@@ -125,8 +115,8 @@ const PlaylistMakerPage: React.FC = () => {
 
       // Draw center icon circle with audio-reactive pulse
       let centerRadius = 35;
-      if (hasAudioData && dataArray) {
-        const bassIntensity = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / (10 * 255);
+      if (hasAudioData) {
+        const bassIntensity = simulatedData.slice(0, 10).reduce((a, b) => a + b, 0) / (10 * 255);
         centerRadius = 35 + bassIntensity * 15;
       }
       
@@ -158,76 +148,7 @@ const PlaylistMakerPage: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [audioEnabled]);
-
-  // Initialize audio context and capture tab audio (includes YouTube audio)
-  const enableTabAudioCapture = useCallback(async () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // Request tab/system audio via screen capture (user chooses "This Tab")
-      const stream = await (navigator.mediaDevices as any).getDisplayMedia({
-        video: true, // required by some browsers to allow audio capture
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false
-        }
-      });
-
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 512;
-      analyser.smoothingTimeConstant = 0.75;
-      analyser.minDecibels = -90;
-      analyser.maxDecibels = -10;
-      
-      const source = audioContext.createMediaStreamSource(stream);
-      source.connect(analyser);
-      
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray: Uint8Array<ArrayBuffer> = new Uint8Array(new ArrayBuffer(bufferLength));
-
-      audioContextRef.current = audioContext;
-      analyserRef.current = analyser;
-      dataArrayRef.current = dataArray;
-      mediaStreamRef.current = stream;
-      sourceNodeRef.current = source;
-      
-      // If the user stops sharing, disable visualizer
-      stream.getAudioTracks().forEach(track => {
-        track.addEventListener('ended', () => {
-          setAudioEnabled(false);
-        });
-      });
-      
-      setIsInitialized(true);
-      setAudioEnabled(true);
-
-      console.log('Tab audio capture enabled', { 
-        sampleRate: audioContext.sampleRate,
-        fftSize: analyser.fftSize,
-        bufferLength
-      });
-    } catch (error) {
-      console.error('Error enabling tab audio capture:', error);
-      // no alerts, just fail silently and keep canvas static
-    }
-  }, []);
-
-  // Cleanup audio on unmount
-  useEffect(() => {
-    return () => {
-      if (sourceNodeRef.current) {
-        sourceNodeRef.current.disconnect();
-      }
-      if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
-    };
-  }, []);
+  }, [isPlaying]);
 
   if (loading) {
     return (
