@@ -1,4 +1,4 @@
-import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, Settings as SettingsIcon, FileText, Library } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, Settings as SettingsIcon, FileText, Library, Music } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -19,6 +19,7 @@ const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Study Hub", url: "/study-hub", icon: Library },
   { title: "Study Group", url: "/focus-timer", icon: Clock },
+  { title: "Playlist Maker", url: "/playlist-maker", icon: Music },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
   { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
   { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
