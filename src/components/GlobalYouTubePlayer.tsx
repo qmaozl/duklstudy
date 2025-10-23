@@ -63,7 +63,8 @@ export function GlobalYouTubePlayer() {
             modestbranding: 1,
             rel: 0,
             playsinline: 1,
-            origin: window.location.origin
+            origin: 'https://duklstudy.com',
+            enablejsapi: 1
           },
           events: {
             onReady: (event: any) => {
