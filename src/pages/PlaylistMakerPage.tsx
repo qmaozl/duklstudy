@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import PlaylistMaker from '@/components/PlaylistMaker';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,8 +13,11 @@ const PlaylistMakerPage: React.FC = () => {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array<ArrayBuffer> | null>(null);
   const animationRef = useRef<number | null>(null);
-  const { isPlaying } = useMediaPlayerContext();
+  const { isPlaying, playerRef } = useMediaPlayerContext();
   const [isInitialized, setIsInitialized] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -42,8 +45,13 @@ const PlaylistMakerPage: React.FC = () => {
 
       // Get audio data if available
       let dataArray = dataArrayRef.current;
-      if (analyserRef.current && dataArray && isPlaying) {
+      let hasAudioData = false;
+      
+      if (analyserRef.current && dataArray && audioEnabled) {
         analyserRef.current.getByteFrequencyData(dataArray);
+        // Check if we're getting real audio data
+        const sum = dataArray.reduce((a, b) => a + b, 0);
+        hasAudioData = sum > 0;
       }
 
       // Draw multiple wave layers (MilkDrop style)
@@ -58,11 +66,20 @@ const PlaylistMakerPage: React.FC = () => {
           
           // Get audio intensity for this point
           let intensity = 1;
-          if (dataArray && isPlaying) {
+          if (dataArray && hasAudioData) {
+            // Map point to frequency data
             const dataIndex = Math.floor((i / points) * dataArray.length);
-            intensity = 1 + (dataArray[dataIndex] / 255) * 0.8;
+            const freqValue = dataArray[dataIndex] / 255;
+            
+            // Use multiple frequency bands for richer visualization
+            const lowFreq = dataArray[Math.floor(dataIndex * 0.5)] / 255;
+            const midFreq = dataArray[dataIndex] / 255;
+            const highFreq = dataArray[Math.min(Math.floor(dataIndex * 1.5), dataArray.length - 1)] / 255;
+            
+            // Combine frequencies with different weights
+            intensity = 1 + (lowFreq * 0.8 + midFreq * 1.2 + highFreq * 0.6);
           } else {
-            // Idle animation when not playing
+            // Idle animation when not capturing audio
             intensity = 1 + Math.sin(time * 2 + i * 0.3 + layer * 0.5) * 0.15;
           }
           
@@ -84,9 +101,16 @@ const PlaylistMakerPage: React.FC = () => {
         
         ctx.closePath();
         
-        // Create glowing effect
+        // Create glowing effect with more intensity based on audio
         const layerHue = (hue + layer * 30) % 360;
-        const alpha = 0.3 - layer * 0.03;
+        let alpha = 0.3 - layer * 0.03;
+        
+        // Boost alpha when audio is present
+        if (hasAudioData && dataArray) {
+          const avgIntensity = dataArray.reduce((a, b) => a + b, 0) / (dataArray.length * 255);
+          alpha += avgIntensity * 0.3;
+        }
+        
         ctx.strokeStyle = `hsla(${layerHue}, 80%, 60%, ${alpha})`;
         ctx.lineWidth = 2 + (layers - layer) * 0.3;
         ctx.stroke();
@@ -99,24 +123,30 @@ const PlaylistMakerPage: React.FC = () => {
         ctx.fill();
       }
 
-      // Draw center icon circle
+      // Draw center icon circle with audio-reactive pulse
+      let centerRadius = 35;
+      if (hasAudioData && dataArray) {
+        const bassIntensity = dataArray.slice(0, 10).reduce((a, b) => a + b, 0) / (10 * 255);
+        centerRadius = 35 + bassIntensity * 15;
+      }
+      
       ctx.beginPath();
-      ctx.arc(200, 200, 35, 0, Math.PI * 2);
-      const iconGradient = ctx.createRadialGradient(200, 200, 0, 200, 200, 35);
+      ctx.arc(200, 200, centerRadius, 0, Math.PI * 2);
+      const iconGradient = ctx.createRadialGradient(200, 200, 0, 200, 200, centerRadius);
       iconGradient.addColorStop(0, `hsla(${hue}, 80%, 60%, 0.9)`);
       iconGradient.addColorStop(1, `hsla(${hue}, 80%, 40%, 0.7)`);
       ctx.fillStyle = iconGradient;
       ctx.fill();
       
       // Glow effect for center
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = hasAudioData ? 30 : 20;
       ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.8)`;
       ctx.stroke();
       ctx.shadowBlur = 0;
 
       // Update animation parameters
-      time += 0.03;
-      hue = (hue + 0.5) % 360;
+      time += hasAudioData ? 0.05 : 0.03;
+      hue = (hue + (hasAudioData ? 1 : 0.5)) % 360;
 
       animationRef.current = requestAnimationFrame(drawVisualizer);
     };
@@ -128,27 +158,68 @@ const PlaylistMakerPage: React.FC = () => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying]);
+  }, [audioEnabled]);
 
-  // Initialize audio context when playing starts
-  useEffect(() => {
-    if (isPlaying && !isInitialized) {
-      try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(new ArrayBuffer(bufferLength));
+  // Initialize audio context and capture microphone to visualize audio
+  const enableAudioCapture = useCallback(async () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Request microphone access to capture system audio
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      });
 
-        audioContextRef.current = audioContext;
-        analyserRef.current = analyser;
-        dataArrayRef.current = dataArray;
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Error initializing audio context:', error);
-      }
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.75;
+      analyser.minDecibels = -90;
+      analyser.maxDecibels = -10;
+      
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+      
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(new ArrayBuffer(bufferLength));
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      dataArrayRef.current = dataArray;
+      mediaStreamRef.current = stream;
+      sourceNodeRef.current = source;
+      
+      setIsInitialized(true);
+      setAudioEnabled(true);
+
+      console.log('Audio capture enabled', { 
+        sampleRate: audioContext.sampleRate,
+        fftSize: analyser.fftSize,
+        bufferLength
+      });
+    } catch (error) {
+      console.error('Error enabling audio capture:', error);
+      alert('Please enable microphone access to visualize audio. Make sure to play your system audio near the microphone.');
     }
-  }, [isPlaying, isInitialized]);
+  }, []);
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      if (sourceNodeRef.current) {
+        sourceNodeRef.current.disconnect();
+      }
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -171,7 +242,24 @@ const PlaylistMakerPage: React.FC = () => {
         </div>
 
         {/* MilkDrop Visualizer */}
-        <div className="flex justify-center my-8">
+        <div className="flex flex-col items-center gap-4 my-8">
+          {!audioEnabled && (
+            <div className="text-center space-y-3 mb-4">
+              <p className="text-sm text-muted-foreground">
+                Enable audio visualization to see the music come alive!
+              </p>
+              <button
+                onClick={enableAudioCapture}
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium shadow-lg"
+              >
+                Enable Audio Visualizer
+              </button>
+              <p className="text-xs text-muted-foreground">
+                This will request microphone access to capture and visualize your audio
+              </p>
+            </div>
+          )}
+          
           <div className="relative">
             <canvas
               ref={canvasRef}
@@ -182,6 +270,12 @@ const PlaylistMakerPage: React.FC = () => {
               <Music className="w-12 h-12 text-primary-foreground drop-shadow-lg" />
             </div>
           </div>
+          
+          {audioEnabled && (
+            <p className="text-xs text-green-500 font-medium">
+              🎵 Audio visualization active
+            </p>
+          )}
         </div>
 
         {/* Playlist Maker Component */}
