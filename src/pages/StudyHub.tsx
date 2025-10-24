@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { AdBanner } from '@/components/AdBanner';
 import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 import FlashCard from '@/components/FlashCard';
 
@@ -122,7 +123,10 @@ const StudyHub = () => {
     <div className="min-h-screen">
       <Navigation />
       <div className="pt-20 p-4 md:p-6">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto space-y-6">
+        {/* Top Banner Ad */}
+        <AdBanner format="horizontal" />
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>

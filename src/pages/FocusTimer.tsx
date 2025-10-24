@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AdBanner } from '@/components/AdBanner';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
 import TwitchStyleChat from '@/components/TwitchStyleChat';
 import PlaylistMaker from '@/components/PlaylistMaker';
@@ -130,6 +131,9 @@ const FocusTimer = () => {
       )}
 
       <div className={cn("p-6 space-y-6 transition-all mt-16", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
+        {/* Top Banner Ad */}
+        <AdBanner format="horizontal" />
+
         {/* Study Rooms */}
         <StudyGroupManagerNew
           ref={studyGroupManagerRef}

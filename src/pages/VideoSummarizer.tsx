@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { AdBanner } from '@/components/AdBanner';
 import VideosDashboard from '@/components/VideosDashboard';
 import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 import WrongAnswersReview from '@/components/WrongAnswersReview';
@@ -430,7 +431,10 @@ const VideoSummarizer = () => {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-6">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Top Banner Ad */}
+          <AdBanner format="horizontal" />
+
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">

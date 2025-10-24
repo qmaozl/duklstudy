@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import UserProfile from '@/components/UserProfile';
 import FeatureCards from '@/components/FeatureCards';
+import { AdBanner } from '@/components/AdBanner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -77,6 +78,11 @@ const Index = () => {
   return (
     <DashboardLayout>
       <div className="p-6 space-y-8">
+        {/* Top Banner Ad */}
+        <div className="flex justify-center">
+          <AdBanner format="horizontal" />
+        </div>
+
         {/* User Profile with Leveling System */}
         <div className="max-w-2xl mx-auto">
           <UserProfile />
