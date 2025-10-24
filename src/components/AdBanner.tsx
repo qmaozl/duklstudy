@@ -59,12 +59,11 @@ export const AdBanner: React.FC<AdBannerProps> = ({
         }}
       >
         {/* AdSense ad unit will be inserted here */}
-        {/* Users need to replace data-ad-client and data-ad-slot with their own */}
         <ins 
           className="adsbygoogle"
           style={{ display: 'block' }}
-          data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" // Replace with your AdSense publisher ID
-          data-ad-slot="XXXXXXXXXX" // Replace with your ad slot ID
+          data-ad-client="ca-pub-9200222959060303"
+          data-ad-slot="auto"
           data-ad-format={format === 'horizontal' ? 'horizontal' : 'rectangle'}
           data-full-width-responsive={format === 'horizontal' ? 'true' : 'false'}
         />
