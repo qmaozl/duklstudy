@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2, CheckCircle } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import FlashCard from '@/components/FlashCard';
@@ -12,17 +12,23 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 
+interface ProcessedFile {
+  file: File;
+  preview: string | null;
+  extractedText: string;
+  summary: string;
+  flashcards: Array<{ question: string; answer: string }>;
+  keyConcepts: string[];
+  quiz: any;
+  studyMaterialId: string;
+}
+
 const NotesSummarizer = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState('');
-  const [extractedText, setExtractedText] = useState('');
-  const [summary, setSummary] = useState('');
-  const [flashcards, setFlashcards] = useState<Array<{ question: string; answer: string }>>([]);
-  const [keyConcepts, setKeyConcepts] = useState<string[]>([]);
-  const [quiz, setQuiz] = useState<any>(null);
-  const [studyMaterialId, setStudyMaterialId] = useState<string>('');
+  const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -33,114 +39,119 @@ const NotesSummarizer = () => {
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      const fileType = selectedFile.type;
-      if (fileType === 'application/pdf' || fileType.startsWith('image/')) {
-        setFile(selectedFile);
-        
-        // Create preview for images
-        if (fileType.startsWith('image/')) {
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            setFilePreview(event.target?.result as string);
-          };
-          reader.readAsDataURL(selectedFile);
-        } else {
-          setFilePreview(null);
-        }
-      } else {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please upload a PDF or image file (JPG, PNG)',
-          variant: 'destructive',
-        });
-      }
+    const selectedFiles = Array.from(e.target.files || []);
+    const validFiles = selectedFiles.filter(file => {
+      const fileType = file.type;
+      return fileType === 'application/pdf' || fileType.startsWith('image/');
+    });
+
+    if (validFiles.length !== selectedFiles.length) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Some files were skipped. Only PDF and image files (JPG, PNG) are supported.',
+        variant: 'destructive',
+      });
+    }
+
+    if (validFiles.length > 0) {
+      setFiles(prev => [...prev, ...validFiles]);
     }
   };
 
-  const processFile = async () => {
-    if (!file) return;
+  const processFiles = async () => {
+    if (files.length === 0) return;
 
     setIsProcessing(true);
-    setProcessingStep('Uploading file...');
+    const newProcessedFiles: ProcessedFile[] = [];
     
     try {
-      // Convert file to base64
-      const base64File = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target?.result as string);
-        reader.onerror = (e) => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
-      });
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setProcessingStep(`Processing file ${i + 1} of ${files.length}: ${file.name}`);
 
-      const fileType = file.type.startsWith('image/') ? 'image' : 'pdf';
+        // Convert file to base64
+        const base64File = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
 
-      // Extract text from file
-      setProcessingStep('Extracting text from your notes...');
-      const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-notes', {
-        body: { file: base64File, fileType }
-      });
-
-      if (extractError) {
-        console.error('Extract error:', extractError);
-        throw new Error(extractError.message || 'Failed to extract text');
-      }
-
-      const text = extractData.text;
-      setExtractedText(text);
-
-      // Generate study materials
-      setProcessingStep('Generating AI summary and flashcards...');
-      const { data: studyData, error: studyError } = await supabase.functions.invoke('generate-study-materials', {
-        body: { corrected_text: text, num_questions: 10 }
-      });
-
-      if (studyError) {
-        console.error('Study data error:', studyError);
-        throw new Error(studyError.message || 'Failed to generate study materials');
-      }
-
-      setProcessingStep('Creating mind map...');
-      setSummary(studyData.summary || 'No summary generated');
-      setFlashcards(studyData.flashcards || []);
-      setKeyConcepts(studyData.key_concepts || []);
-      setQuiz(studyData.quiz || null);
-
-      if (userId) {
-        setProcessingStep('Saving to your library...');
-        const { data: savedData, error: saveError } = await supabase
-          .from('study_materials')
-          .insert([{
-            user_id: userId,
-            source_type: 'upload',
-            title: file.name,
-            original_content: text,
-            summary: studyData.summary,
-            flashcards: studyData.flashcards,
-            key_concepts: studyData.key_concepts,
-            quiz: studyData.quiz,
-          }])
-          .select()
-          .single();
-
-        if (saveError) {
-          console.error('Save error:', saveError);
-          throw saveError;
+        // Create preview for images
+        let preview: string | null = null;
+        if (file.type.startsWith('image/')) {
+          preview = base64File;
         }
 
-        if (savedData) {
-          setStudyMaterialId(savedData.id);
+        const fileType = file.type.startsWith('image/') ? 'image' : 'pdf';
+
+        // Extract text from file
+        const { data: extractData, error: extractError } = await supabase.functions.invoke('extract-notes', {
+          body: { file: base64File, fileType }
+        });
+
+        if (extractError) {
+          console.error('Extract error:', extractError);
+          throw new Error(extractError.message || 'Failed to extract text');
         }
+
+        const text = extractData.text;
+
+        // Generate study materials
+        const { data: studyData, error: studyError } = await supabase.functions.invoke('generate-study-materials', {
+          body: { corrected_text: text, num_questions: 10 }
+        });
+
+        if (studyError) {
+          console.error('Study data error:', studyError);
+          throw new Error(studyError.message || 'Failed to generate study materials');
+        }
+
+        let savedId = '';
+        if (userId) {
+          const { data: savedData, error: saveError } = await supabase
+            .from('study_materials')
+            .insert([{
+              user_id: userId,
+              source_type: 'upload',
+              title: file.name,
+              original_content: text,
+              summary: studyData.summary,
+              flashcards: studyData.flashcards,
+              key_concepts: studyData.key_concepts,
+              quiz: studyData.quiz,
+            }])
+            .select()
+            .single();
+
+          if (savedData) {
+            savedId = savedData.id;
+          }
+        }
+
+        newProcessedFiles.push({
+          file,
+          preview,
+          extractedText: text,
+          summary: studyData.summary || 'No summary generated',
+          flashcards: studyData.flashcards || [],
+          keyConcepts: studyData.key_concepts || [],
+          quiz: studyData.quiz || null,
+          studyMaterialId: savedId,
+        });
       }
 
+      setProcessedFiles(newProcessedFiles);
+      setCurrentPageIndex(0);
+      setFiles([]);
       setProcessingStep('');
+      
       toast({
         title: 'Success!',
-        description: 'Your notes have been processed and saved',
+        description: `${newProcessedFiles.length} file(s) processed and saved`,
       });
     } catch (error: any) {
-      console.error('Error processing file:', error);
+      console.error('Error processing files:', error);
       setProcessingStep('');
       toast({
         title: 'Error',
@@ -151,6 +162,8 @@ const NotesSummarizer = () => {
       setIsProcessing(false);
     }
   };
+
+  const currentFile = processedFiles[currentPageIndex];
 
   return (
     <DashboardLayout>
@@ -231,12 +244,12 @@ const NotesSummarizer = () => {
               </div>
             </CardContent>
           </Card>
-        ) : !extractedText && !file ? (
+        ) : processedFiles.length === 0 && files.length === 0 ? (
           <Card>
             <CardHeader>
               <CardTitle>Upload Your Notes</CardTitle>
               <CardDescription>
-                Supports PDF and image files (JPG, PNG)
+                Supports multiple PDF and image files (JPG, PNG)
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -247,6 +260,7 @@ const NotesSummarizer = () => {
                   onChange={handleFileChange}
                   className="hidden"
                   id="file-upload"
+                  multiple
                 />
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -254,13 +268,44 @@ const NotesSummarizer = () => {
                     Click to upload or drag and drop
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    PDF or images up to 10MB
+                    Multiple PDFs or images up to 10MB each
                   </p>
                 </label>
               </div>
             </CardContent>
           </Card>
-        ) : !extractedText ? null : (
+        ) : processedFiles.length > 0 ? (
+          <div className="space-y-4">
+            {processedFiles.length > 1 && (
+              <Card>
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPageIndex(prev => Math.max(0, prev - 1))}
+                      disabled={currentPageIndex === 0}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Previous
+                    </Button>
+                    <span className="text-sm font-medium">
+                      Page {currentPageIndex + 1} of {processedFiles.length}: {currentFile.file.name}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPageIndex(prev => Math.min(processedFiles.length - 1, prev + 1))}
+                      disabled={currentPageIndex === processedFiles.length - 1}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
           <Tabs defaultValue="summary" className="space-y-4">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="summary">Summary</TabsTrigger>
@@ -277,7 +322,7 @@ const NotesSummarizer = () => {
                   <CardDescription>AI-generated summary of your notes</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="whitespace-pre-wrap leading-relaxed">{summary}</p>
+                  <p className="whitespace-pre-wrap leading-relaxed">{currentFile.summary}</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -287,11 +332,11 @@ const NotesSummarizer = () => {
                 <CardHeader>
                   <CardTitle>Flashcards</CardTitle>
                   <CardDescription>
-                    {flashcards.length} flashcards generated from your notes
+                    {currentFile.flashcards.length} flashcards generated from your notes
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-4">
-                  {flashcards.map((card, index) => (
+                  {currentFile.flashcards.map((card, index) => (
                     <FlashCard
                       key={index}
                       question={card.question}
@@ -304,10 +349,10 @@ const NotesSummarizer = () => {
             </TabsContent>
 
             <TabsContent value="quiz">
-              {quiz && quiz.questions && quiz.questions.length > 0 ? (
+              {currentFile.quiz && currentFile.quiz.questions && currentFile.quiz.questions.length > 0 ? (
                 <KahootStyleQuiz
-                  questions={quiz.questions}
-                  studyMaterialId={studyMaterialId}
+                  questions={currentFile.quiz.questions}
+                  studyMaterialId={currentFile.studyMaterialId}
                   onPointsEarned={() => {}}
                   onWrongAnswer={() => {}}
                 />
@@ -328,7 +373,7 @@ const NotesSummarizer = () => {
                   <CardDescription>Visual representation of key concepts</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <MindMap concepts={keyConcepts} />
+                  <MindMap concepts={currentFile.keyConcepts} />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -341,7 +386,7 @@ const NotesSummarizer = () => {
                 </CardHeader>
                 <CardContent>
                   <Textarea
-                    value={extractedText}
+                    value={currentFile.extractedText}
                     readOnly
                     className="min-h-[400px] font-mono text-sm"
                   />
@@ -349,73 +394,88 @@ const NotesSummarizer = () => {
               </Card>
             </TabsContent>
           </Tabs>
-        )}
+          </div>
+        ) : null}
 
-        {extractedText && (
+        {processedFiles.length > 0 && (
           <div className="mt-4">
             <Button
               variant="outline"
               onClick={() => {
-                setFile(null);
-                setFilePreview(null);
-                setExtractedText('');
-                setSummary('');
-                setFlashcards([]);
-                setKeyConcepts([]);
-                setQuiz(null);
-                setStudyMaterialId('');
+                setProcessedFiles([]);
+                setCurrentPageIndex(0);
               }}
             >
-              Upload Another File
+              Upload New Files
             </Button>
           </div>
         )}
         
-        {file && !extractedText && !isProcessing && (
+        {files.length > 0 && !isProcessing && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>File Preview</CardTitle>
-              <CardDescription>Review your file before processing</CardDescription>
+              <CardTitle>Files Ready to Process ({files.length})</CardTitle>
+              <CardDescription>Review your files before processing</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {filePreview ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <img 
-                    src={filePreview} 
-                    alt="File preview" 
-                    className="w-full h-auto max-h-96 object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                  <FileText className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">{file.name}</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    PDF file ready to process
-                  </p>
-                </div>
-              )}
+              <div className="grid gap-2">
+                {files.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {file.type.startsWith('image/') ? (
+                        <img 
+                          src={URL.createObjectURL(file)} 
+                          alt={file.name}
+                          className="w-12 h-12 object-cover rounded"
+                        />
+                      ) : (
+                        <FileText className="h-8 w-8 text-muted-foreground" />
+                      )}
+                      <div>
+                        <p className="font-medium text-sm">{file.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFiles(prev => prev.filter((_, i) => i !== index))}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
               
               <div className="flex gap-2">
                 <Button
-                  onClick={processFile}
+                  onClick={processFiles}
                   disabled={isProcessing}
                   className="flex-1"
                   size="lg"
                 >
                   <FileText className="mr-2 h-4 w-4" />
-                  Process Notes
+                  Process {files.length} File{files.length > 1 ? 's' : ''}
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFile(null);
-                    setFilePreview(null);
-                  }}
-                  size="lg"
-                >
-                  Remove
-                </Button>
+                <label htmlFor="file-upload-more">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                  >
+                    <span>Add More</span>
+                  </Button>
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf,image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  id="file-upload-more"
+                  multiple
+                />
               </div>
             </CardContent>
           </Card>
