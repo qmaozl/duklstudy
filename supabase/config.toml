@@ -36,6 +36,9 @@ verify_jwt = false
 [functions.generate-study-materials]
 verify_jwt = true
 
+[functions.generate-hkdse-quiz]
+verify_jwt = true
+
 [functions.youtube-search]
 verify_jwt = false
 

@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import KahootStyleQuiz from '@/components/KahootStyleQuiz';
+import HKDSEQuiz from '@/components/HKDSEQuiz';
 
 interface ProcessedFile {
   file: File;
@@ -20,6 +21,7 @@ interface ProcessedFile {
   flashcards: Array<{ question: string; answer: string }>;
   keyConcepts: string[];
   quiz: any;
+  hkdseQuiz: any;
   studyMaterialId: string;
 }
 
@@ -107,6 +109,15 @@ const NotesSummarizer = () => {
           throw new Error(studyError.message || 'Failed to generate study materials');
         }
 
+        // Generate HKDSE quiz
+        const { data: hkdseData, error: hkdseError } = await supabase.functions.invoke('generate-hkdse-quiz', {
+          body: { text, num_questions: 10 }
+        });
+
+        if (hkdseError) {
+          console.warn('HKDSE quiz generation failed:', hkdseError);
+        }
+
         let savedId = '';
         if (userId) {
           const { data: savedData, error: saveError } = await supabase
@@ -137,6 +148,7 @@ const NotesSummarizer = () => {
           flashcards: studyData.flashcards || [],
           keyConcepts: studyData.key_concepts || [],
           quiz: studyData.quiz || null,
+          hkdseQuiz: hkdseData?.questions || null,
           studyMaterialId: savedId,
         });
       }
@@ -307,12 +319,13 @@ const NotesSummarizer = () => {
             )}
             
           <Tabs defaultValue="summary" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="summary">Summary</TabsTrigger>
               <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
               <TabsTrigger value="quiz">Quiz</TabsTrigger>
+              <TabsTrigger value="hkdse">HKDSE</TabsTrigger>
               <TabsTrigger value="mindmap">Mind Map</TabsTrigger>
-              <TabsTrigger value="text">Extracted Text</TabsTrigger>
+              <TabsTrigger value="text">Text</TabsTrigger>
             </TabsList>
 
             <TabsContent value="summary">
@@ -361,6 +374,19 @@ const NotesSummarizer = () => {
                   <CardHeader>
                     <CardTitle>Quiz</CardTitle>
                     <CardDescription>No quiz questions available</CardDescription>
+                  </CardHeader>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="hkdse">
+              {currentFile.hkdseQuiz && currentFile.hkdseQuiz.length > 0 ? (
+                <HKDSEQuiz questions={currentFile.hkdseQuiz} />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>HKDSE Quiz</CardTitle>
+                    <CardDescription>No HKDSE questions available</CardDescription>
                   </CardHeader>
                 </Card>
               )}
