@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Users, Trophy } from 'lucide-react';
+import { Users, Trophy, MessageSquare } from 'lucide-react';
+import TwitchStyleChat from './TwitchStyleChat';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -28,6 +29,7 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [mySessionId, setMySessionId] = useState<string | null>(null);
   const [isInRoom, setIsInRoom] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const heartbeatInterval = useRef<NodeJS.Timeout | null>(null);
 
   // Restore room session from localStorage on mount
@@ -213,15 +215,27 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
               <Users className="h-5 w-5" />
               {groupName} - Live Study Room
             </CardTitle>
-            {!isInRoom ? (
-              <Button onClick={joinRoom} className="gradient-primary">
-                Join Room
-              </Button>
-            ) : (
-              <Button onClick={leaveRoom} variant="destructive">
-                Leave Room
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {isInRoom && (
+                <Button 
+                  onClick={() => setShowChat(!showChat)} 
+                  variant="outline"
+                  size="sm"
+                >
+                  <MessageSquare className="h-4 w-4 mr-1" />
+                  Chat
+                </Button>
+              )}
+              {!isInRoom ? (
+                <Button onClick={joinRoom} className="gradient-primary">
+                  Join Room
+                </Button>
+              ) : (
+                <Button onClick={leaveRoom} variant="destructive">
+                  Leave Room
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -233,9 +247,20 @@ const StudyRoomLive = React.forwardRef<{ leaveRoom: () => void; setActiveStudyin
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Chat */}
+        {showChat && isInRoom && (
+          <Card className="lg:col-span-1">
+            <TwitchStyleChat 
+              groupId={groupId} 
+              isInRoom={isInRoom}
+              onClose={() => setShowChat(false)}
+            />
+          </Card>
+        )}
+
         {/* Leaderboard */}
-        <Card>
+        <Card className={showChat ? "lg:col-span-1" : "lg:col-span-2"}>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Trophy className="h-4 w-4 text-yellow-500" />
