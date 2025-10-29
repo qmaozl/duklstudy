@@ -764,18 +764,30 @@ export type Database = {
       user_playlists: {
         Row: {
           created_at: string
+          description: string | null
+          is_public: boolean | null
+          playlist_name: string | null
+          share_id: string | null
           updated_at: string
           user_id: string
           videos: Json
         }
         Insert: {
           created_at?: string
+          description?: string | null
+          is_public?: boolean | null
+          playlist_name?: string | null
+          share_id?: string | null
           updated_at?: string
           user_id: string
           videos?: Json
         }
         Update: {
           created_at?: string
+          description?: string | null
+          is_public?: boolean | null
+          playlist_name?: string | null
+          share_id?: string | null
           updated_at?: string
           user_id?: string
           videos?: Json

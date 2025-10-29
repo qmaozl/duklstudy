@@ -28,6 +28,7 @@ import Flashcards from "./pages/Flashcards";
 import FlashcardStudy from "./pages/FlashcardStudy";
 import NotesSummarizer from "./pages/NotesSummarizer";
 import PlaylistMakerPage from "./pages/PlaylistMakerPage";
+import SharedPlaylist from "./pages/SharedPlaylist";
 import NotFound from "./pages/NotFound";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
@@ -231,6 +232,7 @@ const App = () => {
                   <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
                   <Route path="/notes-summarizer" element={<NotesSummarizer />} />
                   <Route path="/playlist-maker" element={<PlaylistMakerPage />} />
+                  <Route path="/shared-playlist/:shareId" element={<SharedPlaylist />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2 } from 'lucide-react';
+import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2, Share2, Copy, Globe, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
@@ -27,6 +27,10 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const [showVideo, setShowVideo] = useState(false);
   const [localPlaylist, setLocalPlaylist] = useState<PlaylistItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
+  const [shareId, setShareId] = useState<string | null>(null);
+  const [playlistName, setPlaylistName] = useState('My Playlist');
+  const [showShareDialog, setShowShareDialog] = useState(false);
   
   const {
     playerRef,
@@ -58,13 +62,16 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
       setIsLoading(true);
       const { data, error } = await supabase
         .from('user_playlists')
-        .select('videos')
+        .select('videos, is_public, share_id, playlist_name')
         .eq('user_id', user.id)
         .single();
 
       if (data && !error) {
         const videos = data.videos as unknown as PlaylistItem[];
         setLocalPlaylist(videos || []);
+        setIsPublic(data.is_public || false);
+        setShareId(data.share_id || null);
+        setPlaylistName(data.playlist_name || 'My Playlist');
       }
       setIsLoading(false);
     };
@@ -81,7 +88,9 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
         .from('user_playlists')
         .upsert([{
           user_id: user.id,
-          videos: localPlaylist as any
+          videos: localPlaylist as any,
+          is_public: isPublic,
+          playlist_name: playlistName
         }], {
           onConflict: 'user_id'
         });
@@ -92,7 +101,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     };
 
     savePlaylist();
-  }, [localPlaylist, user, isLoading]);
+  }, [localPlaylist, user, isLoading, isPublic, playlistName]);
 
   useEffect(() => {
     // Sync local playlist with global context
@@ -263,6 +272,33 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     setLocalPlaylist(localPlaylist.filter(item => item.id !== id));
   };
 
+  const togglePublic = async () => {
+    const newPublicState = !isPublic;
+    setIsPublic(newPublicState);
+    
+    if (newPublicState) {
+      toast({
+        title: "Playlist is now public",
+        description: "Anyone with the link can view your playlist"
+      });
+    } else {
+      toast({
+        title: "Playlist is now private",
+        description: "Only you can view your playlist"
+      });
+    }
+  };
+
+  const copyShareLink = () => {
+    if (!shareId) return;
+    const shareUrl = `${window.location.origin}/shared-playlist/${shareId}`;
+    navigator.clipboard.writeText(shareUrl);
+    toast({
+      title: "Link copied!",
+      description: "Share this link with others to show your playlist"
+    });
+  };
+
   return (
     <div className="space-y-4">
       {/* Video Display Overlay - Only shows when not minimized */}
@@ -308,19 +344,57 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
             <CardTitle>Playlist Maker</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
+            <div className="space-y-3">
               <Input
-                placeholder="Paste YouTube Music URL..."
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && addToPlaylist()}
-                className="flex-1"
+                placeholder="Playlist name..."
+                value={playlistName}
+                onChange={(e) => setPlaylistName(e.target.value)}
+                className="font-medium"
               />
-              <Button onClick={addToPlaylist} disabled={!youtubeUrl.trim()}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add
-              </Button>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Paste YouTube Music URL..."
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addToPlaylist()}
+                  className="flex-1"
+                />
+                <Button onClick={addToPlaylist} disabled={!youtubeUrl.trim()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add
+                </Button>
+              </div>
             </div>
+            
+            {/* Share Controls */}
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                {isPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                <span className="text-sm font-medium">
+                  {isPublic ? 'Public Playlist' : 'Private Playlist'}
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={togglePublic}
+                >
+                  {isPublic ? 'Make Private' : 'Make Public'}
+                </Button>
+                {isPublic && shareId && (
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={copyShareLink}
+                  >
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share Link
+                  </Button>
+                )}
+              </div>
+            </div>
+            
             {currentVideoId && !showVideo && (
               <p className="text-sm text-muted-foreground">
                 Click a video from your playlist to play
