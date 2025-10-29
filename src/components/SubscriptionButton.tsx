@@ -28,7 +28,7 @@ export const SubscriptionButton = () => {
       <Button 
         onClick={() => navigate('/auth')}
         variant="ghost"
-        className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10"
+        className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10 touch-manipulation min-h-[44px] min-w-[44px] relative z-50"
       >
         <Crown className="h-4 w-4" />
         Sign In
@@ -40,7 +40,7 @@ export const SubscriptionButton = () => {
     <Button 
       onClick={handleSubscribe}
       variant="ghost"
-      className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10 font-medium"
+      className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10 font-medium touch-manipulation min-h-[44px] min-w-[44px] relative z-50"
     >
       <Crown className="h-4 w-4" />
       {isPro ? 'Pro' : 'Upgrade'}
