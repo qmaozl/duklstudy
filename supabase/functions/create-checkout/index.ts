@@ -51,6 +51,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
+      payment_method_types: ["card", "alipay"],
       allow_promotion_codes: true,
       success_url: `${req.headers.get("origin")}/subscription?success=true`,
       cancel_url: `${req.headers.get("origin")}/subscription?canceled=true`,
