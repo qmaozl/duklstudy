@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PlaylistItem {
   id: string;
@@ -23,6 +24,7 @@ interface PlaylistMakerProps {
 
 const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [showVideo, setShowVideo] = useState(false);
   const [localPlaylist, setLocalPlaylist] = useState<PlaylistItem[]>([]);
@@ -199,7 +201,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     }
     
     setShowVideo(true);
-    setIsMinimized(false);
+    setIsMinimized(true);
     setIsPlaying(true);
 
     if (playerRef.current?.loadVideoById) {
@@ -419,7 +421,15 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                   {localPlaylist.map((item, index) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 transition-colors"
+                      className={cn(
+                        "flex items-center gap-3 p-2 rounded transition-colors relative group",
+                        isMobile ? "active:bg-muted" : "hover:bg-muted/50"
+                      )}
+                      onClick={(e) => {
+                        if (isMobile && !(e.target as HTMLElement).closest('button')) {
+                          playVideo(item.videoId, index);
+                        }
+                      }}
                     >
                       <img 
                         src={item.thumbnail} 
@@ -430,18 +440,27 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                         <p className="text-sm font-medium truncate">{item.title}</p>
                         <p className="text-xs text-muted-foreground">Track #{index + 1}</p>
                       </div>
-                      <div className="flex gap-1">
+                      <div className={cn(
+                        "flex gap-1",
+                        isMobile && "opacity-100",
+                        !isMobile && "opacity-0 group-hover:opacity-100 transition-opacity"
+                      )}>
+                        {!isMobile && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => playVideo(item.videoId, index)}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => playVideo(item.videoId, index)}
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFromPlaylist(item.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeFromPlaylist(item.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
