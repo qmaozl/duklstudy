@@ -659,6 +659,7 @@ export type Database = {
           email: string
           generations_used: number | null
           id: string
+          payment_type: string | null
           product_id: string | null
           stripe_customer_id: string | null
           subscribed: boolean
@@ -666,12 +667,14 @@ export type Database = {
           subscription_tier: string | null
           updated_at: string
           user_id: string | null
+          valid_until: string | null
         }
         Insert: {
           created_at?: string
           email: string
           generations_used?: number | null
           id?: string
+          payment_type?: string | null
           product_id?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
@@ -679,12 +682,14 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+          valid_until?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           generations_used?: number | null
           id?: string
+          payment_type?: string | null
           product_id?: string | null
           stripe_customer_id?: string | null
           subscribed?: boolean
@@ -692,6 +697,7 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_id?: string | null
+          valid_until?: string | null
         }
         Relationships: []
       }

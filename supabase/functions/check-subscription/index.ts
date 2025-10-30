@@ -46,22 +46,61 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
-    if (customers.data.length === 0) {
-      logStep("No customer found, checking local subscription status");
+    // Check local subscription status (for one-time payments and Stripe subscriptions)
+    const { data: localSub } = await supabaseClient
+      .from('subscribers')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+
+    // Check if user has a valid one-time payment
+    if (localSub?.payment_type === 'one_time' && localSub.valid_until) {
+      const validUntil = new Date(localSub.valid_until);
+      const now = new Date();
       
-      // Check local subscription status
-      const { data: localSub } = await supabaseClient
-        .from('subscribers')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      if (validUntil > now) {
+        logStep("Valid one-time payment found", { 
+          validUntil: localSub.valid_until,
+          paymentType: 'one_time' 
+        });
         
+        return new Response(JSON.stringify({
+          subscribed: true,
+          subscription_tier: 'pro',
+          payment_type: 'one_time',
+          subscription_end: localSub.valid_until,
+          generations_used: localSub.generations_used || 0,
+          generation_limit: null // Unlimited for pro
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      } else {
+        // One-time payment expired, update to free
+        logStep("One-time payment expired", { validUntil: localSub.valid_until });
+        await supabaseClient
+          .from('subscribers')
+          .update({
+            subscribed: false,
+            subscription_tier: 'free',
+            payment_type: 'free',
+            valid_until: null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+      }
+    }
+    
+    if (customers.data.length === 0) {
+      logStep("No Stripe customer found");
+      
       if (localSub) {
         return new Response(JSON.stringify({
           subscribed: localSub.subscribed || false,
           subscription_tier: localSub.subscription_tier || 'free',
+          payment_type: localSub.payment_type || 'free',
           generations_used: localSub.generations_used || 0,
-          generation_limit: localSub.subscription_tier === 'pro' ? 1500 : 5
+          generation_limit: localSub.subscription_tier === 'pro' ? null : 5
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
           status: 200,
@@ -71,6 +110,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         subscribed: false, 
         subscription_tier: 'free',
+        payment_type: 'free',
         generations_used: 0,
         generation_limit: 5 
       }), {
@@ -121,25 +161,31 @@ serve(async (req) => {
           email: user.email,
           subscribed: true,
           subscription_tier: 'pro', // Always set to pro for valid subscriptions
+          payment_type: 'recurring',
           subscription_end: subscriptionEnd,
+          valid_until: null, // Clear one-time payment date
           product_id: productId,
           updated_at: new Date().toISOString()
         });
     } else {
       logStep("No active subscription found");
       
-      // Update local subscription to free
-      await supabaseClient
-        .from('subscribers')
-        .upsert({
-          user_id: user.id,
-          email: user.email,
-          subscribed: false,
-          subscription_tier: 'free',
-          subscription_end: null,
-          product_id: null,
-          updated_at: new Date().toISOString()
-        });
+      // Update local subscription to free (only if not a valid one-time payment)
+      if (localSub?.payment_type !== 'one_time' || !localSub.valid_until || new Date(localSub.valid_until) <= new Date()) {
+        await supabaseClient
+          .from('subscribers')
+          .upsert({
+            user_id: user.id,
+            email: user.email,
+            subscribed: false,
+            subscription_tier: 'free',
+            payment_type: 'free',
+            subscription_end: null,
+            valid_until: null,
+            product_id: null,
+            updated_at: new Date().toISOString()
+          });
+      }
     }
 
     // Get current generations used from database
@@ -156,6 +202,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
       subscription_tier: tier,
+      payment_type: hasActiveSub ? 'recurring' : (subData?.payment_type || 'free'),
       product_id: productId,
       subscription_end: subscriptionEnd,
       generations_used: generationsUsed,

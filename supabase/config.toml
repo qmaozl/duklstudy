@@ -56,3 +56,9 @@ verify_jwt = true
 
 [functions.get-video-details]
 verify_jwt = false
+
+[functions.create-one-time-payment]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

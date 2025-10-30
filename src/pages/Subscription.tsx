@@ -60,6 +60,33 @@ const Subscription = () => {
     }
   };
 
+  const handleOneTimePayment = async () => {
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-one-time-payment');
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating one-time payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to start payment process. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleManageSubscription = async () => {
     if (!user) return;
 
@@ -228,24 +255,48 @@ const Subscription = () => {
               </ul>
               
               {!isSubscribed ? (
-                <Button 
-                  onClick={handleUpgrade}
-                  disabled={loading}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  {loading ? (
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 animate-spin border-2 border-white border-t-transparent rounded-full" />
-                      Processing...
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <Crown className="h-4 w-4" />
-                      Upgrade to Pro
-                      <ExternalLink className="h-4 w-4" />
-                    </div>
-                  )}
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    onClick={handleUpgrade}
+                    disabled={loading}
+                    className="w-full bg-primary hover:bg-primary/90"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin border-2 border-white border-t-transparent rounded-full" />
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Crown className="h-4 w-4" />
+                        Subscribe Monthly (Card)
+                        <ExternalLink className="h-4 w-4" />
+                      </div>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={handleOneTimePayment}
+                    disabled={loading}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin border-2 border-current border-t-transparent rounded-full" />
+                        Processing...
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4" />
+                        Pay for 30 Days (Alipay/Card)
+                        <ExternalLink className="h-4 w-4" />
+                      </div>
+                    )}
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground mt-2">
+                    One-time payment: Manual renewal required after 30 days
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-2">
                   <Button variant="outline" className="w-full" disabled>
