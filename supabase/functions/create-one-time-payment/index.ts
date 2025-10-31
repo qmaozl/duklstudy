@@ -49,8 +49,8 @@ serve(async (req) => {
       line_items: [
         {
           price_data: {
-            currency: "usd",
-            unit_amount: 499, // $4.99 in cents
+            currency: "hkd",
+            unit_amount: 3900, // HK$39.00
             product_data: {
               name: "Dukl Pro - 30 Days Access",
               description: "One-time payment for 30 days of Dukl Pro features",
@@ -61,13 +61,15 @@ serve(async (req) => {
       ],
       mode: "payment",
       payment_method_types: ["card", "alipay"],
+      allow_promotion_codes: false,
+      locale: 'auto',
       metadata: {
         user_id: user.id,
         payment_type: "one_time",
         duration_days: "30",
       },
-      success_url: `${req.headers.get("origin")}/subscription?success=true&payment_type=one_time`,
-      cancel_url: `${req.headers.get("origin")}/subscription?canceled=true`,
+      success_url: `${(req.headers.get("origin") || "https://duklstudy.com")}/subscription?success=true&payment_type=one_time`,
+      cancel_url: `${(req.headers.get("origin") || "https://duklstudy.com")}/subscription?canceled=true`,
     });
     console.log('One-time payment session created successfully:', session.id);
 
