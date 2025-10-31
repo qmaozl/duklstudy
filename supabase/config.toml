@@ -62,3 +62,6 @@ verify_jwt = true
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.extract-youtube-audio]
+verify_jwt = true

@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
 
+// Detect if device is mobile/tablet for audio-only playback
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 interface MediaPlayerContextType {
   isMinimized: boolean;
   setIsMinimized: (val: boolean) => void;
@@ -20,6 +25,7 @@ interface MediaPlayerContextType {
   setCurrentVideoTitle: (val: string) => void;
   currentVideoThumbnail: string;
   setCurrentVideoThumbnail: (val: string) => void;
+  isMobile: boolean;
 }
 
 const MediaPlayerContext = createContext<MediaPlayerContextType | undefined>(undefined);
@@ -35,6 +41,7 @@ export function MediaPlayerProvider({ children }: { children: ReactNode }) {
   const [currentVideoTitle, setCurrentVideoTitle] = useState('');
   const [currentVideoThumbnail, setCurrentVideoThumbnail] = useState('');
   const playerRef = useRef<any>(null);
+  const isMobile = isMobileDevice();
 
   return (
     <MediaPlayerContext.Provider value={{ 
@@ -56,7 +63,8 @@ export function MediaPlayerProvider({ children }: { children: ReactNode }) {
       currentVideoTitle,
       setCurrentVideoTitle,
       currentVideoThumbnail,
-      setCurrentVideoThumbnail
+      setCurrentVideoThumbnail,
+      isMobile
     }}>
       {children}
     </MediaPlayerContext.Provider>

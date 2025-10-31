@@ -33,6 +33,7 @@ import NotFound from "./pages/NotFound";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
 import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
+import { MobileAudioPlayer } from "./components/MobileAudioPlayer";
 import { useNavigate } from "react-router-dom";
 
 function RedirectHandler() {
@@ -47,6 +48,14 @@ function RedirectHandler() {
   }, [navigate]);
 
   return null;
+}
+
+function MediaPlayerComponent() {
+  const { isMobile } = useMediaPlayerContext();
+  
+  // Use HTML5 audio for mobile (supports background playback)
+  // Use YouTube iframe for desktop
+  return isMobile ? <MobileAudioPlayer /> : <GlobalYouTubePlayer />;
 }
 
 function getBasename() {
@@ -77,7 +86,8 @@ function FloatingComponents() {
     currentIndex,
     setCurrentIndex,
     playlist,
-    currentVideoTitle
+    currentVideoTitle,
+    isMobile
   } = useMediaPlayerContext();
 
   const isOnFocusTimer = location.pathname === '/focus-timer';
@@ -203,7 +213,8 @@ const App = () => {
               <Sonner />
               <BrowserRouter basename={getBasename()}>
                 <RedirectHandler />
-                <GlobalYouTubePlayer />
+                {/* Use mobile audio player on mobile devices, YouTube iframe on desktop */}
+                <MediaPlayerComponent />
                 <FloatingComponents />
                 <Routes>
                   {/* Landing page at root */}
