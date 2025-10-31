@@ -20,45 +20,18 @@ const Subscription = () => {
     // Handle success/cancel redirects from Stripe
     if (searchParams.get('success')) {
       toast({
-        title: "Subscription successful!",
-        description: "Welcome to Dukl Pro! Your subscription is now active.",
+        title: "Payment successful!",
+        description: "Welcome to Dukl Pro! Your 30-day access is now active.",
       });
     }
     if (searchParams.get('canceled')) {
       toast({
-        title: "Subscription canceled",
-        description: "You can upgrade to Pro anytime from this page.",
+        title: "Payment canceled",
+        description: "You can purchase Dukl Pro anytime from this page.",
         variant: "destructive"
       });
     }
   }, [searchParams]);
-
-  const handleUpgrade = async () => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout');
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
-    } catch (error) {
-      console.error('Error creating checkout:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start subscription process. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleOneTimePayment = async () => {
     if (!user) {
@@ -120,14 +93,6 @@ const Subscription = () => {
     }
   };
 
-  const freeFeatures = [
-    "5 AI generations total",
-    "Basic study materials",
-    "Simple quiz generation",
-    "Basic flashcards",
-    "Limited video processing"
-  ];
-
   const proFeatures = [
     "1,500+ AI generations per month",
     "Advanced study analytics",
@@ -153,10 +118,10 @@ const Subscription = () => {
 
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
-            Choose Your Dukl Plan
+            Dukl Pro - 30 Days Access
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Upgrade to Dukl Pro and unlock unlimited AI-powered study tools
+            Get unlimited AI-powered study tools for 30 days
           </p>
         </div>
 
@@ -195,44 +160,12 @@ const Subscription = () => {
           </Card>
         )}
 
-        {/* Pricing Comparison */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          
-          {/* Free Tier */}
-          <Card className={`relative ${!isSubscribed ? 'ring-2 ring-primary' : ''}`}>
-            {!isSubscribed && (
-              <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-                Current Plan
-              </Badge>
-            )}
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Free</CardTitle>
-              <CardDescription>Perfect for trying out Dukl</CardDescription>
-              <div className="text-4xl font-bold">$0</div>
-              <div className="text-sm text-muted-foreground">Forever free</div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3">
-                {freeFeatures.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <Check className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              {isSubscribed && (
-                <Button variant="outline" className="w-full" disabled>
-                  Current Plan
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Pro Tier */}
+        {/* Single Pricing Card */}
+        <div className="max-w-md mx-auto">
           <Card className={`relative ${isSubscribed ? 'ring-2 ring-primary' : ''}`}>
             {isSubscribed && (
               <Badge className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary">
-                Current Plan
+                Active
               </Badge>
             )}
             <CardHeader className="text-center">
@@ -240,9 +173,9 @@ const Subscription = () => {
                 <Crown className="h-6 w-6 text-yellow-500" />
                 Dukl Pro
               </CardTitle>
-              <CardDescription>Unlimited learning potential</CardDescription>
+              <CardDescription>30 days of unlimited learning</CardDescription>
               <div className="text-4xl font-bold">$4.99</div>
-              <div className="text-sm text-muted-foreground">per month</div>
+              <div className="text-sm text-muted-foreground">One-time payment</div>
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-3">
@@ -257,7 +190,7 @@ const Subscription = () => {
               {!isSubscribed ? (
                 <div className="space-y-2">
                   <Button 
-                    onClick={handleUpgrade}
+                    onClick={handleOneTimePayment}
                     disabled={loading}
                     className="w-full bg-primary hover:bg-primary/90"
                   >
@@ -269,39 +202,20 @@ const Subscription = () => {
                     ) : (
                       <div className="flex items-center gap-2">
                         <Crown className="h-4 w-4" />
-                        Subscribe Monthly (Card)
-                        <ExternalLink className="h-4 w-4" />
-                      </div>
-                    )}
-                  </Button>
-                  <Button 
-                    onClick={handleOneTimePayment}
-                    disabled={loading}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 animate-spin border-2 border-current border-t-transparent rounded-full" />
-                        Processing...
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Zap className="h-4 w-4" />
-                        Pay for 30 Days (Alipay/Card)
+                        Get 30 Days Access
                         <ExternalLink className="h-4 w-4" />
                       </div>
                     )}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground mt-2">
-                    One-time payment: Manual renewal required after 30 days
+                    Supports Alipay and Card payments • Manual renewal required after 30 days
                   </p>
                 </div>
               ) : (
                 <div className="space-y-2">
                   <Button variant="outline" className="w-full" disabled>
                     <Star className="h-4 w-4 mr-2" />
-                    Current Plan
+                    Active Plan
                   </Button>
                   <Button 
                     onClick={handleManageSubscription}
@@ -333,24 +247,24 @@ const Subscription = () => {
           <div className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">What happens to my generations each month?</CardTitle>
+                <CardTitle className="text-lg">How does the 30-day access work?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Pro subscribers get 1,500 fresh AI generations every month. Unused generations don't roll over, 
-                  but with 1,500 per month, you'll have more than enough for intensive studying!
+                  After payment, you get instant access to all Pro features for 30 days. 
+                  You'll need to manually purchase again after the 30 days if you want to continue using Pro features.
                 </p>
               </CardContent>
             </Card>
             
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Can I cancel anytime?</CardTitle>
+                <CardTitle className="text-lg">What payment methods are supported?</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Yes! You can cancel your subscription at any time through the customer portal. 
-                  You'll continue to have Pro access until the end of your current billing period.
+                  We support both Alipay and credit/debit cards for your convenience. 
+                  Choose your preferred payment method during checkout.
                 </p>
               </CardContent>
             </Card>

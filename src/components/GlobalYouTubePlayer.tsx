@@ -9,6 +9,58 @@ export function GlobalYouTubePlayer() {
   const playlistRef = React.useRef(playlist);
   const currentIndexRef = React.useRef(currentIndex);
   
+  // Setup Media Session API for background playback
+  useEffect(() => {
+    if ('mediaSession' in navigator && currentVideo && playlist.length > 0) {
+      const currentVideoData = playlist[currentIndex];
+      
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentVideoData?.title || 'Playing Audio',
+        artist: 'Dukl Study',
+        album: 'Study Playlist',
+        artwork: [
+          { src: currentVideoData?.thumbnail || '/placeholder.svg', sizes: '512x512', type: 'image/png' }
+        ]
+      });
+
+      navigator.mediaSession.setActionHandler('play', () => {
+        playerRef.current?.playVideo();
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        playerRef.current?.pauseVideo();
+      });
+
+      navigator.mediaSession.setActionHandler('previoustrack', () => {
+        if (currentIndex > 0) {
+          const prevIndex = currentIndex - 1;
+          setCurrentIndex(prevIndex);
+          setCurrentVideo(playlist[prevIndex].videoId);
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('nexttrack', () => {
+        if (currentIndex < playlist.length - 1) {
+          const nextIndex = currentIndex + 1;
+          setCurrentIndex(nextIndex);
+          setCurrentVideo(playlist[nextIndex].videoId);
+        } else if (playlist.length > 0) {
+          setCurrentIndex(0);
+          setCurrentVideo(playlist[0].videoId);
+        }
+      });
+
+      // Update playback state
+      navigator.mediaSession.playbackState = 'playing';
+    }
+
+    return () => {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null;
+      }
+    };
+  }, [currentVideo, playlist, currentIndex, playerRef, setCurrentIndex, setCurrentVideo]);
+  
   React.useEffect(() => {
     isLoopingRef.current = isLooping;
   }, [isLooping]);
@@ -79,7 +131,14 @@ export function GlobalYouTubePlayer() {
               setIsPlaying(true);
             },
             onStateChange: (event: any) => {
-              setIsPlaying(event.data === 1);
+              const isPlayingNow = event.data === 1;
+              setIsPlaying(isPlayingNow);
+              
+              // Update Media Session playback state
+              if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = isPlayingNow ? 'playing' : 'paused';
+              }
+              
               if (event.data === 0) handleVideoEnd();
             }
           }
