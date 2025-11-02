@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { AdBanner } from "@/components/AdBanner";
+import { Footer } from "@/components/Footer";
 import TypingAnimation from "@/components/TypingAnimation";
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
@@ -181,6 +182,9 @@ const HomePage = () => {
           </Button>
         </section>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
