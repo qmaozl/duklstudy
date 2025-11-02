@@ -3,8 +3,6 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { AdBanner } from "@/components/AdBanner";
-import { Footer } from "@/components/Footer";
-import { GoogleAd, BannerAd } from "@/components/GoogleAd";
 import TypingAnimation from "@/components/TypingAnimation";
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
@@ -40,7 +38,7 @@ const HomePage = () => {
       <main className="flex-1">
         {/* Top Banner Ad */}
         <div className="pt-20 pb-4 flex justify-center px-6">
-          <BannerAd className="max-w-4xl w-full" />
+          <AdBanner format="horizontal" />
         </div>
 
         <section className="relative pt-8 pb-20 text-center px-6">
@@ -70,7 +68,7 @@ const HomePage = () => {
           <div className="max-w-7xl mx-auto px-6 space-y-24">
             {/* Ad between sections */}
             <div className="flex justify-center">
-              <BannerAd className="max-w-4xl w-full" />
+              <AdBanner format="horizontal" />
             </div>
             {/* Room Feature */}
             <div 
@@ -183,9 +181,6 @@ const HomePage = () => {
           </Button>
         </section>
       </main>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };

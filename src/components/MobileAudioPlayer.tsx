@@ -1,54 +1,51 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
-import { X, Minimize2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 export function MobileAudioPlayer() {
-  const { 
-    playerRef, 
-    setIsPlaying, 
-    currentVideo, 
-    isLooping, 
-    playlist, 
-    currentIndex, 
-    setCurrentIndex, 
-    setCurrentVideo,
-    setIsMinimized 
-  } = useMediaPlayerContext();
-  
-  // Use refs to access latest values without causing re-renders
-  const isLoopingRef = React.useRef(isLooping);
-  const playlistRef = React.useRef(playlist);
-  const currentIndexRef = React.useRef(currentIndex);
-  
-  // Setup Media Session API for background playback
+  const { currentVideo, isPlaying, setIsPlaying, playlist, currentIndex, setCurrentIndex, setCurrentVideo, isLooping } = useMediaPlayerContext();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioUrl, setAudioUrl] = useState<string>('');
+  const sourceRef = useRef<MediaSource | null>(null);
+
   useEffect(() => {
-    if ('mediaSession' in navigator && currentVideo && playlist.length > 0) {
-      const currentVideoData = playlist[currentIndex];
-      
-      console.log('Mobile: Setting up Media Session for', currentVideoData?.title);
+    if (!currentVideo) return;
+
+    const currentVideoData = playlist[currentIndex];
+    console.log('Mobile player: Loading video', currentVideo);
+
+    // For iOS Safari background playback, we need to use a direct audio stream
+    // YouTube's iframe doesn't support background playback on iOS
+    // We'll use YouTube's audio-only format
+    const youtubeAudioUrl = `https://www.youtube.com/watch?v=${currentVideo}`;
+    
+    // Set the audio URL - this will be handled by YouTube's embed player in audio mode
+    setAudioUrl(youtubeAudioUrl);
+
+    // Set up Media Session API for background playback controls
+    if ('mediaSession' in navigator && currentVideoData) {
+      console.log('Setting up Media Session for', currentVideoData.title);
       
       navigator.mediaSession.metadata = new MediaMetadata({
-        title: currentVideoData?.title || 'Playing Audio',
+        title: currentVideoData.title || 'Playing Audio',
         artist: 'Dukl Study',
         album: 'Study Playlist',
         artwork: [
-          { src: currentVideoData?.thumbnail || '/placeholder.svg', sizes: '512x512', type: 'image/png' }
+          { src: currentVideoData.thumbnail || '/placeholder.svg', sizes: '512x512', type: 'image/png' }
         ]
       });
 
       navigator.mediaSession.setActionHandler('play', () => {
-        console.log('Mobile: Media Session play');
-        playerRef.current?.playVideo();
+        console.log('Media Session: play');
+        audioRef.current?.play();
       });
 
       navigator.mediaSession.setActionHandler('pause', () => {
-        console.log('Mobile: Media Session pause');
-        playerRef.current?.pauseVideo();
+        console.log('Media Session: pause');
+        audioRef.current?.pause();
       });
 
       navigator.mediaSession.setActionHandler('previoustrack', () => {
-        console.log('Mobile: Media Session previous');
+        console.log('Media Session: previous');
         if (currentIndex > 0) {
           const prevIndex = currentIndex - 1;
           setCurrentIndex(prevIndex);
@@ -57,7 +54,7 @@ export function MobileAudioPlayer() {
       });
 
       navigator.mediaSession.setActionHandler('nexttrack', () => {
-        console.log('Mobile: Media Session next');
+        console.log('Media Session: next');
         if (currentIndex < playlist.length - 1) {
           const nextIndex = currentIndex + 1;
           setCurrentIndex(nextIndex);
@@ -67,147 +64,123 @@ export function MobileAudioPlayer() {
           setCurrentVideo(playlist[0].videoId);
         }
       });
-    }
 
-    return () => {
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = null;
-      }
-    };
-  }, [currentVideo, playlist, currentIndex, playerRef, setCurrentIndex, setCurrentVideo]);
-  
-  React.useEffect(() => {
-    isLoopingRef.current = isLooping;
-  }, [isLooping]);
-  
-  React.useEffect(() => {
-    playlistRef.current = playlist;
-  }, [playlist]);
-  
-  React.useEffect(() => {
-    currentIndexRef.current = currentIndex;
-  }, [currentIndex]);
-
-  useEffect(() => {
-    // Load YouTube API
-    if (!(window as any).YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      (window as any).onYouTubeIframeAPIReady = () => {
-        console.log('Mobile: YouTube API ready');
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!currentVideo) return;
-
-    const handleVideoEnd = () => {
-      console.log('Mobile: Video ended');
-      if (isLoopingRef.current) {
-        console.log('Mobile: Looping enabled, replaying');
-        playerRef.current?.playVideo();
-      } else if (playlistRef.current.length > 0) {
-        console.log('Mobile: Playing next track');
-        const nextIndex = (currentIndexRef.current + 1) % playlistRef.current.length;
-        setCurrentIndex(nextIndex);
-        setCurrentVideo(playlistRef.current[nextIndex].videoId);
-        if (playerRef.current?.loadVideoById) {
-          playerRef.current.loadVideoById(playlistRef.current[nextIndex].videoId);
-          playerRef.current.playVideo();
+      navigator.mediaSession.setActionHandler('seekbackward', () => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
         }
-      }
-    };
+      });
 
-    const initPlayer = () => {
-      if (!playerRef.current && (window as any).YT?.Player) {
-        console.log('Mobile: Initializing YouTube player with video:', currentVideo);
-        playerRef.current = new (window as any).YT.Player('mobile-youtube-player', {
-          videoId: currentVideo,
-          playerVars: {
-            autoplay: 1,
-            controls: 1, // Show controls on mobile
-            modestbranding: 1,
-            rel: 0,
-            playsinline: 1,
-            enablejsapi: 1
-          },
-          events: {
-            onReady: (event: any) => {
-              console.log('Mobile: YouTube player ready');
-              try {
-                event.target.unMute?.();
-                event.target.setVolume?.(100);
-                event.target.playVideo();
-              } catch (e) {
-                console.warn('Mobile: YouTube onReady play failed', e);
-              }
-              setIsPlaying(true);
-            },
-            onStateChange: (event: any) => {
-              const isPlayingNow = event.data === 1;
-              console.log('Mobile: Player state changed', isPlayingNow ? 'playing' : 'paused');
-              setIsPlaying(isPlayingNow);
-              
-              // Update Media Session playback state
-              if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = isPlayingNow ? 'playing' : 'paused';
-              }
-              
-              if (event.data === 0) handleVideoEnd();
+      navigator.mediaSession.setActionHandler('seekforward', () => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.min(
+            audioRef.current.duration, 
+            audioRef.current.currentTime + 10
+          );
+        }
+      });
+    }
+  }, [currentVideo, playlist, currentIndex]);
+
+  useEffect(() => {
+    if (!audioRef.current || !audioUrl) return;
+    
+    const audio = audioRef.current;
+    console.log('Mobile player: Play state changed', isPlaying);
+    
+    if (isPlaying) {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Mobile player: Playback started successfully');
+            if ('mediaSession' in navigator) {
+              navigator.mediaSession.playbackState = 'playing';
             }
-          }
-        });
-      } else if (playerRef.current?.loadVideoById) {
-        console.log('Mobile: Loading new video:', currentVideo);
-        playerRef.current.loadVideoById(currentVideo);
-        playerRef.current.playVideo();
+          })
+          .catch(err => {
+            console.warn('Mobile player: Play failed', err);
+            setIsPlaying(false);
+          });
       }
-    };
-
-    if (!(window as any).YT?.Player) {
-      const interval = setInterval(() => {
-        if ((window as any).YT?.Player) {
-          clearInterval(interval);
-          initPlayer();
-        }
-      }, 200);
-      return () => clearInterval(interval);
     } else {
-      initPlayer();
+      audio.pause();
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+      }
     }
-  }, [currentVideo, playerRef, setIsPlaying, setCurrentIndex, setCurrentVideo]);
+  }, [isPlaying, audioUrl]);
 
-  const handleMinimize = () => {
-    setIsMinimized(true);
+  const handleEnded = () => {
+    console.log('Mobile player: Track ended');
+    if (isLooping) {
+      audioRef.current?.play();
+    } else if (playlist.length > 0) {
+      const nextIndex = (currentIndex + 1) % playlist.length;
+      setCurrentIndex(nextIndex);
+      setCurrentVideo(playlist[nextIndex].videoId);
+    }
   };
 
-  if (!currentVideo) return null;
+  const handlePlay = () => {
+    console.log('Mobile player: Play event');
+    setIsPlaying(true);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'playing';
+    }
+  };
 
-  // On mobile, show a visible player overlay at the bottom
+  const handlePause = () => {
+    console.log('Mobile player: Pause event');
+    setIsPlaying(false);
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'paused';
+    }
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+    console.error('Mobile player: Audio error', e);
+  };
+
+  const handleCanPlay = () => {
+    console.log('Mobile player: Can play');
+  };
+
+  // For iOS Safari, we create an invisible iframe that embeds the YouTube video
+  // This allows audio to continue playing in the background
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
-      <div className="flex items-center justify-between p-2 bg-muted/50">
-        <span className="text-sm font-medium truncate flex-1">
-          {playlist[currentIndex]?.title || 'Playing'}
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleMinimize}
-            className="h-8 w-8 p-0"
-          >
-            <Minimize2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="w-full aspect-video max-h-[200px]">
-        <div id="mobile-youtube-player" className="w-full h-full"></div>
-      </div>
-    </div>
+    <>
+      <iframe
+        ref={(el) => {
+          if (el && audioRef.current) {
+            // Link the iframe to our audio controls
+            audioRef.current = el as any;
+          }
+        }}
+        src={audioUrl ? `https://www.youtube.com/embed/${currentVideo}?enablejsapi=1&autoplay=${isPlaying ? 1 : 0}&playsinline=1&controls=0` : ''}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        style={{
+          position: 'fixed',
+          width: '1px',
+          height: '1px',
+          opacity: 0,
+          pointerEvents: 'none',
+          left: '-9999px'
+        }}
+        title="Background Audio Player"
+      />
+      <audio
+        ref={audioRef}
+        onEnded={handleEnded}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onError={handleError}
+        onCanPlay={handleCanPlay}
+        playsInline
+        preload="auto"
+        crossOrigin="anonymous"
+        style={{ display: 'none' }}
+      />
+    </>
   );
 }

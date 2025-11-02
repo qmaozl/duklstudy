@@ -5,8 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Crown, Menu, Home } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Footer } from "@/components/Footer";
-import logo from "@/assets/logo-new.png";
+import logo from "@/assets/logo.png";
 
 function DashboardContent({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -68,9 +67,6 @@ function DashboardContent({ children }: { children: ReactNode }) {
       <main className="flex-1 overflow-auto pt-4">
         {children}
       </main>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
