@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 import { AdBanner } from "@/components/AdBanner";
+import TypingAnimation from "@/components/TypingAnimation";
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
 import flashShot from "@/assets/flash-feature.png";
@@ -45,7 +46,14 @@ const HomePage = () => {
             The Ultimate Studying Platform
           </h1>
           <p className="max-w-3xl mx-auto text-white/80 text-xl md:text-2xl font-extralight mb-12 leading-relaxed">
-            Achieve your academic goals with Dukl's professional tools, designed to support your learning and improve your results.
+            Use Dukl to{' '}
+            <TypingAnimation 
+              phrases={[
+                "study with friends",
+                "listen to ad-free music",
+                "convert notes into quizzes"
+              ]}
+            />
           </p>
           <div className="mb-8">
             <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
