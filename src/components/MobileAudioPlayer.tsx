@@ -1,8 +1,20 @@
 import React, { useEffect } from 'react';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
+import { X, Minimize2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function MobileAudioPlayer() {
-  const { playerRef, setIsPlaying, currentVideo, isLooping, playlist, currentIndex, setCurrentIndex, setCurrentVideo } = useMediaPlayerContext();
+  const { 
+    playerRef, 
+    setIsPlaying, 
+    currentVideo, 
+    isLooping, 
+    playlist, 
+    currentIndex, 
+    setCurrentIndex, 
+    setCurrentVideo,
+    setIsMinimized 
+  } = useMediaPlayerContext();
   
   // Use refs to access latest values without causing re-renders
   const isLoopingRef = React.useRef(isLooping);
@@ -117,7 +129,7 @@ export function MobileAudioPlayer() {
           videoId: currentVideo,
           playerVars: {
             autoplay: 1,
-            controls: 0,
+            controls: 1, // Show controls on mobile
             modestbranding: 1,
             rel: 0,
             playsinline: 1,
@@ -169,9 +181,33 @@ export function MobileAudioPlayer() {
     }
   }, [currentVideo, playerRef, setIsPlaying, setCurrentIndex, setCurrentVideo]);
 
+  const handleMinimize = () => {
+    setIsMinimized(true);
+  };
+
+  if (!currentVideo) return null;
+
+  // On mobile, show a visible player overlay at the bottom
   return (
-    <div className="fixed pointer-events-none opacity-0 w-px h-px overflow-hidden">
-      <div id="mobile-youtube-player"></div>
+    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg">
+      <div className="flex items-center justify-between p-2 bg-muted/50">
+        <span className="text-sm font-medium truncate flex-1">
+          {playlist[currentIndex]?.title || 'Playing'}
+        </span>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleMinimize}
+            className="h-8 w-8 p-0"
+          >
+            <Minimize2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="w-full aspect-video max-h-[200px]">
+        <div id="mobile-youtube-player" className="w-full h-full"></div>
+      </div>
     </div>
   );
 }

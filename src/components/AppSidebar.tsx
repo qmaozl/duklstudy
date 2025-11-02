@@ -13,7 +13,7 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-new.png";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
