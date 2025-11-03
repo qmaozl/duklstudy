@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
 
 export function GlobalYouTubePlayer() {
-  const { playerRef, setIsPlaying, currentVideo, isLooping, playlist, currentIndex, setCurrentIndex, setCurrentVideo } = useMediaPlayerContext();
+  const { playerRef, setIsPlaying, currentVideo, isLooping, playlist, currentIndex, setCurrentIndex, setCurrentVideo, isMobile } = useMediaPlayerContext();
   
   // Use refs to access latest values without causing re-renders
   const isLoopingRef = React.useRef(isLooping);
@@ -162,6 +162,14 @@ export function GlobalYouTubePlayer() {
       initPlayer();
     }
   }, [currentVideo]);
+
+  if (isMobile) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50 w-64 h-36 rounded-lg overflow-hidden shadow-lg bg-black/80">
+        <div id="global-youtube-player" className="w-full h-full"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed pointer-events-none opacity-0 w-px h-px overflow-hidden">

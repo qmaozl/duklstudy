@@ -33,7 +33,7 @@ import NotFound from "./pages/NotFound";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
 import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
-import { MobileAudioPlayer } from "./components/MobileAudioPlayer";
+
 import { useNavigate } from "react-router-dom";
 
 function RedirectHandler() {
@@ -51,11 +51,8 @@ function RedirectHandler() {
 }
 
 function MediaPlayerComponent() {
-  const { isMobile } = useMediaPlayerContext();
-  
-  // Use HTML5 audio for mobile (supports background playback)
-  // Use YouTube iframe for desktop
-  return isMobile ? <MobileAudioPlayer /> : <GlobalYouTubePlayer />;
+  // Use a single YouTube player for all devices; iOS requires a visible player
+  return <GlobalYouTubePlayer />;
 }
 
 function getBasename() {
