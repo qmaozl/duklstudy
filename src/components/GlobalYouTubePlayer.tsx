@@ -107,6 +107,7 @@ export function GlobalYouTubePlayer() {
     const initPlayer = () => {
       if (!playerRef.current && (window as any).YT?.Player) {
         console.log('Initializing YouTube player with video:', currentVideo);
+        const embedOrigin = window.location.origin;
         playerRef.current = new (window as any).YT.Player('global-youtube-player', {
           videoId: currentVideo,
           playerVars: {
@@ -115,16 +116,20 @@ export function GlobalYouTubePlayer() {
             modestbranding: 1,
             rel: 0,
             playsinline: 1,
-            origin: 'https://duklstudy.com',
+            origin: embedOrigin,
             enablejsapi: 1
           },
           events: {
             onReady: (event: any) => {
               console.log('YouTube player ready');
               try {
+                const iframe: HTMLIFrameElement | undefined = event.target.getIframe?.();
+                iframe?.setAttribute('allow', 'autoplay; encrypted-media; clipboard-write; picture-in-picture');
+                iframe?.setAttribute('playsinline', '1');
+
                 event.target.unMute?.();
                 event.target.setVolume?.(100);
-                event.target.playVideo();
+                event.target.playVideo?.();
               } catch (e) {
                 console.warn('YouTube onReady play failed', e);
               }
