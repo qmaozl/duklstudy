@@ -16,7 +16,7 @@ import {
 import logo from "@/assets/logo-new.png";
 
 const menuItems = [
-  { title: "Dashboard", url: "/", icon: Home },
+  { title: "Dashboard", url: "/dashboard", icon: Home },
   { title: "Study Group", url: "/focus-timer", icon: Clock },
   { title: "Playlist Maker", url: "/playlist-maker", icon: Music },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
