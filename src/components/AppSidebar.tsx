@@ -13,11 +13,10 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-new.png";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: Home },
-  { title: "Study Hub", url: "/study-hub", icon: Library },
   { title: "Study Group", url: "/focus-timer", icon: Clock },
   { title: "Playlist Maker", url: "/playlist-maker", icon: Music },
   { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
@@ -50,7 +49,7 @@ export function AppSidebar() {
     >
       <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="DUKL Study" className="h-8 w-8" />
+          <img src={logo} alt="DUKL Study" className="h-8 w-8 rounded-lg" />
           {!collapsed && (
             <span className="text-xl font-extralight tracking-wide" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
               STUDY

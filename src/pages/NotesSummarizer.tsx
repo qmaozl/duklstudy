@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import FlashCard from '@/components/FlashCard';
@@ -31,6 +33,7 @@ const NotesSummarizer = () => {
   const [processingStep, setProcessingStep] = useState('');
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [language, setLanguage] = useState<'english' | 'chinese'>('english');
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -101,7 +104,7 @@ const NotesSummarizer = () => {
 
         // Generate study materials
         const { data: studyData, error: studyError } = await supabase.functions.invoke('generate-study-materials', {
-          body: { corrected_text: text, num_questions: 10 }
+          body: { corrected_text: text, num_questions: 10, language }
         });
 
         if (studyError) {
@@ -185,6 +188,22 @@ const NotesSummarizer = () => {
           <p className="text-muted-foreground">
             Upload your notes in PDF or image format to generate summaries, flashcards, and mind maps
           </p>
+          
+          <div className="mt-4 max-w-xs">
+            <Label htmlFor="language-select" className="flex items-center gap-2 mb-2">
+              <Languages className="h-4 w-4" />
+              Summary Language
+            </Label>
+            <Select value={language} onValueChange={(value: 'english' | 'chinese') => setLanguage(value)}>
+              <SelectTrigger id="language-select">
+                <SelectValue placeholder="Select language" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="chinese">Traditional Chinese (繁體中文)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {isProcessing ? (

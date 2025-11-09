@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Crown, Menu, Home } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import logo from "@/assets/logo.png";
+import logo from "@/assets/logo-new.png";
 
 function DashboardContent({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
@@ -30,7 +30,7 @@ function DashboardContent({ children }: { children: ReactNode }) {
               <Menu className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-              <img src={logo} alt="DUKL Study" className="h-7 w-7" />
+              <img src={logo} alt="DUKL Study" className="h-7 w-7 rounded-lg" />
               <span className="text-lg font-extralight tracking-wide hidden sm:inline" style={{ fontFamily: 'Helvetica Neue, Arial, sans-serif' }}>
                 DUKL STUDY
               </span>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import { AdBanner } from "@/components/AdBanner";
+
 import TypingAnimation from "@/components/TypingAnimation";
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
@@ -36,12 +36,7 @@ const HomePage = () => {
 
       {/* Hero */}
       <main className="flex-1">
-        {/* Top Banner Ad */}
-        <div className="pt-20 pb-4 flex justify-center px-6">
-          <AdBanner format="horizontal" />
-        </div>
-
-        <section className="relative pt-8 pb-20 text-center px-6">
+        <section className="relative pt-32 pb-20 text-center px-6">
           <h1 className="text-6xl md:text-8xl font-light text-white mb-8">
             The Ultimate Studying Platform
           </h1>
@@ -66,10 +61,6 @@ const HomePage = () => {
         {/* Features with white section */}
         <section className="py-20" style={{ background: 'hsl(var(--white-bg))' }}>
           <div className="max-w-7xl mx-auto px-6 space-y-24">
-            {/* Ad between sections */}
-            <div className="flex justify-center">
-              <AdBanner format="horizontal" />
-            </div>
             {/* Room Feature */}
             <div 
               id="room-feature"

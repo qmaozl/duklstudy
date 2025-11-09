@@ -15,7 +15,6 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 
 import VideoSummarizer from "./pages/VideoSummarizer";
-import StudyHub from "./pages/StudyHub";
 import Subscription from "./pages/Subscription";
 import Settings from "./pages/Settings";
 import Calendar from "./pages/Calendar";
@@ -228,7 +227,6 @@ const App = () => {
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/focus-timer" element={<FocusTimer />} />
                   <Route path="/video-summarizer" element={<VideoSummarizer />} />
-                  <Route path="/study-hub" element={<StudyHub />} />
                   <Route path="/calendar" element={<Calendar />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/subscription" element={<Subscription />} />

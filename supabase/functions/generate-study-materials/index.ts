@@ -13,7 +13,8 @@ const corsHeaders = {
 const requestSchema = z.object({
   corrected_text: z.string().min(50).max(100000).optional(),
   images: z.array(z.string()).max(5).optional(),
-  num_questions: z.number().int().min(5).max(50).default(8)
+  num_questions: z.number().int().min(5).max(50).default(8),
+  language: z.enum(['english', 'chinese']).default('english')
 }).refine(data => data.corrected_text || (data.images && data.images.length > 0), {
   message: "Either corrected_text or images must be provided"
 });
@@ -51,10 +52,13 @@ serve(async (req) => {
       });
     }
 
-    const { corrected_text, images, num_questions } = validationResult.data;
+    const { corrected_text, images, num_questions, language } = validationResult.data;
 
     const clampedQuestions = num_questions;
     const inputText = (corrected_text || '').toString().slice(0, 4000);
+    const languageInstruction = language === 'chinese' 
+      ? 'Generate all content in Traditional Chinese (繁體中文).' 
+      : 'Generate all content in English.';
 
     console.log('Input text length (trimmed):', inputText.length);
     console.log('Number of images:', images?.length || 0);
@@ -76,7 +80,7 @@ serve(async (req) => {
       messages: [
         {
           role: 'system',
-          content: `You are an expert educational content creator. Your task is to generate study materials from the provided text content.
+          content: `You are an expert educational content creator. ${languageInstruction} Your task is to generate study materials from the provided text content.
 
 **Your Tasks:**
 1. **Analyze Content:** Use the provided text as the primary content for analysis.
