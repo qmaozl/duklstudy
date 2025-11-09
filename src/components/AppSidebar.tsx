@@ -13,18 +13,19 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/logo-new.png";
 
 const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Study Group", url: "/focus-timer", icon: Clock },
-  { title: "Playlist Maker", url: "/playlist-maker", icon: Music },
-  { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
-  { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
-  { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
-  { title: "Flashcards", url: "/flashcards", icon: BookOpen },
-  { title: "Calendar", url: "/calendar", icon: Calendar },
-  { title: "Settings", url: "/settings", icon: SettingsIcon },
+  { title: "Dashboard", url: "/dashboard", icon: Home, isAI: false },
+  { title: "Study Group", url: "/focus-timer", icon: Clock, isAI: false },
+  { title: "Playlist Maker", url: "/playlist-maker", icon: Music, isAI: false },
+  { title: "Memorise Pro", url: "/memorise-pro", icon: Brain, isAI: false },
+  { title: "Video Summarizer", url: "/video-summarizer", icon: Video, isAI: true },
+  { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText, isAI: true },
+  { title: "Flashcards", url: "/flashcards", icon: BookOpen, isAI: false },
+  { title: "Calendar", url: "/calendar", icon: Calendar, isAI: true },
+  { title: "Settings", url: "/settings", icon: SettingsIcon, isAI: false },
 ];
 
 export function AppSidebar() {
@@ -71,7 +72,22 @@ export function AppSidebar() {
                     className="w-full"
                   >
                     <item.icon className="h-4 w-4" />
-                    {!collapsed && <span>{item.title}</span>}
+                    {!collapsed && (
+                      <div className="flex items-center gap-2 flex-1">
+                        <span>{item.title}</span>
+                        {item.isAI && (
+                          <Badge 
+                            className="text-[10px] px-1.5 py-0 h-4 bg-pink-500/20 text-pink-500 border-pink-500/50 hover:bg-pink-500/30"
+                            style={{ 
+                              boxShadow: '0 0 10px rgba(236, 72, 153, 0.5)',
+                              borderRadius: '6px'
+                            }}
+                          >
+                            AI
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

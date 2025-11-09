@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,8 +9,12 @@ import { Label } from '@/components/ui/label';
 import { Clock, Calendar as CalendarIcon, TrendingUp, Target, BookOpen, Edit2, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { toast } from 'sonner';
+import studyImg from '@/assets/study.jpg';
+import playlistImg from '@/assets/playlist.jpg';
+import planImg from '@/assets/plan.jpg';
+import cardsImg from '@/assets/cards.jpg';
 
 interface StudyStats {
   totalHoursThisMonth: number;
@@ -35,6 +39,7 @@ const COLORS = ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
 
 const DashboardOverview = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState<StudyStats>({
     totalHoursThisMonth: 0,
     averageSessionLength: 0,
@@ -260,9 +265,57 @@ const DashboardOverview = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  const featureBlocks = [
+    {
+      title: 'Study Group',
+      subtitle: 'study with friends!',
+      image: studyImg,
+      path: '/focus-timer'
+    },
+    {
+      title: 'Create Your Study Playlist',
+      subtitle: 'listen to ad-free music',
+      image: playlistImg,
+      path: '/playlist-maker'
+    },
+    {
+      title: 'AI Calendar',
+      subtitle: 'have AI plan your study sessions!',
+      image: planImg,
+      path: '/calendar'
+    },
+    {
+      title: 'Flashcards',
+      subtitle: 'Create sleek and simple flashcards for memorising',
+      image: cardsImg,
+      path: '/flashcards'
+    }
+  ];
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
+        {/* Feature Blocks */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {featureBlocks.map((feature, index) => (
+            <Card
+              key={index}
+              className="relative overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-2xl"
+              onClick={() => navigate(feature.path)}
+            >
+              <div
+                className="absolute inset-0 bg-cover bg-center opacity-50"
+                style={{ backgroundImage: `url(${feature.image})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20" />
+              <CardContent className="relative z-10 p-6 h-48 flex flex-col justify-end">
+                <h3 className="text-xl font-bold text-foreground mb-1">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground">{feature.subtitle}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         {/* Goals Section */}
         <Card>
           <CardHeader>
@@ -377,87 +430,29 @@ const DashboardOverview = () => {
           </Card>
         </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Weekly Trend */}
-          <Card>
-            <CardHeader>
-              <CardTitle>7-Day Study Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {weeklyTrend.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={weeklyTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="hours" stroke="#8b5cf6" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-                  No data yet
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Subject Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Study by Subject</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {subjectStats.length > 0 ? (
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={subjectStats}
-                      dataKey="hours"
-                      nameKey="subject"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={(entry) => `${entry.subject}: ${entry.hours}h`}
-                    >
-                      {subjectStats.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-[250px] flex items-center justify-center text-muted-foreground">
-                  No subject data yet
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Subject Stats Table */}
-        {subjectStats.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Subject Statistics</CardTitle>
-            </CardHeader>
-            <CardContent>
+        {/* Weekly Trend Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>7-Day Study Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {weeklyTrend.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={subjectStats}>
+                <LineChart data={weeklyTrend}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="subject" />
+                  <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />
-                  <Legend />
-                  <Bar dataKey="hours" fill="#8b5cf6" name="Hours" />
-                  <Bar dataKey="sessions" fill="#ec4899" name="Sessions" />
-                </BarChart>
+                  <Line type="monotone" dataKey="hours" stroke="#8b5cf6" strokeWidth={2} />
+                </LineChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data yet
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Sessions */}
         <Card>
