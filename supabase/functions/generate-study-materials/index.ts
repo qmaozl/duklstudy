@@ -82,52 +82,38 @@ serve(async (req) => {
           role: 'system',
           content: `You are an expert educational content creator. ${languageInstruction} Your task is to generate study materials from the provided text content.
 
+**CRITICAL: You MUST return ONLY valid JSON. No markdown formatting, no code blocks, no extra text.**
+
 **Your Tasks:**
 1. **Analyze Content:** Use the provided text as the primary content for analysis.
 
-2. **Create Comprehensive Educational Summary:** Generate a detailed, educational summary that serves as a complete learning resource. Your summary should:
-    - Be 400-800 words long
-    - Cover the main concepts, definitions, and key examples
-    - Give clear explanations of the why and how, with 1-2 practical applications
-    - Use headings and short paragraphs for readability
+2. **Create Comprehensive Educational Summary:** Generate a detailed, educational summary (300-500 words) that covers the main concepts, definitions, and key examples.
 
-3. **Create Flashcards:** Generate 6-10 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information from the text.
+3. **Create Flashcards:** Generate 6-8 flashcards based on the content. Include questions about concepts, definitions, formulas, or key information from the text.
 
 4. **Create a Quiz:** Generate a quiz with ${clampedQuestions || 5} multiple-choice questions. Each question must have 4 options (a, b, c, d) and one clearly correct answer with factual accuracy.
 
-**Output Format Rules:** 
-- You MUST output a valid JSON object with the following structure. Do not add any other text.
-{
-  "summary": "The generated summary text goes here...",
-  "flashcards": [
-    {"question": "What is...?", "answer": "The answer is..."},
-    {"question": "How does...?", "answer": "It works by..."}
-  ],
-  "quiz": {
-    "questions": [
-      {
-        "question": "What is the primary function of...?",
-        "options": {
-          "a": "Option 1",
-          "b": "Option 2", 
-          "c": "Option 3",
-          "d": "Option 4"
-        },
-        "correct_answer": "b"
-      }
-    ]
-  }
-}
+**CRITICAL OUTPUT RULES:** 
+- Return ONLY a valid JSON object
+- No markdown code blocks (no \`\`\`json)
+- No extra text before or after the JSON
+- Properly escape all quotes inside strings
+- Use \\n for line breaks in strings, not actual line breaks
+- Keep summary concise to avoid token limits
 
-Return ONLY the JSON object, no other text.`
+**Required JSON Structure:**
+{"summary":"Your summary text here","flashcards":[{"question":"Question text","answer":"Answer text"}],"quiz":{"questions":[{"question":"Question text","options":{"a":"Option 1","b":"Option 2","c":"Option 3","d":"Option 4"},"correct_answer":"b"}]}}
+
+Return ONLY the JSON object.`
         },
         {
           role: 'user',
           content: messageContent
         }
       ],
-      max_tokens: 2200,
-      temperature: 0.3
+      max_tokens: 3000,
+      temperature: 0.2,
+      response_format: { type: "json_object" }
     };
 
     const controller = new AbortController();
@@ -161,6 +147,7 @@ Return ONLY the JSON object, no other text.`
     try {
       cleanedResult = result.trim();
 
+      // Remove markdown code blocks if present
       const fencedMatch = cleanedResult.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
       if (fencedMatch) {
         cleanedResult = fencedMatch[1].trim();
@@ -171,6 +158,7 @@ Return ONLY the JSON object, no other text.`
           .trim();
       }
 
+      // Extract JSON object if there's extra text
       if (!(cleanedResult.startsWith('{') && cleanedResult.endsWith('}'))) {
         const firstBrace = cleanedResult.indexOf('{');
         const lastBrace = cleanedResult.lastIndexOf('}');
@@ -179,37 +167,49 @@ Return ONLY the JSON object, no other text.`
         }
       }
 
+      // Try to parse the JSON
       const parsedResult = JSON.parse(cleanedResult);
       console.log('Successfully parsed AI response');
       
+      // Validate that required fields exist
+      if (!parsedResult.summary || !parsedResult.flashcards || !parsedResult.quiz) {
+        throw new Error('Missing required fields in AI response');
+      }
+      
       return new Response(JSON.stringify({
         success: true,
-        ...parsedResult
+        summary: parsedResult.summary,
+        flashcards: parsedResult.flashcards,
+        key_concepts: parsedResult.key_concepts || [],
+        quiz: parsedResult.quiz
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('Cleaned result:', cleanedResult.substring(0, 500));
+      console.error('Raw result (first 1000 chars):', result?.substring(0, 1000));
+      console.error('Cleaned result (first 1000 chars):', cleanedResult.substring(0, 1000));
       
+      // Return a more descriptive error
       return new Response(JSON.stringify({
-        success: true,
-        summary: "Unable to generate summary at this time.",
+        success: false,
+        error: 'Failed to generate properly formatted study materials. Please try again with a shorter text or fewer questions.',
+        summary: "Unable to generate summary. Please try again.",
         flashcards: [
           {
-            "question": "What was the main topic of the text?",
-            "answer": "Please review the original material for key concepts."
+            "question": "What should you do if study materials can't be generated?",
+            "answer": "Try again with shorter text or fewer questions, or review the material manually."
           }
         ],
         quiz: {
           questions: [
             {
-              "question": "What should you do when study materials can't be generated?",
+              "question": "What is a recommended action when automated tools fail?",
               "options": {
-                "a": "Give up studying",
-                "b": "Review the original material manually",
-                "c": "Skip this topic",
-                "d": "Wait indefinitely"
+                "a": "Give up immediately",
+                "b": "Try again with adjusted parameters",
+                "c": "Never use the tool again",
+                "d": "Ignore the issue"
               },
               "correct_answer": "b"
             }
