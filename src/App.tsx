@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthPromptProvider } from "@/contexts/AuthPromptContext";
 import { TimerProvider, useTimerContext } from "@/contexts/TimerContext";
 import { MediaPlayerProvider, useMediaPlayerContext } from "@/contexts/MediaPlayerContext";
 import Index from "./pages/Index";
@@ -202,17 +203,18 @@ const App = () => {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <AuthProvider>
-        <TimerProvider>
-          <MediaPlayerProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter basename={getBasename()}>
-                <RedirectHandler />
-                {/* Use mobile audio player on mobile devices, YouTube iframe on desktop */}
-                <MediaPlayerComponent />
-                <FloatingComponents />
-                <Routes>
+        <AuthPromptProvider>
+          <TimerProvider>
+            <MediaPlayerProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter basename={getBasename()}>
+                  <RedirectHandler />
+                  {/* Use mobile audio player on mobile devices, YouTube iframe on desktop */}
+                  <MediaPlayerComponent />
+                  <FloatingComponents />
+                  <Routes>
                   {/* Landing page at root */}
                   <Route path="/" element={<HomePage />} />
                   
@@ -245,6 +247,7 @@ const App = () => {
             </TooltipProvider>
           </MediaPlayerProvider>
         </TimerProvider>
+        </AuthPromptProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthPrompt } from '@/contexts/AuthPromptContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const COLORS = ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
 
 const DashboardOverview = () => {
   const { user, loading } = useAuth();
+  const { showAuthPrompt } = useAuthPrompt();
   const navigate = useNavigate();
   const [stats, setStats] = useState<StudyStats>({
     totalHoursThisMonth: 0,
@@ -48,6 +50,33 @@ const DashboardOverview = () => {
   });
   const [loadingStats, setLoadingStats] = useState(true);
   const [sessions, setSessions] = useState<any[]>([]);
+
+  const featureBlocks = [
+    {
+      title: 'Study Group',
+      subtitle: 'study with friends!',
+      image: studyImg,
+      path: '/focus-timer',
+    },
+    {
+      title: 'Create Your Study Playlist',
+      subtitle: 'listen to ad-free music',
+      image: playlistImg,
+      path: '/playlist-maker',
+    },
+    {
+      title: 'AI Calendar',
+      subtitle: 'have AI plan your study sessions!',
+      image: planImg,
+      path: '/calendar',
+    },
+    {
+      title: 'Flashcards',
+      subtitle: 'Create sleek and simple flashcards for memorising',
+      image: cardsImg,
+      path: '/flashcards',
+    },
+  ];
   const [weekStats, setWeekStats] = useState({ total: 0, average: 0 });
   const [subjectStats, setSubjectStats] = useState<SubjectStats[]>([]);
   const [weeklyTrend, setWeeklyTrend] = useState<any[]>([]);
@@ -261,36 +290,8 @@ const DashboardOverview = () => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  const featureBlocks = [
-    {
-      title: 'Study Group',
-      subtitle: 'study with friends!',
-      image: studyImg,
-      path: '/focus-timer'
-    },
-    {
-      title: 'Create Your Study Playlist',
-      subtitle: 'listen to ad-free music',
-      image: playlistImg,
-      path: '/playlist-maker'
-    },
-    {
-      title: 'AI Calendar',
-      subtitle: 'have AI plan your study sessions!',
-      image: planImg,
-      path: '/calendar'
-    },
-    {
-      title: 'Flashcards',
-      subtitle: 'Create sleek and simple flashcards for memorising',
-      image: cardsImg,
-      path: '/flashcards'
-    }
-  ];
+  // Allow viewing dashboard without auth, but features will prompt login
+  const canInteract = !!user;
 
   return (
     <DashboardLayout>
@@ -301,7 +302,13 @@ const DashboardOverview = () => {
             <Card
               key={index}
               className="relative overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-2xl"
-              onClick={() => navigate(feature.path)}
+              onClick={() => {
+                if (!user) {
+                  showAuthPrompt();
+                } else {
+                  navigate(feature.path);
+                }
+              }}
             >
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-50"
