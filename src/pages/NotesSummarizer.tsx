@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight, Languages } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight, Languages, BookOpen, Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -27,6 +27,17 @@ interface ProcessedFile {
   studyMaterialId: string;
 }
 
+interface SavedNote {
+  id: string;
+  title: string;
+  created_at: string;
+  summary: string;
+  flashcards: any;
+  key_concepts: string[];
+  quiz: any;
+  original_content: string;
+}
+
 const NotesSummarizer = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -34,14 +45,39 @@ const NotesSummarizer = () => {
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [language, setLanguage] = useState<'english' | 'chinese'>('english');
+  const [savedNotes, setSavedNotes] = useState<SavedNote[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const [selectedNote, setSelectedNote] = useState<SavedNote | null>(null);
   const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUserId(data.user?.id || null);
+      if (data.user?.id) {
+        fetchSavedNotes(data.user.id);
+      }
     });
   }, []);
+
+  const fetchSavedNotes = async (uid: string) => {
+    setLoadingNotes(true);
+    try {
+      const { data, error } = await supabase
+        .from('study_materials')
+        .select('id, title, created_at, summary, flashcards, key_concepts, quiz, original_content')
+        .eq('user_id', uid)
+        .eq('source_type', 'upload')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setSavedNotes(data || []);
+    } catch (error: any) {
+      console.error('Error fetching saved notes:', error);
+    } finally {
+      setLoadingNotes(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -160,6 +196,11 @@ const NotesSummarizer = () => {
       setCurrentPageIndex(0);
       setFiles([]);
       setProcessingStep('');
+      
+      // Refresh saved notes
+      if (userId) {
+        fetchSavedNotes(userId);
+      }
       
       toast({
         title: 'Success!',
@@ -524,6 +565,132 @@ const NotesSummarizer = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Notes Storage Hub */}
+        <div className="mt-12">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold mb-2">Your Notes Library</h2>
+            <p className="text-muted-foreground">
+              Access all your previously processed notes
+            </p>
+          </div>
+
+          {loadingNotes ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-6">
+                    <Skeleton className="h-6 w-3/4 mb-3" />
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : savedNotes.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <BookOpen className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No Notes Yet</h3>
+                <p className="text-muted-foreground">
+                  Upload and process your first notes to see them here
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {savedNotes.map((note) => (
+                <Card 
+                  key={note.id} 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => setSelectedNote(note)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-lg line-clamp-1">{note.title}</CardTitle>
+                    <CardDescription className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3" />
+                      {new Date(note.created_at).toLocaleDateString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {note.summary}
+                    </p>
+                    <div className="mt-4 flex gap-2 text-xs text-muted-foreground">
+                      <span>{note.flashcards?.length || 0} flashcards</span>
+                      <span>•</span>
+                      <span>{note.key_concepts?.length || 0} concepts</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Note Detail Dialog */}
+        {selectedNote && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setSelectedNote(null)}>
+            <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">{selectedNote.title}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Created {new Date(selectedNote.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <Button variant="ghost" onClick={() => setSelectedNote(null)}>Close</Button>
+              </div>
+              <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
+                <Tabs defaultValue="summary" className="p-6">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="summary">Summary</TabsTrigger>
+                    <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                    <TabsTrigger value="mindmap">Mind Map</TabsTrigger>
+                    <TabsTrigger value="text">Text</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="summary" className="mt-4">
+                    <div className="prose dark:prose-invert max-w-none">
+                      <p className="whitespace-pre-wrap">{selectedNote.summary}</p>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="flashcards" className="mt-4 space-y-4">
+                    {selectedNote.flashcards && selectedNote.flashcards.length > 0 ? (
+                      selectedNote.flashcards.map((card: any, index: number) => (
+                        <FlashCard
+                          key={index}
+                          question={card.question}
+                          answer={card.answer}
+                          cardNumber={index + 1}
+                        />
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground">No flashcards available</p>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="mindmap" className="mt-4">
+                    {selectedNote.key_concepts && selectedNote.key_concepts.length > 0 ? (
+                      <MindMap concepts={selectedNote.key_concepts} />
+                    ) : (
+                      <p className="text-muted-foreground">No mind map data available</p>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="text" className="mt-4">
+                    <Textarea
+                      value={selectedNote.original_content}
+                      readOnly
+                      className="min-h-[400px] font-mono text-sm"
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </DashboardLayout>
