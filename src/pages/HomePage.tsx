@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import { PricingSection } from "@/components/PricingSection";
 
 import TypingAnimation from "@/components/TypingAnimation";
 import roomShot from "@/assets/room-feature.png";
@@ -38,10 +37,10 @@ const HomePage = () => {
       {/* Hero */}
       <main className="flex-1">
         <section className="relative pt-32 pb-20 text-center px-6">
-          <h1 className="text-6xl md:text-8xl font-light text-white mb-8 font-swiss tracking-tight">
-            Study Smarter, Not Just Harder.
+          <h1 className="text-6xl md:text-8xl font-light text-white mb-8">
+            The Ultimate Studying Platform
           </h1>
-          <p className="max-w-3xl mx-auto text-white/80 text-xl md:text-2xl font-light mb-12 leading-relaxed font-swiss">
+          <p className="max-w-3xl mx-auto text-white/80 text-xl md:text-2xl font-extralight mb-12 leading-relaxed">
             Use Dukl to{' '}
             <TypingAnimation 
               phrases={[
@@ -52,11 +51,11 @@ const HomePage = () => {
             />
           </p>
           <div className="mb-8">
-            <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium font-swiss shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
-              <Link to="/auth">Get Started Free →</Link>
+            <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
+              <Link to="/auth">I want to lock in→</Link>
             </Button>
           </div>
-          <div className="text-white/60 tracking-widest text-sm font-swiss uppercase">Trusted by thousands of students</div>
+          <div className="text-white/60 tracking-widest text-sm">TRUSTED BY SIGMAS</div>
         </section>
 
         {/* Features with white section */}
@@ -70,18 +69,18 @@ const HomePage = () => {
                 visibleSections.has('room-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               }`}
             >
-            <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 font-swiss tracking-tight" style={{ color: 'hsl(0 0% 10%)' }}>Find Your Focus, Together.</h2>
-              <p className="text-lg leading-8 mb-8 font-swiss" style={{ color: 'hsl(0 0% 30%)' }}>
-                Welcome to Dukl – where productivity meets friends.
-                Join a study room with friends, achieve your goals through the power of shared focus.
-              </p>
-              <ul className="space-y-3 text-base font-swiss" style={{ color: 'hsl(0 0% 25%)' }}>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span>Track your time</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span>Chat with peers</li>
-                <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span>Build the discipline you need to succeed</li>
-              </ul>
-            </div>
+              <div>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Find Your Focus, Together.</h2>
+                <p className="text-lg leading-8 mb-8" style={{ color: 'hsl(0 0% 30%)' }}>
+                  Welcome to Dukl – where productivity meets friends.
+                  Join a study room with friends, achieve your goals through the power of shared focus.
+                </p>
+                <ul className="space-y-3 text-base" style={{ color: 'hsl(0 0% 25%)' }}>
+                  <li>• Track your time</li>
+                  <li>• chat with peers</li>
+                  <li>• build the discipline you need to succeed.</li>
+                </ul>
+              </div>
               <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
                 <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
                   <div className="flex items-center gap-2 mb-3">
@@ -105,15 +104,15 @@ const HomePage = () => {
               }`}
             >
               <div className="md:order-2">
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 font-swiss tracking-tight" style={{ color: 'hsl(0 0% 10%)' }}>Never Break Focus Again.</h2>
-                <p className="text-lg leading-8 mb-8 font-swiss" style={{ color: 'hsl(0 0% 30%)' }}>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Never Break Focus Again.</h2>
+                <p className="text-lg leading-8 mb-8" style={{ color: 'hsl(0 0% 30%)' }}>
                   The last tab you'll ever need for study music.
                   Our Playlist Maker solves this by bringing YouTube's vast audio library directly to your study environment.
                 </p>
-                <ul className="space-y-3 text-base font-swiss" style={{ color: 'hsl(0 0% 25%)' }}>
-                  <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span>Copy & Paste any YouTube music URL</li>
-                  <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span>Build & Organize your ideal study sequence</li>
-                  <li className="flex items-center gap-3"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span>Press Play & Focus - control everything without leaving your workflow</li>
+                <ul className="space-y-3 text-base" style={{ color: 'hsl(0 0% 25%)' }}>
+                  <li>• Copy & Paste any YouTube music URL</li>
+                  <li>• Build & Organize your ideal study sequence</li>
+                  <li>• Press Play & Focus - control everything without leaving your workflow</li>
                 </ul>
               </div>
               <div className="md:order-1 max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
@@ -139,11 +138,11 @@ const HomePage = () => {
               }`}
             >
               <div>
-                <h2 className="text-4xl md:text-5xl font-bold mb-6 font-swiss tracking-tight" style={{ color: 'hsl(0 0% 10%)' }}>Transform Your Notes into Knowledge</h2>
-                <p className="text-lg leading-8 mb-6 font-swiss font-medium" style={{ color: 'hsl(0 0% 20%)' }}>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Transform Your Notes into Knowledge</h2>
+                <p className="text-lg leading-8 mb-6" style={{ color: 'hsl(0 0% 30%)' }}>
                   Create. Review. Remember.
                 </p>
-                <p className="text-base leading-7 font-swiss" style={{ color: 'hsl(0 0% 30%)' }}>
+                <p className="text-base leading-7" style={{ color: 'hsl(0 0% 25%)' }}>
                   Flashcards that adapt to your learning pace. Build your deck once, and let our smart system handle the rest.
                 </p>
               </div>
@@ -163,16 +162,13 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <PricingSection />
-
         {/* Bottom CTA */}
         <section className="text-center px-6 py-24">
-          <h2 className="text-5xl md:text-6xl font-light text-white mb-10 leading-tight font-swiss tracking-tight">
+          <h2 className="text-5xl md:text-6xl font-light text-white mb-10 leading-tight">
             Turn study anxiety into<br />confidence with Dukl.
           </h2>
-          <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium font-swiss shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105">
-            <Link to="/auth">Start Your Journey →</Link>
+          <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
+            <Link to="/auth">I want to lock in→</Link>
           </Button>
         </section>
       </main>
