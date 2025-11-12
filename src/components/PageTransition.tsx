@@ -13,21 +13,20 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
     const isFromDashboardToHome = previousPath !== '/' && previousPath !== null && location.pathname === '/';
     
     if (location.pathname !== displayLocation.pathname && (isFromHomeToDashboard || isFromDashboardToHome)) {
+      // Start fade out immediately
       setIsTransitioning(true);
 
-      // Start fade out
-      const fadeOutTimer = setTimeout(() => {
+      // Wait for fade out to complete, then switch content
+      const switchContentTimer = setTimeout(() => {
         setDisplayLocation(location);
-      }, 400); // Fade out duration
-
-      // Complete fade in
-      const fadeInTimer = setTimeout(() => {
-        setIsTransitioning(false);
-      }, 800); // Total transition time
+        // Start fade in after content switch
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 50);
+      }, 500); // Wait for fade out to complete
 
       return () => {
-        clearTimeout(fadeOutTimer);
-        clearTimeout(fadeInTimer);
+        clearTimeout(switchContentTimer);
       };
     } else {
       // Instant update for other navigations
@@ -40,17 +39,20 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <>
-      {isTransitioning && (
-        <div className="page-transition-overlay animate-fade-in" 
-          style={{ 
-            animation: 'fadeIn 0.4s ease-in-out forwards'
-          }}
-        />
-      )}
+      {/* Blue overlay that fades in/out */}
       <div 
-        className="transition-opacity duration-500"
+        className="page-transition-overlay"
+        style={{
+          opacity: isTransitioning ? 1 : 0,
+          transition: 'opacity 0.5s ease-in-out'
+        }}
+      />
+      
+      {/* Content that fades out/in */}
+      <div 
         style={{ 
-          opacity: isTransitioning ? 0 : 1 
+          opacity: isTransitioning ? 0 : 1,
+          transition: 'opacity 0.5s ease-in-out'
         }}
       >
         {children}
@@ -58,4 +60,5 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
     </>
   );
 };
+
 
