@@ -33,6 +33,7 @@ import NotFound from "./pages/NotFound";
 import { FloatingTimer } from "./components/FloatingTimer";
 import { FloatingMediaPlayer } from "./components/FloatingMediaPlayer";
 import { GlobalYouTubePlayer } from "./components/GlobalYouTubePlayer";
+import { PageTransition } from "./components/PageTransition";
 
 import { useNavigate } from "react-router-dom";
 
@@ -214,35 +215,37 @@ const App = () => {
                     {/* Use mobile audio player on mobile devices, YouTube iframe on desktop */}
                     <MediaPlayerComponent />
                     <FloatingComponents />
-                <Routes>
-                  {/* Landing page at root */}
-                  <Route path="/" element={<HomePage />} />
-                  
-                  {/* Dashboard at /dashboard */}
-                  <Route path="/dashboard" element={<DashboardOverview />} />
-                  
-                  {/* Redirect old /home to landing page */}
-                  <Route path="/home" element={<Navigate to="/" replace />} />
-                  
-                  {/* Keep all other routes the same */}
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/focus-timer" element={<FocusTimer />} />
-                  <Route path="/video-summarizer" element={<VideoSummarizer />} />
-                  <Route path="/calendar" element={<Calendar />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/subscription" element={<Subscription />} />
-                  <Route path="/memorise-pro" element={<MemorisePro />} />
-                  <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
-                  <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
-                  <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
-                  <Route path="/flashcards" element={<Flashcards />} />
-                  <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
-                  <Route path="/notes-summarizer" element={<NotesSummarizer />} />
-                  <Route path="/playlist-maker" element={<PlaylistMakerPage />} />
-                  <Route path="/shared-playlist/:shareId" element={<SharedPlaylist />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                    <PageTransition>
+                      <Routes>
+                        {/* Landing page at root */}
+                        <Route path="/" element={<HomePage />} />
+                        
+                        {/* Dashboard at /dashboard */}
+                        <Route path="/dashboard" element={<DashboardOverview />} />
+                        
+                        {/* Redirect old /home to landing page */}
+                        <Route path="/home" element={<Navigate to="/" replace />} />
+                        
+                        {/* Keep all other routes the same */}
+                        <Route path="/auth" element={<Auth />} />
+                        <Route path="/reset-password" element={<ResetPassword />} />
+                        <Route path="/focus-timer" element={<FocusTimer />} />
+                        <Route path="/video-summarizer" element={<VideoSummarizer />} />
+                        <Route path="/calendar" element={<Calendar />} />
+                        <Route path="/settings" element={<Settings />} />
+                        <Route path="/subscription" element={<Subscription />} />
+                        <Route path="/memorise-pro" element={<MemorisePro />} />
+                        <Route path="/memorise-pro/review/:textKey" element={<MemoriseReview />} />
+                        <Route path="/memorise-pro/custom-new" element={<CustomParagraphNew />} />
+                        <Route path="/memorise-pro/custom-review/:id" element={<CustomParagraphReview />} />
+                        <Route path="/flashcards" element={<Flashcards />} />
+                        <Route path="/flashcards/study/:setId" element={<FlashcardStudy />} />
+                        <Route path="/notes-summarizer" element={<NotesSummarizer />} />
+                        <Route path="/playlist-maker" element={<PlaylistMakerPage />} />
+                        <Route path="/shared-playlist/:shareId" element={<SharedPlaylist />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </PageTransition>
                 </AuthPromptProvider>
               </BrowserRouter>
             </TooltipProvider>
