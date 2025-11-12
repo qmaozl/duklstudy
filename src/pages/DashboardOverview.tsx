@@ -300,7 +300,7 @@ const DashboardOverview = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 circular-bleed-bg min-h-screen">
         {/* Feature Blocks */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {featureBlocks.map((feature, index) => (
@@ -315,16 +315,16 @@ const DashboardOverview = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20" />
               <CardContent className="relative z-10 p-6 h-48 flex flex-col justify-end">
-                <h3 className="text-xl font-bold text-foreground mb-1">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.subtitle}</p>
+                <h3 className="text-xl font-bold text-white drop-shadow-lg mb-1">{feature.title}</h3>
+                <p className="text-sm text-white/90 drop-shadow-md">{feature.subtitle}</p>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {!user && (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">
+          <div className="text-center py-8 bg-white/80 backdrop-blur-sm rounded-lg">
+            <p className="text-foreground mb-4">
               Sign in to track your study progress and unlock all features
             </p>
           </div>

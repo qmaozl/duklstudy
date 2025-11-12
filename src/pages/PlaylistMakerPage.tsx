@@ -164,10 +164,10 @@ const PlaylistMakerPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8 px-4 py-8 max-w-7xl mx-auto">
+      <div className="space-y-8 px-4 py-8 max-w-7xl mx-auto circular-bleed-bg min-h-screen">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold">Playlist Maker</h1>
-          <p className="text-muted-foreground">Create and manage your study music playlists</p>
+          <h1 className="text-4xl font-bold text-foreground drop-shadow-sm">Playlist Maker</h1>
+          <p className="text-foreground/80">Create and manage your study music playlists</p>
         </div>
 
         {/* MilkDrop Visualizer */}

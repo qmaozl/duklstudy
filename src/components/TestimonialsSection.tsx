@@ -1,6 +1,6 @@
 import React from 'react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Star } from 'lucide-react';
+import { Star, School, GraduationCap, Library, BookOpen } from 'lucide-react';
 
 interface Testimonial {
   id: string;
@@ -63,9 +63,35 @@ const testimonials: Testimonial[] = [
 ];
 
 export const TestimonialsSection = () => {
+  const schoolIcons = [School, GraduationCap, Library, BookOpen];
+
   return (
-    <section className="py-24 px-6 bg-white">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-24 px-6 bg-white relative overflow-hidden">
+      {/* Animated School Icons Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {schoolIcons.map((Icon, idx) => (
+          <Icon
+            key={idx}
+            className="absolute text-saas-blue/10 animate-float"
+            size={80}
+            style={{
+              left: `${15 + idx * 25}%`,
+              top: `${20 + (idx % 2) * 40}%`,
+              animationDelay: `${idx * 0.5}s`,
+              animationDuration: `${4 + idx}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* New Header Text */}
+        <div className="text-center mb-4">
+          <p className="text-lg font-medium text-saas-blue uppercase tracking-wide">
+            Trusted by students from all around the world
+          </p>
+        </div>
+
         <div className="text-center mb-16">
           <h2 className="text-5xl md:text-6xl font-bold text-saas-charcoal mb-6 font-swiss">
             Loved by Students Worldwide

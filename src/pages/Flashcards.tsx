@@ -164,16 +164,16 @@ export default function Flashcards() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-6 circular-bleed-bg min-h-screen">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold flex items-center gap-3">
+              <h1 className="text-4xl font-bold flex items-center gap-3 text-foreground drop-shadow-sm">
                 <BookOpen className="h-10 w-10 text-primary" />
                 Flashcard Hub
               </h1>
-              <p className="text-muted-foreground mt-2">Create and study your flashcards</p>
+              <p className="text-foreground/80 mt-2">Create and study your flashcards</p>
             </div>
 
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
