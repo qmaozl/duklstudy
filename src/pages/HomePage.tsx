@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
@@ -10,14 +10,48 @@ import { BackgroundOrbs } from "@/components/BackgroundOrbs";
 import { MountainSilhouette } from "@/components/MountainSilhouette";
 import { FeatureShowcaseCard } from "@/components/FeatureShowcaseCard";
 import { StickyInputBar } from "@/components/StickyInputBar";
+import { TestimonialsSection } from "@/components/TestimonialsSection";
+import { FAQSection } from "@/components/FAQSection";
 
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
 import flashShot from "@/assets/flash-feature.png";
 
 const HomePage = () => {
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     document.title = "DUKL Study – Study Smarter, Not Just Harder";
+
+    // Add smooth scroll behavior
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Intersection Observer for fade-up animations
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.remove('opacity-0', 'translate-y-8');
+            entry.target.classList.add('opacity-100', 'translate-y-0');
+            
+            // Add to visible sections if it has an id
+            if (entry.target.id) {
+              setVisibleSections((prev) => new Set(prev).add(entry.target.id));
+            }
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+    );
+
+    // Observe all elements with data-fade-up attribute
+    const elements = document.querySelectorAll('[data-fade-up]');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.scrollBehavior = 'auto';
+    };
   }, []);
 
   return (
@@ -56,7 +90,7 @@ const HomePage = () => {
         </section>
 
         {/* Feature Showcase Section */}
-        <section className="py-24 bg-white">
+        <section className="py-24 bg-white" data-fade-up>
           <div className="max-w-6xl mx-auto px-6">
             <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
               <FeatureShowcaseCard 
@@ -89,8 +123,14 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Testimonials Section */}
+        <TestimonialsSection />
+
         {/* Pricing Section */}
         <PricingSection />
+
+        {/* FAQ Section */}
+        <FAQSection />
 
         {/* Bottom CTA */}
         <section className="text-center px-6 py-32 relative">
