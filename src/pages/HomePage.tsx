@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import { Users, Music, Brain, Check } from "lucide-react";
 
 import TypingAnimation from "@/components/TypingAnimation";
 import { PricingSection } from "@/components/PricingSection";
 import { BackgroundOrbs } from "@/components/BackgroundOrbs";
 import { MountainSilhouette } from "@/components/MountainSilhouette";
-import { FeatureShowcaseCard } from "@/components/FeatureShowcaseCard";
 import { StickyInputBar } from "@/components/StickyInputBar";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { FAQSection } from "@/components/FAQSection";
@@ -89,36 +87,106 @@ const HomePage = () => {
           </div>
         </section>
 
-        {/* Feature Showcase Section */}
-        <section className="py-24 bg-white" data-fade-up>
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-              <FeatureShowcaseCard 
-                icon={<Users className="w-5 h-5" />}
-                label="Collaborative Focus"
-                exampleText="Join study rooms with friends in real-time. Track your time, chat with peers, and build the discipline you need to succeed."
-                screenshot={roomShot}
-              />
-              
-              <FeatureShowcaseCard 
-                icon={<Music className="w-5 h-5" />}
-                label="Distraction-Free Audio"
-                exampleText="Build playlists without leaving your workflow. Copy & paste any YouTube music URL and control everything from one place."
-                screenshot={playlistShot}
-              />
-              
-              <FeatureShowcaseCard 
-                icon={<Brain className="w-5 h-5" />}
-                label="AI-Powered Review"
-                exampleText="Transform notes into adaptive flashcards. Build your deck once, and let our smart system handle the rest."
-                screenshot={flashShot}
-              />
-              
-              <FeatureShowcaseCard 
-                icon={<Check className="w-5 h-5" />}
-                label="Smart Learning"
-                exampleText="AI-powered study materials that adapt to your learning pace. Get personalized quizzes, summaries, and study schedules."
-              />
+        {/* Features with white section */}
+        <section className="py-20 font-swiss bg-white">
+          <div className="max-w-7xl mx-auto px-6 space-y-24">
+            {/* Room Feature */}
+            <div 
+              id="room-feature"
+              data-fade-up
+              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 opacity-0 translate-y-8 ${
+                visibleSections.has('room-feature') ? 'opacity-100 translate-y-0' : ''
+              }`}
+            >
+              <div>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-saas-charcoal">Find Your Focus, Together.</h2>
+                <p className="text-lg leading-8 mb-8 text-saas-gray">
+                  Welcome to Dukl – where productivity meets friends.
+                  Join a study room with friends, achieve your goals through the power of shared focus.
+                </p>
+                <ul className="space-y-3 text-base text-saas-gray-dark">
+                  <li>• Track your time</li>
+                  <li>• chat with peers</li>
+                  <li>• build the discipline you need to succeed.</li>
+                </ul>
+              </div>
+              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
+                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden">
+                    <img src={roomShot} alt="DUKL study room UI screenshot" className="w-full h-auto" loading="lazy" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Playlist Feature */}
+            <div 
+              id="playlist-feature"
+              data-fade-up
+              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 opacity-0 translate-y-8 ${
+                visibleSections.has('playlist-feature') ? 'opacity-100 translate-y-0' : ''
+              }`}
+            >
+              <div className="md:order-2">
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-saas-charcoal">Never Break Focus Again.</h2>
+                <p className="text-lg leading-8 mb-8 text-saas-gray">
+                  The last tab you'll ever need for study music.
+                  Our Playlist Maker solves this by bringing YouTube's vast audio library directly to your study environment.
+                </p>
+                <ul className="space-y-3 text-base text-saas-gray-dark">
+                  <li>• Copy & Paste any YouTube music URL</li>
+                  <li>• Build & Organize your ideal study sequence</li>
+                  <li>• Press Play & Focus - control everything without leaving your workflow</li>
+                </ul>
+              </div>
+              <div className="md:order-1 max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
+                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden">
+                    <img src={playlistShot} alt="DUKL playlist maker UI screenshot" className="w-full h-auto" loading="lazy" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Flashcards Feature */}
+            <div 
+              id="flash-feature"
+              data-fade-up
+              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 opacity-0 translate-y-8 ${
+                visibleSections.has('flash-feature') ? 'opacity-100 translate-y-0' : ''
+              }`}
+            >
+              <div>
+                <h2 className="text-4xl md:text-5xl font-semibold mb-6 text-saas-charcoal">Transform Your Notes into Knowledge</h2>
+                <p className="text-lg leading-8 mb-6 text-saas-gray">
+                  Create. Review. Remember.
+                </p>
+                <p className="text-base leading-7 text-saas-gray-dark">
+                  Flashcards that adapt to your learning pace. Build your deck once, and let our smart system handle the rest.
+                </p>
+              </div>
+              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
+                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                  </div>
+                  <div className="rounded-lg overflow-hidden">
+                    <img src={flashShot} alt="DUKL flashcards UI screenshot" className="w-full h-auto" loading="lazy" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
