@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useAuth } from '@/contexts/AuthContext';
 import Navigation from '@/components/Navigation';
-import { Brain, GraduationCap, Trophy, Timer } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -98,40 +97,10 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5">
       <Navigation />
       <div className="pt-20 flex items-center justify-center p-4">
-        <div className="w-full max-w-4xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-        
-        {/* Left Side - Branding */}
-        <div className="space-y-8 text-center lg:text-left">
-          <div className="space-y-4">
-            <div className="flex items-center justify-center lg:justify-start gap-2">
-              <Brain className="h-10 w-10 text-primary" />
-              <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
-                Dukl
-              </h1>
-            </div>
-            <p className="text-xl text-muted-foreground">
-              Dukl, your gamify study partner
-            </p>
-          </div>
+        <div className="w-full max-w-md mx-auto">
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="flex flex-col items-center space-y-2 p-4 rounded-lg bg-card shadow-soft">
-              <GraduationCap className="h-8 w-8 text-primary" />
-              <span className="font-medium text-sm">Smart Learning</span>
-            </div>
-            <div className="flex flex-col items-center space-y-2 p-4 rounded-lg bg-card shadow-soft">
-              <Trophy className="h-8 w-8 text-secondary" />
-              <span className="font-medium text-sm">Gamified Progress</span>
-            </div>
-            <div className="flex flex-col items-center space-y-2 p-4 rounded-lg bg-card shadow-soft">
-              <Timer className="h-8 w-8 text-accent" />
-              <span className="font-medium text-sm">Study Tracking</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side - Auth Forms */}
-        <Card className="w-full max-w-md mx-auto shadow-glow">
+        {/* Auth Forms */}
+        <Card className="w-full shadow-glow">
           <CardHeader className="text-center">
             <CardTitle>Welcome to Dukl</CardTitle>
             <CardDescription>Sign in to start your learning journey</CardDescription>
