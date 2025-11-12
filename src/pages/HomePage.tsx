@@ -1,168 +1,90 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
+import { Users, Music, Brain, Check } from "lucide-react";
 
 import TypingAnimation from "@/components/TypingAnimation";
 import { PricingSection } from "@/components/PricingSection";
+import { BackgroundOrbs } from "@/components/BackgroundOrbs";
+import { MountainSilhouette } from "@/components/MountainSilhouette";
+import { FeatureShowcaseCard } from "@/components/FeatureShowcaseCard";
+import { StickyInputBar } from "@/components/StickyInputBar";
+
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
 import flashShot from "@/assets/flash-feature.png";
 
 const HomePage = () => {
-  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
-
   useEffect(() => {
-    document.title = "DUKL Study – The Ultimate Studying Platform";
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisibleSections((prev) => new Set(prev).add(entry.target.id));
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    document.querySelectorAll('[data-fade-up]').forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
+    document.title = "DUKL Study – Study Smarter, Not Just Harder";
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <BackgroundOrbs />
+      <MountainSilhouette />
       <Navigation />
 
-      {/* Hero */}
-      <main className="flex-1">
-        <section className="relative pt-32 pb-20 text-center px-6">
-          <h1 className="text-6xl md:text-8xl font-light text-white mb-8 font-swiss">
-            Study Smarter, Not Just Harder.
-          </h1>
-          <p className="max-w-3xl mx-auto text-white/80 text-xl md:text-2xl font-light mb-12 leading-relaxed font-swiss">
-            Use Dukl to{' '}
-            <TypingAnimation 
-              phrases={[
-                "study with friends",
-                "listen to ad-free music",
-                "convert notes into quizzes"
-              ]}
-            />
-          </p>
-          <div className="mb-8">
-            <Button 
-              asChild 
-              size="lg" 
-              className="bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 px-10 py-8 text-xl font-medium shadow-2xl"
-            >
-              <Link to="/dashboard">I want to lock in →</Link>
-            </Button>
+      <main className="flex-1 relative z-10">
+        {/* Hero Section */}
+        <section className="relative pt-40 md:pt-48 pb-32 text-center px-6">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <h1 className="text-hero text-center font-swiss">
+              Study Smarter, Not Just Harder.
+            </h1>
+            <p className="text-body-primary text-center max-w-2xl mx-auto font-swiss">
+              Use Dukl to{' '}
+              <TypingAnimation 
+                phrases={[
+                  "study with friends",
+                  "listen to ad-free music",
+                  "convert notes into quizzes"
+                ]}
+              />
+            </p>
+            <div className="pt-4">
+              <Button 
+                asChild 
+                size="lg" 
+                className="bg-gradient-to-r from-saas-blue-dark to-saas-blue text-white font-semibold px-10 py-6 text-lg rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:scale-105 transition-all"
+              >
+                <Link to="/dashboard">I want to lock in →</Link>
+              </Button>
+            </div>
           </div>
-          <div className="text-white/60 tracking-widest text-sm font-swiss">TRUSTED BY SIGMAS</div>
         </section>
 
-        {/* Features with white section */}
-        <section className="py-20 font-swiss" style={{ background: 'hsl(var(--white-bg))' }}>
-          <div className="max-w-7xl mx-auto px-6 space-y-24">
-            {/* Room Feature */}
-            <div 
-              id="room-feature"
-              data-fade-up
-              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
-                visibleSections.has('room-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-            >
-              <div>
-                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Find Your Focus, Together.</h2>
-                <p className="text-lg leading-8 mb-8" style={{ color: 'hsl(0 0% 30%)' }}>
-                  Welcome to Dukl – where productivity meets friends.
-                  Join a study room with friends, achieve your goals through the power of shared focus.
-                </p>
-                <ul className="space-y-3 text-base" style={{ color: 'hsl(0 0% 25%)' }}>
-                  <li>• Track your time</li>
-                  <li>• chat with peers</li>
-                  <li>• build the discipline you need to succeed.</li>
-                </ul>
-              </div>
-              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  </div>
-                  <div className="rounded-lg overflow-hidden">
-                    <img src={roomShot} alt="DUKL study room UI screenshot" className="w-full h-auto" loading="lazy" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Playlist Feature */}
-            <div 
-              id="playlist-feature"
-              data-fade-up
-              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
-                visibleSections.has('playlist-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-            >
-              <div className="md:order-2">
-                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Never Break Focus Again.</h2>
-                <p className="text-lg leading-8 mb-8" style={{ color: 'hsl(0 0% 30%)' }}>
-                  The last tab you'll ever need for study music.
-                  Our Playlist Maker solves this by bringing YouTube's vast audio library directly to your study environment.
-                </p>
-                <ul className="space-y-3 text-base" style={{ color: 'hsl(0 0% 25%)' }}>
-                  <li>• Copy & Paste any YouTube music URL</li>
-                  <li>• Build & Organize your ideal study sequence</li>
-                  <li>• Press Play & Focus - control everything without leaving your workflow</li>
-                </ul>
-              </div>
-              <div className="md:order-1 max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  </div>
-                  <div className="rounded-lg overflow-hidden">
-                    <img src={playlistShot} alt="DUKL playlist maker UI screenshot" className="w-full h-auto" loading="lazy" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Flashcards Feature */}
-            <div 
-              id="flash-feature"
-              data-fade-up
-              className={`grid md:grid-cols-2 gap-12 items-center transition-all duration-1000 ${
-                visibleSections.has('flash-feature') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-            >
-              <div>
-                <h2 className="text-4xl md:text-5xl font-semibold mb-6" style={{ color: 'hsl(0 0% 10%)' }}>Transform Your Notes into Knowledge</h2>
-                <p className="text-lg leading-8 mb-6" style={{ color: 'hsl(0 0% 30%)' }}>
-                  Create. Review. Remember.
-                </p>
-                <p className="text-base leading-7" style={{ color: 'hsl(0 0% 25%)' }}>
-                  Flashcards that adapt to your learning pace. Build your deck once, and let our smart system handle the rest.
-                </p>
-              </div>
-              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                  </div>
-                  <div className="rounded-lg overflow-hidden">
-                    <img src={flashShot} alt="DUKL flashcards UI screenshot" className="w-full h-auto" loading="lazy" />
-                  </div>
-                </div>
-              </div>
+        {/* Feature Showcase Section */}
+        <section className="py-24 bg-white">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+              <FeatureShowcaseCard 
+                icon={<Users className="w-5 h-5" />}
+                label="Collaborative Focus"
+                exampleText="Join study rooms with friends in real-time. Track your time, chat with peers, and build the discipline you need to succeed."
+                screenshot={roomShot}
+              />
+              
+              <FeatureShowcaseCard 
+                icon={<Music className="w-5 h-5" />}
+                label="Distraction-Free Audio"
+                exampleText="Build playlists without leaving your workflow. Copy & paste any YouTube music URL and control everything from one place."
+                screenshot={playlistShot}
+              />
+              
+              <FeatureShowcaseCard 
+                icon={<Brain className="w-5 h-5" />}
+                label="AI-Powered Review"
+                exampleText="Transform notes into adaptive flashcards. Build your deck once, and let our smart system handle the rest."
+                screenshot={flashShot}
+              />
+              
+              <FeatureShowcaseCard 
+                icon={<Check className="w-5 h-5" />}
+                label="Smart Learning"
+                exampleText="AI-powered study materials that adapt to your learning pace. Get personalized quizzes, summaries, and study schedules."
+              />
             </div>
           </div>
         </section>
@@ -171,19 +93,23 @@ const HomePage = () => {
         <PricingSection />
 
         {/* Bottom CTA */}
-        <section className="text-center px-6 py-24 font-swiss">
-          <h2 className="text-5xl md:text-6xl font-light text-white mb-10 leading-tight">
-            Turn study anxiety into<br />confidence with Dukl.
-          </h2>
-          <Button 
-            asChild 
-            size="lg" 
-            className="bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 px-10 py-8 text-xl font-medium shadow-2xl"
-          >
-            <Link to="/dashboard">I want to lock in →</Link>
-          </Button>
+        <section className="text-center px-6 py-32 relative">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-5xl md:text-6xl font-bold text-saas-charcoal mb-10 leading-tight font-swiss">
+              Turn study anxiety into<br />confidence with Dukl.
+            </h2>
+            <Button 
+              asChild 
+              size="lg" 
+              className="bg-gradient-to-r from-saas-blue-dark to-saas-blue text-white font-semibold px-10 py-6 text-lg rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:scale-105 transition-all"
+            >
+              <Link to="/dashboard">I want to lock in →</Link>
+            </Button>
+          </div>
         </section>
       </main>
+
+      <StickyInputBar />
     </div>
   );
 };

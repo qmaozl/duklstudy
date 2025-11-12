@@ -57,6 +57,18 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // SaaS Design System Colors
+        'saas': {
+          'charcoal': '#0F172A',
+          'gray': '#475569',
+          'gray-dark': '#334155',
+          'gray-medium': '#64748B',
+          'gray-light': '#F1F5F9',
+          'gray-lighter': '#F8FAFC',
+          'blue': '#3B82F6',
+          'blue-dark': '#2563EB',
+          'border': '#E2E8F0',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

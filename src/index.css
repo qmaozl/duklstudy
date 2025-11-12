@@ -6,49 +6,53 @@
 
 @layer base {
   :root {
-    --background: 220 26% 14%;
-    --foreground: 220 15% 95%;
+    /* SaaS Light Theme - Primary Colors */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 222 47% 11%; /* Deep charcoal #0F172A */
 
-    --card: 220 20% 18%;
-    --card-foreground: 220 15% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 220 20% 18%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Space Theme Colors */
-    --primary: 260 100% 65%; /* Nebula Purple */
+    /* SaaS Blue Accent System */
+    --primary: 217 91% 60%; /* Vibrant blue #3B82F6 */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 260 85% 75%;
+    --primary-glow: 217 91% 60%;
 
-    --secondary: 200 100% 55%; /* Cosmic Blue */
+    --secondary: 215 20% 65%; /* Soft grey-blue */
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 15% 25%;
-    --muted-foreground: 220 15% 65%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 320 100% 60%; /* Aurora Pink */
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 259 94% 51%;
+    --border: 214 32% 91%; /* #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 
-    /* Space Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
-    --gradient-nebula: linear-gradient(135deg, hsl(260 100% 65%), hsl(320 100% 60%), hsl(200 100% 55%));
-    --gradient-space: linear-gradient(180deg, hsl(220 30% 10%), hsl(220 26% 14%), hsl(260 30% 20%));
-    --gradient-aurora: linear-gradient(90deg, hsl(200 100% 55%), hsl(260 100% 65%), hsl(320 100% 60%));
+    /* SaaS Gradient System */
+    --gradient-saas-sky: linear-gradient(180deg, hsl(200 100% 97%), hsl(300 100% 98%));
+    --gradient-saas-button: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 60%));
+    
+    /* Background gradient tokens */
+    --bg-gradient-top: 200 100% 97%; /* Pale sky blue #E0F2FE */
+    --bg-gradient-bottom: 300 100% 98%; /* Pale lavender #FDF2FB */
+    --mountain-silhouette: 215 16% 84%; /* Soft grey-blue #CBD5E1 */
 
     /* Shadows */
-    --shadow-soft: 0 2px 10px -2px hsl(var(--primary) / 0.1);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.15);
+    --shadow-soft: 0 2px 10px -2px rgba(0, 0, 0, 0.05);
+    --shadow-glow: 0 4px 14px rgba(37, 99, 235, 0.3);
 
-    /* Dukl Specific Colors */
+    /* Dukl Specific Colors (keep for dashboard) */
     --level-bronze: 30 100% 45%;
     --level-silver: 220 9% 66%;
     --level-gold: 45 100% 51%;
@@ -68,7 +72,7 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Animated background tokens */
+    /* Keep animated background tokens */
     --ocean-deep: 210 80% 22%;
     --ocean-mid: 210 70% 28%;
     --ocean-surface: 200 80% 40%;
@@ -142,7 +146,7 @@
 
   body {
     @apply bg-background text-foreground;
-    background: var(--gradient-space);
+    background: var(--gradient-saas-sky);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
@@ -155,42 +159,6 @@
   
   input:focus, textarea:focus, [contenteditable]:focus {
     caret-color: auto;
-  }
-
-  /* Space-themed background elements */
-  body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-      radial-gradient(circle at 20% 50%, hsl(260 100% 65% / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, hsl(320 100% 60% / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, hsl(200 100% 55% / 0.1) 0%, transparent 50%);
-    z-index: -1;
-    pointer-events: none;
-  }
-
-  /* Twinkling stars animation */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: 
-      radial-gradient(2px 2px at 20px 30px, hsl(0 0% 100% / 0.8), transparent),
-      radial-gradient(2px 2px at 40px 70px, hsl(0 0% 100% / 0.6), transparent),
-      radial-gradient(1px 1px at 90px 40px, hsl(0 0% 100% / 0.4), transparent),
-      radial-gradient(1px 1px at 130px 80px, hsl(0 0% 100% / 0.7), transparent);
-    background-repeat: repeat;
-    background-size: 200px 100px;
-    animation: twinkle 4s ease-in-out infinite alternate;
-    z-index: -1;
-    pointer-events: none;
   }
 }
 
@@ -456,5 +424,52 @@
     
     .font-geo {
       font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    }
+
+    /* SaaS Typography System */
+    .text-hero {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      color: #0F172A;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+    
+    .text-body-primary {
+      font-size: 1.125rem;
+      font-weight: 400;
+      color: #475569;
+      line-height: 1.7;
+    }
+    
+    .text-feature-label {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    
+    .text-example {
+      font-size: 0.95rem;
+      font-weight: 400;
+      color: #64748B;
+      font-style: italic;
+    }
+
+    /* Hover Lift Effect */
+    .hover-lift {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Subtle Pulse Animation */
+    @keyframes subtle-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+    .animate-subtle-pulse {
+      animation: subtle-pulse 2s ease-in-out infinite;
     }
   }
