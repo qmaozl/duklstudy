@@ -1,61 +1,60 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, type Location } from 'react-router-dom';
 
-export const PageTransition = ({ children }: { children: React.ReactNode }) => {
+interface PageTransitionProps {
+  renderRoutes: (location: Location) => React.ReactNode;
+}
+
+export const PageTransition = ({ renderRoutes }: PageTransitionProps) => {
   const location = useLocation();
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [displayLocation, setDisplayLocation] = useState(location);
-  const [previousPath, setPreviousPath] = useState<string | null>(null);
+  const [phase, setPhase] = useState<'idle' | 'out' | 'in'>('idle');
+  const [prevPath, setPrevPath] = useState<string>(location.pathname);
+
+  const DURATION = 500; // ms per half (fade-out, then fade-in)
 
   useEffect(() => {
-    // Check if transitioning from homepage to dashboard or vice versa
-    const isFromHomeToDashboard = previousPath === '/' && location.pathname !== '/';
-    const isFromDashboardToHome = previousPath !== '/' && previousPath !== null && location.pathname === '/';
-    
-    if (location.pathname !== displayLocation.pathname && (isFromHomeToDashboard || isFromDashboardToHome)) {
-      // Start fade out immediately
-      setIsTransitioning(true);
+    const isCrossingHomeBoundary =
+      (prevPath === '/' && location.pathname !== '/') ||
+      (prevPath !== '/' && location.pathname === '/');
 
-      // Wait for fade out to complete, then switch content
-      const switchContentTimer = setTimeout(() => {
-        setDisplayLocation(location);
-        // Start fade in after content switch
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 50);
-      }, 500); // Wait for fade out to complete
-
-      return () => {
-        clearTimeout(switchContentTimer);
-      };
-    } else {
-      // Instant update for other navigations
+    // No change or not our targeted transition: switch immediately
+    if (location.pathname === displayLocation.pathname || !isCrossingHomeBoundary) {
       setDisplayLocation(location);
-      setIsTransitioning(false);
+      setPhase('idle');
+      setPrevPath(location.pathname);
+      return;
     }
 
-    setPreviousPath(location.pathname);
-  }, [location, displayLocation, previousPath]);
+    // Phase 1: fade out current page with overlay fade-in
+    setPhase('out');
+    const outTimer = setTimeout(() => {
+      // Switch the content after first half
+      setDisplayLocation(location);
+      // Phase 2: fade in new page while overlay fades out
+      setPhase('in');
+      const inTimer = setTimeout(() => {
+        setPhase('idle');
+      }, DURATION);
+
+      setPrevPath(location.pathname);
+      return () => clearTimeout(inTimer);
+    }, DURATION);
+
+    return () => clearTimeout(outTimer);
+  }, [location, prevPath, displayLocation.pathname]);
+
+  const overlayOpacity = phase === 'idle' ? 0 : phase === 'out' ? 1 : 0;
+  const contentOpacity = phase === 'out' ? 0 : 1;
 
   return (
     <>
-      {/* Blue overlay that fades in/out */}
-      <div 
+      <div
         className="page-transition-overlay"
-        style={{
-          opacity: isTransitioning ? 1 : 0,
-          transition: 'opacity 0.5s ease-in-out'
-        }}
+        style={{ opacity: overlayOpacity, transition: `opacity ${DURATION}ms ease-in-out` }}
       />
-      
-      {/* Content that fades out/in */}
-      <div 
-        style={{ 
-          opacity: isTransitioning ? 0 : 1,
-          transition: 'opacity 0.5s ease-in-out'
-        }}
-      >
-        {children}
+      <div style={{ opacity: contentOpacity, transition: `opacity ${DURATION}ms ease-in-out` }}>
+        {renderRoutes(displayLocation)}
       </div>
     </>
   );
