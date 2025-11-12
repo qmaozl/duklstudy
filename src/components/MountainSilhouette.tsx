@@ -2,12 +2,12 @@ import React from 'react';
 
 export const MountainSilhouette = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 pointer-events-none z-0">
+    <div className="fixed bottom-0 left-0 right-0 pointer-events-none z-[5]">
       <svg
         viewBox="0 0 1200 300"
         preserveAspectRatio="none"
         className="w-full h-48 md:h-64"
-        style={{ opacity: 0.08 }}
+        style={{ opacity: 0.15 }}
       >
         <defs>
           <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">

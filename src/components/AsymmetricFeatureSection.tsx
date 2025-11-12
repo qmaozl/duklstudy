@@ -36,7 +36,7 @@ export const AsymmetricFeatureSection = () => {
         {/* Asymmetric Grid */}
         <div className="grid lg:grid-cols-2 gap-8 items-start">
           {/* Left: Large Blue Gradient Hero Card with Glassmorphism Chat */}
-          <div className="lg:row-span-2">
+          <div className="lg:row-span-2" data-tour="study-rooms">
             <div className="hero-feature-card group relative overflow-hidden rounded-3xl p-8 min-h-[600px] flex flex-col justify-between">
               {/* Gradient Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#3B82F6] via-[#2563EB] to-[#1D4ED8] opacity-90" />
@@ -132,7 +132,7 @@ export const AsymmetricFeatureSection = () => {
           {/* Right: Grid of Smaller White Cards */}
           <div className="space-y-6">
             {/* Playlist Maker Card */}
-            <Card className="feature-card group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-saas-blue/20">
+            <Card className="feature-card group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-saas-blue/20" data-tour="playlist">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -177,7 +177,7 @@ export const AsymmetricFeatureSection = () => {
             </Card>
 
             {/* Flashcards Card */}
-            <Card className="feature-card group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-saas-blue/20">
+            <Card className="feature-card group hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-saas-blue/20" data-tour="flashcards">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg">

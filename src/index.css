@@ -547,4 +547,50 @@
       pointer-events: none;
       z-index: 0;
     }
+
+    /* Dashboard Starry Background */
+    .dashboard-starry-bg {
+      background: linear-gradient(180deg, hsl(240 10% 8%) 0%, hsl(240 10% 3.9%) 100%);
+      position: relative;
+    }
+    
+    .dashboard-starry-bg::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        radial-gradient(1px 1px at 20% 30%, white, transparent),
+        radial-gradient(1px 1px at 60% 70%, white, transparent),
+        radial-gradient(2px 2px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(1px 1px at 90% 60%, white, transparent),
+        radial-gradient(2px 2px at 33% 80%, white, transparent),
+        radial-gradient(1px 1px at 15% 90%, white, transparent);
+      background-size: 200px 200px, 300px 300px, 400px 400px, 250px 250px, 350px 350px, 450px 450px, 280px 280px;
+      background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 40px, 200px 150px, 90px 220px;
+      opacity: 0.4;
+      animation: twinkleStars 60s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes twinkleStars {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Tour highlight effect */
+    .tour-highlight {
+      position: relative;
+      z-index: 102;
+      animation: tourPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes tourPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 hsl(var(--primary) / 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 20px hsl(var(--primary) / 0);
+      }
+    }
   }

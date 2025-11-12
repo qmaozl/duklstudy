@@ -12,6 +12,7 @@ import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { FAQSection } from "@/components/FAQSection";
 
 import { AsymmetricFeatureSection } from "@/components/AsymmetricFeatureSection";
+import { OnboardingTour } from "@/components/OnboardingTour";
 
 const HomePage = () => {
   const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
@@ -55,6 +56,7 @@ const HomePage = () => {
       <BackgroundOrbs />
       <MountainSilhouette />
       <Navigation />
+      <OnboardingTour />
 
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
@@ -86,13 +88,17 @@ const HomePage = () => {
         </section>
 
         {/* Asymmetric Feature Section */}
-        <AsymmetricFeatureSection />
+        <section id="features">
+          <AsymmetricFeatureSection />
+        </section>
 
         {/* Testimonials Section */}
         <TestimonialsSection />
 
         {/* Pricing Section */}
-        <PricingSection />
+        <section id="pricing">
+          <PricingSection />
+        </section>
 
         {/* FAQ Section */}
         <FAQSection />
