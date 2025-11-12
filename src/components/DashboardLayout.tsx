@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
 import { SidebarProvider, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Crown, Menu, Home } from "lucide-react";
+import { Crown, Menu, Home, House } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo-new.png";
 
@@ -38,15 +38,29 @@ function DashboardContent({ children }: { children: ReactNode }) {
           </div>
           
           <div className="flex items-center gap-2">
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Link to="/">
+                <House className="h-4 w-4" />
+                <span className="hidden sm:inline">Home</span>
+              </Link>
+            </Button>
+
             {!isDashboardPage && (
               <Button
+                asChild
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/dashboard')}
                 className="flex items-center gap-2"
               >
-                <Home className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
+                <Link to="/dashboard">
+                  <Home className="h-4 w-4" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </Link>
               </Button>
             )}
             
