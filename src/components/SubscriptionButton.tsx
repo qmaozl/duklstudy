@@ -40,7 +40,7 @@ export const SubscriptionButton = () => {
     <Button 
       onClick={handleSubscribe}
       variant="ghost"
-      className="flex items-center gap-2 text-white/90 hover:text-white hover:bg-white/10 font-medium touch-manipulation min-h-[44px] min-w-[44px] relative z-50"
+      className="flex items-center gap-2 text-white/80 hover:text-white hover:bg-white/10 font-medium transition-all hover:scale-105 touch-manipulation min-h-[44px] min-w-[44px] relative z-50"
     >
       <Crown className="h-4 w-4" />
       {isPro ? 'Pro' : 'Upgrade'}

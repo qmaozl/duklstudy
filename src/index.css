@@ -447,8 +447,13 @@
     50% { transform: translateY(-2px); }
   }
 
-  /* Geometric Sans utility */
+  /* Swiss-style font utility */
   @layer utilities {
+    .font-swiss {
+      font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      letter-spacing: -0.02em;
+    }
+    
     .font-geo {
       font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     }

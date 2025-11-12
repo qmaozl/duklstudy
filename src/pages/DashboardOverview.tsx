@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuthPrompt } from '@/contexts/AuthPromptContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const COLORS = ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#ef4444'
 
 const DashboardOverview = () => {
   const { user, loading } = useAuth();
+  const { showAuthPrompt } = useAuthPrompt();
   const navigate = useNavigate();
   const [stats, setStats] = useState<StudyStats>({
     totalHoursThisMonth: 0,
@@ -261,10 +263,6 @@ const DashboardOverview = () => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
   const featureBlocks = [
     {
       title: 'Study Group',
@@ -292,6 +290,14 @@ const DashboardOverview = () => {
     }
   ];
 
+  const handleFeatureClick = (path: string) => {
+    if (!user) {
+      showAuthPrompt();
+      return;
+    }
+    navigate(path);
+  };
+
   return (
     <DashboardLayout>
       <div className="p-6 space-y-6">
@@ -301,7 +307,7 @@ const DashboardOverview = () => {
             <Card
               key={index}
               className="relative overflow-hidden cursor-pointer group hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-2xl"
-              onClick={() => navigate(feature.path)}
+              onClick={() => handleFeatureClick(feature.path)}
             >
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-50"
@@ -316,6 +322,16 @@ const DashboardOverview = () => {
           ))}
         </div>
 
+        {!user && (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground mb-4">
+              Sign in to track your study progress and unlock all features
+            </p>
+          </div>
+        )}
+
+        {user && (
+          <>
         {/* Goals Section */}
         <Card>
           <CardHeader>
@@ -491,6 +507,8 @@ const DashboardOverview = () => {
             </ScrollArea>
           </CardContent>
         </Card>
+        </>
+        )}
       </div>
     </DashboardLayout>
   );

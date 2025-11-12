@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
 
 import TypingAnimation from "@/components/TypingAnimation";
+import { PricingSection } from "@/components/PricingSection";
 import roomShot from "@/assets/room-feature.png";
 import playlistShot from "@/assets/playlist-feature.png";
 import flashShot from "@/assets/flash-feature.png";
@@ -37,10 +38,10 @@ const HomePage = () => {
       {/* Hero */}
       <main className="flex-1">
         <section className="relative pt-32 pb-20 text-center px-6">
-          <h1 className="text-6xl md:text-8xl font-light text-white mb-8">
-            The Ultimate Studying Platform
+          <h1 className="text-6xl md:text-8xl font-light text-white mb-8 font-swiss">
+            Study Smarter, Not Just Harder.
           </h1>
-          <p className="max-w-3xl mx-auto text-white/80 text-xl md:text-2xl font-extralight mb-12 leading-relaxed">
+          <p className="max-w-3xl mx-auto text-white/80 text-xl md:text-2xl font-light mb-12 leading-relaxed font-swiss">
             Use Dukl to{' '}
             <TypingAnimation 
               phrases={[
@@ -51,15 +52,19 @@ const HomePage = () => {
             />
           </p>
           <div className="mb-8">
-            <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
-              <Link to="/auth">I want to lock in→</Link>
+            <Button 
+              asChild 
+              size="lg" 
+              className="bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 px-10 py-8 text-xl font-medium shadow-2xl"
+            >
+              <Link to="/auth">I want to lock in →</Link>
             </Button>
           </div>
-          <div className="text-white/60 tracking-widest text-sm">TRUSTED BY SIGMAS</div>
+          <div className="text-white/60 tracking-widest text-sm font-swiss">TRUSTED BY SIGMAS</div>
         </section>
 
         {/* Features with white section */}
-        <section className="py-20" style={{ background: 'hsl(var(--white-bg))' }}>
+        <section className="py-20 font-swiss" style={{ background: 'hsl(var(--white-bg))' }}>
           <div className="max-w-7xl mx-auto px-6 space-y-24">
             {/* Room Feature */}
             <div 
@@ -162,13 +167,20 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* Pricing Section */}
+        <PricingSection />
+
         {/* Bottom CTA */}
-        <section className="text-center px-6 py-24">
+        <section className="text-center px-6 py-24 font-swiss">
           <h2 className="text-5xl md:text-6xl font-light text-white mb-10 leading-tight">
             Turn study anxiety into<br />confidence with Dukl.
           </h2>
-          <Button asChild size="lg" className="bg-white text-black hover:bg-white/90 px-10 py-8 text-xl font-medium">
-            <Link to="/auth">I want to lock in→</Link>
+          <Button 
+            asChild 
+            size="lg" 
+            className="bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 px-10 py-8 text-xl font-medium shadow-2xl"
+          >
+            <Link to="/auth">I want to lock in →</Link>
           </Button>
         </section>
       </main>
