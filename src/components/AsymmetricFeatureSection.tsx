@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, Music, BookOpen } from 'lucide-react';
@@ -24,8 +24,41 @@ const activeUsers = [
 ];
 
 export const AsymmetricFeatureSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (sectionRef.current) {
+        const rect = sectionRef.current.getBoundingClientRect();
+        const sectionTop = rect.top;
+        const sectionHeight = rect.height;
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate scroll progress through the section
+        // Range: -1 (before entering) to 1 (after leaving)
+        const progress = (viewportHeight - sectionTop) / (viewportHeight + sectionHeight);
+        setScrollY(progress);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial call
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Calculate parallax offsets based on scroll progress
+  const getParallaxStyle = (speed: number) => {
+    const offset = (scrollY - 0.5) * speed * 100;
+    return {
+      transform: `translateY(${-offset}px)`,
+      transition: 'transform 0.1s ease-out'
+    };
+  };
+
   return (
-    <section className="py-32 font-swiss bg-white">
+    <section ref={sectionRef} className="py-32 font-swiss bg-white">
       <div className="max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
@@ -40,7 +73,7 @@ export const AsymmetricFeatureSection = () => {
         {/* Asymmetric Grid */}
         <div className="grid lg:grid-cols-2 gap-8 items-start">
           {/* Left: Large Blue Gradient Hero Card with Glassmorphism Chat */}
-          <div className="lg:row-span-2" data-tour="study-rooms">
+          <div className="lg:row-span-2" data-tour="study-rooms" style={getParallaxStyle(0.3)}>
             <div className="hero-feature-card group relative overflow-hidden rounded-3xl p-8 min-h-[600px] flex flex-col justify-between">
               {/* Gradient Background */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#3B82F6] via-[#2563EB] to-[#1D4ED8] opacity-90" />
@@ -136,7 +169,11 @@ export const AsymmetricFeatureSection = () => {
           {/* Right: Grid of Smaller White Cards */}
           <div className="space-y-6">
             {/* Playlist Maker Card */}
-            <div className="feature-card relative overflow-hidden rounded-2xl border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 group" data-tour="playlist">
+            <div 
+              className="feature-card relative overflow-hidden rounded-2xl border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 group" 
+              data-tour="playlist"
+              style={getParallaxStyle(0.5)}
+            >
               {/* Screenshot Background - Top Half */}
               <div className="relative h-48 overflow-hidden">
                 <img 
@@ -171,7 +208,11 @@ export const AsymmetricFeatureSection = () => {
             </div>
 
             {/* Flashcards Card */}
-            <div className="feature-card relative overflow-hidden rounded-2xl border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 group" data-tour="flashcards">
+            <div 
+              className="feature-card relative overflow-hidden rounded-2xl border-2 border-border shadow-lg hover:shadow-2xl transition-all duration-300 group" 
+              data-tour="flashcards"
+              style={getParallaxStyle(0.7)}
+            >
               {/* Screenshot Background - Top Half */}
               <div className="relative h-48 overflow-hidden">
                 <img 
