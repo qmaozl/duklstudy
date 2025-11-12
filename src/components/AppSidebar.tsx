@@ -1,6 +1,7 @@
 import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, Settings as SettingsIcon, FileText, Library, Music } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthPrompt } from "@/contexts/AuthPromptContext";
 import {
   Sidebar,
   SidebarContent,
@@ -32,13 +33,30 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
-  const { subscription } = useAuth();
+  const { user, subscription } = useAuth();
+  const { showAuthPrompt } = useAuthPrompt();
   const currentPath = location.pathname;
   const collapsed = state === "collapsed";
 
   const isActive = (path: string) => {
     if (path === "/") return currentPath === "/";
     return currentPath.startsWith(path);
+  };
+
+  const handleNavigation = (path: string) => {
+    // Dashboard is accessible to everyone
+    if (path === "/dashboard") {
+      navigate(path);
+      return;
+    }
+    
+    // Other features require login
+    if (!user) {
+      showAuthPrompt();
+      return;
+    }
+    
+    navigate(path);
   };
 
   const isPro = subscription?.subscription_tier === 'pro';
@@ -67,7 +85,7 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    onClick={() => navigate(item.url)}
+                    onClick={() => handleNavigation(item.url)}
                     isActive={isActive(item.url)}
                     className="w-full"
                   >

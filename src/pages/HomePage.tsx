@@ -57,7 +57,7 @@ const HomePage = () => {
               size="lg" 
               className="bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 px-10 py-8 text-xl font-medium shadow-2xl"
             >
-              <Link to="/auth">I want to lock in →</Link>
+              <Link to="/dashboard">I want to lock in →</Link>
             </Button>
           </div>
           <div className="text-white/60 tracking-widest text-sm font-swiss">TRUSTED BY SIGMAS</div>
@@ -180,7 +180,7 @@ const HomePage = () => {
             size="lg" 
             className="bg-white text-black hover:bg-white/90 hover:scale-105 transition-all duration-300 px-10 py-8 text-xl font-medium shadow-2xl"
           >
-            <Link to="/auth">I want to lock in →</Link>
+            <Link to="/dashboard">I want to lock in →</Link>
           </Button>
         </section>
       </main>
