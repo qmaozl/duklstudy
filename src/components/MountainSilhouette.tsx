@@ -7,7 +7,7 @@ export const MountainSilhouette = () => {
         viewBox="0 0 1200 300"
         preserveAspectRatio="none"
         className="w-full h-48 md:h-64"
-        style={{ opacity: 0.15 }}
+        style={{ opacity: 0.25 }}
       >
         <defs>
           <linearGradient id="mountainGradient" x1="0%" y1="0%" x2="0%" y2="100%">
