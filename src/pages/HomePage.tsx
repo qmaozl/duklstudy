@@ -60,8 +60,8 @@ const HomePage = () => {
 
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="relative pt-40 md:pt-48 pb-32 text-center px-6">
-          <div className="max-w-4xl mx-auto space-y-8">
+        <section className="relative pt-40 md:pt-48 pb-32 text-center px-6 circular-bleed-bg">
+          <div className="max-w-4xl mx-auto space-y-8 relative z-10">
             <h1 className="text-hero text-center font-swiss">
               Study Smarter, Not Just Harder.
             </h1>
@@ -79,7 +79,7 @@ const HomePage = () => {
               <Button 
                 asChild 
                 size="lg" 
-                className="bg-gradient-to-r from-saas-blue-dark to-saas-blue text-white font-semibold px-10 py-6 text-lg rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:scale-105 transition-all"
+                className="glow-button bg-gradient-to-r from-saas-blue-dark to-saas-blue text-white font-semibold px-10 py-6 text-lg rounded-xl"
               >
                 <Link to="/dashboard">I want to lock in →</Link>
               </Button>
@@ -110,8 +110,8 @@ const HomePage = () => {
                   <li>• build the discipline you need to succeed.</li>
                 </ul>
               </div>
-              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+              <div className="max-w-lg mx-auto">
+                <div className="glow-card rounded-xl p-3" style={{ backgroundColor: '#1D1D2B' }}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -144,8 +144,8 @@ const HomePage = () => {
                   <li>• Press Play & Focus - control everything without leaving your workflow</li>
                 </ul>
               </div>
-              <div className="md:order-1 max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+              <div className="md:order-1 max-w-lg mx-auto">
+                <div className="glow-card rounded-xl p-3" style={{ backgroundColor: '#1D1D2B' }}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -175,8 +175,8 @@ const HomePage = () => {
                   Flashcards that adapt to your learning pace. Build your deck once, and let our smart system handle the rest.
                 </p>
               </div>
-              <div className="max-w-lg mx-auto transform transition-transform duration-700 hover:scale-105">
-                <div className="rounded-xl p-3 shadow-2xl" style={{ backgroundColor: '#1D1D2B' }}>
+              <div className="max-w-lg mx-auto">
+                <div className="glow-card rounded-xl p-3" style={{ backgroundColor: '#1D1D2B' }}>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-3 h-3 rounded-full bg-red-500"></div>
                     <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -209,7 +209,7 @@ const HomePage = () => {
             <Button 
               asChild 
               size="lg" 
-              className="bg-gradient-to-r from-saas-blue-dark to-saas-blue text-white font-semibold px-10 py-6 text-lg rounded-xl shadow-[0_4px_14px_rgba(37,99,235,0.3)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] hover:scale-105 transition-all"
+              className="glow-button bg-gradient-to-r from-saas-blue-dark to-saas-blue text-white font-semibold px-10 py-6 text-lg rounded-xl"
             >
               <Link to="/dashboard">I want to lock in →</Link>
             </Button>
