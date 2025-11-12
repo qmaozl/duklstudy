@@ -15,19 +15,19 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
     if (location.pathname !== displayLocation.pathname && (isFromHomeToDashboard || isFromDashboardToHome)) {
       setIsTransitioning(true);
 
-      // Start transition
-      const transitionTimer = setTimeout(() => {
+      // Start fade out
+      const fadeOutTimer = setTimeout(() => {
         setDisplayLocation(location);
-      }, 200); // Half of transition duration
+      }, 400); // Fade out duration
 
-      // End transition
-      const endTimer = setTimeout(() => {
+      // Complete fade in
+      const fadeInTimer = setTimeout(() => {
         setIsTransitioning(false);
-      }, 400);
+      }, 800); // Total transition time
 
       return () => {
-        clearTimeout(transitionTimer);
-        clearTimeout(endTimer);
+        clearTimeout(fadeOutTimer);
+        clearTimeout(fadeInTimer);
       };
     } else {
       // Instant update for other navigations
@@ -41,11 +41,21 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       {isTransitioning && (
-        <div className="page-transition-overlay slide-in" />
+        <div className="page-transition-overlay animate-fade-in" 
+          style={{ 
+            animation: 'fadeIn 0.4s ease-in-out forwards'
+          }}
+        />
       )}
-      <div className={isTransitioning ? 'opacity-0' : 'opacity-100 transition-opacity duration-200'}>
+      <div 
+        className="transition-opacity duration-500"
+        style={{ 
+          opacity: isTransitioning ? 0 : 1 
+        }}
+      >
         {children}
       </div>
     </>
   );
 };
+
