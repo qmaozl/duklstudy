@@ -203,17 +203,17 @@ const App = () => {
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <AuthProvider>
-        <AuthPromptProvider>
           <TimerProvider>
             <MediaPlayerProvider>
               <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter basename={getBasename()}>
-                <RedirectHandler />
-                {/* Use mobile audio player on mobile devices, YouTube iframe on desktop */}
-                <MediaPlayerComponent />
-                <FloatingComponents />
+                <Toaster />
+                <Sonner />
+                <BrowserRouter basename={getBasename()}>
+                  <AuthPromptProvider>
+                    <RedirectHandler />
+                    {/* Use mobile audio player on mobile devices, YouTube iframe on desktop */}
+                    <MediaPlayerComponent />
+                    <FloatingComponents />
                 <Routes>
                   {/* Landing page at root */}
                   <Route path="/" element={<HomePage />} />
@@ -243,11 +243,11 @@ const App = () => {
                   <Route path="/shared-playlist/:shareId" element={<SharedPlaylist />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </AuthPromptProvider>
               </BrowserRouter>
             </TooltipProvider>
           </MediaPlayerProvider>
         </TimerProvider>
-        </AuthPromptProvider>
       </AuthProvider>
     </ThemeProvider>
   );
