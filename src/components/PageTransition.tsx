@@ -14,6 +14,9 @@ export const PageTransition = ({ renderRoutes }: PageTransitionProps) => {
   const DURATION = 500; // ms per half (fade-out, then fade-in)
 
   useEffect(() => {
+    let outTimer: number | undefined;
+    let inTimer: number | undefined;
+
     const isCrossingHomeBoundary =
       (prevPath === '/' && location.pathname !== '/') ||
       (prevPath !== '/' && location.pathname === '/');
@@ -28,21 +31,30 @@ export const PageTransition = ({ renderRoutes }: PageTransitionProps) => {
 
     // Phase 1: fade out current page with overlay fade-in
     setPhase('out');
-    const outTimer = setTimeout(() => {
+    outTimer = window.setTimeout(() => {
       // Switch the content after first half
       setDisplayLocation(location);
       // Phase 2: fade in new page while overlay fades out
       setPhase('in');
-      const inTimer = setTimeout(() => {
+      inTimer = window.setTimeout(() => {
         setPhase('idle');
       }, DURATION);
 
       setPrevPath(location.pathname);
-      return () => clearTimeout(inTimer);
     }, DURATION);
 
-    return () => clearTimeout(outTimer);
+    return () => {
+      if (outTimer) clearTimeout(outTimer);
+      if (inTimer) clearTimeout(inTimer);
+    };
   }, [location, prevPath, displayLocation.pathname]);
+
+  // Safety: never leave overlay stuck if timers are interrupted
+  useEffect(() => {
+    if (phase === 'idle') return;
+    const watchdog = window.setTimeout(() => setPhase('idle'), DURATION * 3);
+    return () => clearTimeout(watchdog);
+  }, [phase]);
 
   const overlayOpacity = phase === 'idle' ? 0 : phase === 'out' ? 1 : 0;
   const contentOpacity = phase === 'out' ? 0 : 1;
