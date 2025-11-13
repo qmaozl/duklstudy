@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -31,72 +32,103 @@ const tourSteps: TourStep[] = [
   }
 ];
 
+const findFirstAvailableStep = (): number => {
+  for (let i = 0; i < tourSteps.length; i++) {
+    if (document.querySelector(tourSteps[i].target)) return i;
+  }
+  return -1;
+};
+
 export const OnboardingTour = () => {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const [arrowPosition, setArrowPosition] = useState('top');
+  const location = useLocation();
 
   useEffect(() => {
-    // Check if user has seen the tour
     const hasSeenTour = localStorage.getItem('dukl-tour-completed');
-    if (!hasSeenTour) {
-      // Wait a bit for page to load, then start tour
-      const timer = setTimeout(() => {
+    if (hasSeenTour) return;
+
+    const timer = window.setTimeout(() => {
+      const idx = findFirstAvailableStep();
+      if (idx >= 0) {
+        setCurrentStep(idx);
         setIsActive(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+      } else {
+        setIsActive(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!isActive) return;
 
+    const ensureValidStep = () => {
+      const idx = findFirstAvailableStep();
+      if (idx === -1) {
+        setIsActive(false);
+        return false;
+      }
+      if (idx !== currentStep) {
+        setCurrentStep(idx);
+        return false;
+      }
+      return true;
+    };
+
+    if (!ensureValidStep()) return;
+
     const updatePosition = () => {
       const step = tourSteps[currentStep];
-      const element = document.querySelector(step.target);
-      
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        const scrollY = window.scrollY;
-        const scrollX = window.scrollX;
-        
-        let top = 0;
-        let left = 0;
-        let arrow = 'top';
+      const element = document.querySelector(step.target) as HTMLElement | null;
 
-        switch (step.position) {
-          case 'right':
-            top = rect.top + scrollY + rect.height / 2 - 100;
-            left = rect.right + scrollX + 20;
-            arrow = 'left';
-            break;
-          case 'bottom':
-            top = rect.bottom + scrollY + 20;
-            left = rect.left + scrollX + rect.width / 2 - 160;
-            arrow = 'top';
-            break;
-          case 'left':
-            top = rect.top + scrollY + rect.height / 2 - 100;
-            left = rect.left + scrollX - 340;
-            arrow = 'right';
-            break;
-          case 'top':
-            top = rect.top + scrollY - 220;
-            left = rect.left + scrollX + rect.width / 2 - 160;
-            arrow = 'bottom';
-            break;
-        }
-
-        setTooltipPosition({ top, left });
-        setArrowPosition(arrow);
-
-        // Highlight the target element
-        element.classList.add('tour-highlight');
-        
-        // Scroll element into view
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (!element) {
+        ensureValidStep();
+        return;
       }
+
+      const rect = element.getBoundingClientRect();
+      const scrollY = window.scrollY;
+      const scrollX = window.scrollX;
+
+      let top = 0;
+      let left = 0;
+      let arrow = 'top';
+
+      switch (step.position) {
+        case 'right':
+          top = rect.top + scrollY + rect.height / 2 - 100;
+          left = rect.right + scrollX + 20;
+          arrow = 'left';
+          break;
+        case 'bottom':
+          top = rect.bottom + scrollY + 20;
+          left = rect.left + scrollX + rect.width / 2 - 160;
+          arrow = 'top';
+          break;
+        case 'left':
+          top = rect.top + scrollY + rect.height / 2 - 100;
+          left = rect.left + scrollX - 340;
+          arrow = 'right';
+          break;
+        case 'top':
+          top = rect.top + scrollY - 220;
+          left = rect.left + scrollX + rect.width / 2 - 160;
+          arrow = 'bottom';
+          break;
+      }
+
+      setTooltipPosition({ top, left });
+      setArrowPosition(arrow);
+
+      // Highlight the target element
+      element.classList.add('tour-highlight');
+
+      // Scroll element into view
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     updatePosition();
@@ -148,7 +180,7 @@ export const OnboardingTour = () => {
   return (
     <>
       {/* Overlay */}
-      <div className="fixed inset-0 bg-black/60 z-[100] animate-in fade-in duration-300" />
+      <div className="fixed inset-0 bg-black/60 z-[100] animate-in fade-in duration-300" onClick={completeTour} role="button" aria-label="Close tour overlay" />
       
       {/* Tooltip */}
       <div
