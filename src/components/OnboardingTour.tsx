@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { X, ChevronRight, ChevronLeft } from 'lucide-react';
@@ -32,9 +32,19 @@ const tourSteps: TourStep[] = [
   }
 ];
 
+const isElementVisible = (el: Element | null): el is HTMLElement => {
+  if (!el || !(el as HTMLElement).getClientRects) return false;
+  const rects = (el as HTMLElement).getClientRects();
+  if (!rects || rects.length === 0) return false;
+  const style = window.getComputedStyle(el as HTMLElement);
+  if (style.visibility === 'hidden' || style.display === 'none') return false;
+  return true;
+};
+
 const findFirstAvailableStep = (): number => {
   for (let i = 0; i < tourSteps.length; i++) {
-    if (document.querySelector(tourSteps[i].target)) return i;
+    const el = document.querySelector(tourSteps[i].target);
+    if (isElementVisible(el)) return i;
   }
   return -1;
 };
@@ -45,25 +55,32 @@ export const OnboardingTour = () => {
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const [arrowPosition, setArrowPosition] = useState('top');
   const location = useLocation();
+  const scrolledRef = useRef(false);
+  const watchdogTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
+useEffect(() => {
     const hasSeenTour = localStorage.getItem('dukl-tour-completed');
     if (hasSeenTour) return;
 
     const timer = window.setTimeout(() => {
-      const idx = findFirstAvailableStep();
-      if (idx >= 0) {
-        setCurrentStep(idx);
-        setIsActive(true);
-      } else {
-        setIsActive(false);
-      }
-    }, 500);
+      // Ensure layout is stable before checking
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const idx = findFirstAvailableStep();
+          if (idx >= 0) {
+            setCurrentStep(idx);
+            setIsActive(true);
+          } else {
+            setIsActive(false);
+          }
+        });
+      });
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-  useEffect(() => {
+useEffect(() => {
     if (!isActive) return;
 
     const ensureValidStep = () => {
@@ -81,18 +98,18 @@ export const OnboardingTour = () => {
 
     if (!ensureValidStep()) return;
 
+    scrolledRef.current = false;
+
     const updatePosition = () => {
       const step = tourSteps[currentStep];
       const element = document.querySelector(step.target) as HTMLElement | null;
 
-      if (!element) {
+      if (!isElementVisible(element)) {
         ensureValidStep();
         return;
       }
 
-      const rect = element.getBoundingClientRect();
-      const scrollY = window.scrollY;
-      const scrollX = window.scrollX;
+      const rect = (element as HTMLElement).getBoundingClientRect();
 
       let top = 0;
       let left = 0;
@@ -100,35 +117,46 @@ export const OnboardingTour = () => {
 
       switch (step.position) {
         case 'right':
-          top = rect.top + scrollY + rect.height / 2 - 100;
-          left = rect.right + scrollX + 20;
+          top = rect.top + rect.height / 2 - 100;
+          left = rect.right + 20;
           arrow = 'left';
           break;
         case 'bottom':
-          top = rect.bottom + scrollY + 20;
-          left = rect.left + scrollX + rect.width / 2 - 160;
+          top = rect.bottom + 20;
+          left = rect.left + rect.width / 2 - 160;
           arrow = 'top';
           break;
         case 'left':
-          top = rect.top + scrollY + rect.height / 2 - 100;
-          left = rect.left + scrollX - 340;
+          top = rect.top + rect.height / 2 - 100;
+          left = rect.left - 340;
           arrow = 'right';
           break;
         case 'top':
-          top = rect.top + scrollY - 220;
-          left = rect.left + scrollX + rect.width / 2 - 160;
+          top = rect.top - 220;
+          left = rect.left + rect.width / 2 - 160;
           arrow = 'bottom';
           break;
       }
+
+      const TOOLTIP_WIDTH = 320; // w-80
+      const TOOLTIP_HEIGHT = 220; // approx
+      const vpW = window.innerWidth;
+      const vpH = window.innerHeight;
+
+      left = Math.max(8, Math.min(left, vpW - TOOLTIP_WIDTH - 8));
+      top = Math.max(8, Math.min(top, vpH - TOOLTIP_HEIGHT - 8));
 
       setTooltipPosition({ top, left });
       setArrowPosition(arrow);
 
       // Highlight the target element
-      element.classList.add('tour-highlight');
+      (element as HTMLElement).classList.add('tour-highlight');
 
-      // Scroll element into view
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Scroll element into view only once per step
+      if (!scrolledRef.current) {
+        (element as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' });
+        scrolledRef.current = true;
+      }
     };
 
     updatePosition();
@@ -139,12 +167,36 @@ export const OnboardingTour = () => {
       const step = tourSteps[currentStep];
       const element = document.querySelector(step.target);
       if (element) {
-        element.classList.remove('tour-highlight');
+        (element as HTMLElement).classList.remove('tour-highlight');
       }
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
   }, [isActive, currentStep]);
+
+  useEffect(() => {
+    if (!isActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        completeTour();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    if (watchdogTimerRef.current) {
+      clearTimeout(watchdogTimerRef.current);
+    }
+    watchdogTimerRef.current = window.setTimeout(() => {
+      const idx = findFirstAvailableStep();
+      if (idx === -1) completeTour();
+    }, 8000);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      if (watchdogTimerRef.current) {
+        clearTimeout(watchdogTimerRef.current);
+        watchdogTimerRef.current = null;
+      }
+    };
+  }, [isActive]);
 
   const handleNext = () => {
     if (currentStep < tourSteps.length - 1) {
@@ -160,15 +212,20 @@ export const OnboardingTour = () => {
     }
   };
 
-  const completeTour = () => {
+const completeTour = () => {
     localStorage.setItem('dukl-tour-completed', 'true');
     setIsActive(false);
+    if (watchdogTimerRef.current) {
+      clearTimeout(watchdogTimerRef.current);
+      watchdogTimerRef.current = null;
+    }
+    scrolledRef.current = false;
     
     // Remove highlights
     tourSteps.forEach(step => {
       const element = document.querySelector(step.target);
       if (element) {
-        element.classList.remove('tour-highlight');
+        (element as HTMLElement).classList.remove('tour-highlight');
       }
     });
   };
@@ -181,10 +238,15 @@ export const OnboardingTour = () => {
     <>
       {/* Overlay */}
       <div className="fixed inset-0 bg-black/60 z-[100] animate-in fade-in duration-300" onClick={completeTour} role="button" aria-label="Close tour overlay" />
+
+      {/* Always-accessible Skip button */}
+      <div className="fixed bottom-6 right-6 z-[120]">
+        <Button variant="outline" size="sm" onClick={completeTour}>Skip tour</Button>
+      </div>
       
       {/* Tooltip */}
       <div
-        className="fixed z-[101] w-80 animate-in zoom-in-95 duration-300"
+        className="fixed z-[120] w-80 animate-in zoom-in-95 duration-300"
         style={{
           top: `${tooltipPosition.top}px`,
           left: `${tooltipPosition.left}px`,
