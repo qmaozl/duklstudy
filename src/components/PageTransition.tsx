@@ -49,10 +49,12 @@ export const PageTransition = ({ renderRoutes }: PageTransitionProps) => {
 
   return (
     <>
-      <div
-        className="page-transition-overlay"
-        style={{ opacity: overlayOpacity, transition: `opacity ${DURATION}ms ease-in-out` }}
-      />
+      {phase !== 'idle' && (
+        <div
+          className="page-transition-overlay"
+          style={{ opacity: overlayOpacity, transition: `opacity ${DURATION}ms ease-in-out` }}
+        />
+      )}
       <div style={{ opacity: contentOpacity, transition: `opacity ${DURATION}ms ease-in-out` }}>
         {renderRoutes(displayLocation)}
       </div>
