@@ -49,6 +49,22 @@ const findFirstAvailableStep = (): number => {
   return -1;
 };
 
+const getNextVisibleStep = (fromIndex: number): number => {
+  for (let i = fromIndex + 1; i < tourSteps.length; i++) {
+    const el = document.querySelector(tourSteps[i].target);
+    if (isElementVisible(el)) return i;
+  }
+  return -1;
+};
+
+const getPrevVisibleStep = (fromIndex: number): number => {
+  for (let i = fromIndex - 1; i >= 0; i--) {
+    const el = document.querySelector(tourSteps[i].target);
+    if (isElementVisible(el)) return i;
+  }
+  return -1;
+};
+
 export const OnboardingTour = () => {
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -199,16 +215,20 @@ useEffect(() => {
   }, [isActive]);
 
   const handleNext = () => {
-    if (currentStep < tourSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+    const nextIdx = getNextVisibleStep(currentStep);
+    if (nextIdx !== -1) {
+      scrolledRef.current = false;
+      setCurrentStep(nextIdx);
     } else {
       completeTour();
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    const prevIdx = getPrevVisibleStep(currentStep);
+    if (prevIdx !== -1) {
+      scrolledRef.current = false;
+      setCurrentStep(prevIdx);
     }
   };
 
