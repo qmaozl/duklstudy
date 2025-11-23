@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useTimer } from '@/hooks/useTimer';
 import StudyModeSelector, { StudyMode } from '@/components/StudyModeSelector';
 import FullscreenStudyMode from '@/components/FullscreenStudyMode';
+import { AmbientSoundSelector } from '@/components/AmbientSoundSelector';
 
 const FocusTimer = () => {
   const { user, loading } = useAuth();
@@ -97,9 +98,13 @@ const FocusTimer = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 space-y-6 mt-16 circular-bleed-bg min-h-screen">
-        {/* Timer Card */}
-        <Card className={cn("transition-all duration-300 shadow-soft max-w-2xl mx-auto", getTimerBorderColor())}>
+      <div className="p-6 space-y-6 mt-16 min-h-screen">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Ambient Sounds */}
+          <AmbientSoundSelector />
+
+          {/* Timer Card */}
+          <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
           <CardHeader className="text-center pb-2">
             <CardTitle className="flex items-center justify-center gap-2 text-2xl">
               <Clock className="h-6 w-6" />
@@ -189,6 +194,7 @@ const FocusTimer = () => {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Fullscreen Study Mode */}
