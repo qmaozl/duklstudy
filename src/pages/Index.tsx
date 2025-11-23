@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { Gift, Sparkles, Loader2, Zap, Users, Music } from 'lucide-react';
+import { Gift, Sparkles, Loader2, Zap, Users, Music, Clock, TrendingUp, Calendar as CalendarIcon, BookOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import UserProfile from '@/components/UserProfile';
@@ -11,12 +11,100 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
+
+interface StudyStats {
+  totalHoursThisMonth: number;
+  averageSessionLength: number;
+  totalSessions: number;
+  todayHours: number;
+  weekTotal: number;
+  weekAverage: number;
+}
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState('');
   const [isActivatingPromo, setIsActivatingPromo] = useState(false);
+  const [stats, setStats] = useState<StudyStats>({
+    totalHoursThisMonth: 0,
+    averageSessionLength: 0,
+    totalSessions: 0,
+    todayHours: 0,
+    weekTotal: 0,
+    weekAverage: 0,
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      fetchStudyStats();
+    }
+  }, [user]);
+
+  const fetchStudyStats = async () => {
+    if (!user) return;
+
+    try {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const firstDayStr = firstDayOfMonth.toISOString().split('T')[0];
+      const todayStr = now.toISOString().split('T')[0];
+      
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weekAgoStr = weekAgo.toISOString().split('T')[0];
+
+      // This month's sessions
+      const { data: monthSessions, error } = await supabase
+        .from('study_sessions')
+        .select('duration_minutes, date')
+        .eq('user_id', user.id)
+        .gte('date', firstDayStr);
+
+      if (error) throw error;
+
+      // Today's sessions
+      const { data: todaySessions } = await supabase
+        .from('study_sessions')
+        .select('duration_minutes')
+        .eq('user_id', user.id)
+        .eq('date', todayStr);
+
+      const todayTotal = (todaySessions || []).reduce((sum, s) => sum + s.duration_minutes, 0) / 60;
+
+      // Week sessions
+      const { data: weekSessions } = await supabase
+        .from('study_sessions')
+        .select('duration_minutes, date')
+        .eq('user_id', user.id)
+        .gte('date', weekAgoStr);
+
+      // Calculate stats
+      if (monthSessions) {
+        const totalMinutes = monthSessions.reduce((sum, s) => sum + s.duration_minutes, 0);
+        const totalHours = totalMinutes / 60;
+        const avgMinutes = monthSessions.length > 0 ? totalMinutes / monthSessions.length : 0;
+
+        const weekTotal = (weekSessions || []).reduce((sum, s) => sum + s.duration_minutes, 0) / 60;
+        const weekAvg = weekSessions && weekSessions.length > 0 ? weekTotal / 7 : 0;
+
+        setStats({
+          totalHoursThisMonth: Math.round(totalHours * 10) / 10,
+          averageSessionLength: Math.round(avgMinutes),
+          totalSessions: monthSessions.length,
+          todayHours: Math.round(todayTotal * 10) / 10,
+          weekTotal: Math.round(weekTotal * 10) / 10,
+          weekAverage: Math.round(weekAvg * 10) / 10,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching study stats:', error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -102,8 +190,66 @@ const Index = () => {
                     </div>
                     <h3 className="font-semibold text-lg">Start Focus Session</h3>
                     <p className="text-sm text-muted-foreground">Solo study with ambient sounds</p>
-                  </CardContent>
-                </Card>
+          </CardContent>
+        </Card>
+
+        <Separator className="my-8" />
+
+        {/* Study Stats Overview */}
+        <div className="space-y-4">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-1">Your Study Progress</h2>
+            <p className="text-muted-foreground">Track your learning journey at a glance</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Today</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loadingStats ? '...' : `${stats.todayHours}h`}</div>
+                <p className="text-xs text-muted-foreground">Study time today</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">This Week</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loadingStats ? '...' : `${stats.weekTotal}h`}</div>
+                <p className="text-xs text-muted-foreground">Avg {stats.weekAverage}h/day</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loadingStats ? '...' : `${stats.totalHoursThisMonth}h`}</div>
+                <p className="text-xs text-muted-foreground">{stats.totalSessions} sessions</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Avg Session</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{loadingStats ? '...' : `${stats.averageSessionLength}m`}</div>
+                <p className="text-xs text-muted-foreground">Average length</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        <Separator className="my-8" />
 
                 {/* Join Study Group */}
                 <Card className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 border-2 border-border" onClick={() => navigate('/study-group')}>
