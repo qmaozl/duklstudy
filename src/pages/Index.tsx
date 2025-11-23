@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Gift, Sparkles, Loader2 } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { Gift, Sparkles, Loader2, Zap, Users, Music } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import UserProfile from '@/components/UserProfile';
@@ -14,6 +14,7 @@ import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [promoCode, setPromoCode] = useState('');
   const [isActivatingPromo, setIsActivatingPromo] = useState(false);
 
@@ -82,6 +83,53 @@ const Index = () => {
         <div className="flex justify-center">
           <AdBanner format="horizontal" />
         </div>
+
+        {/* Hero Section - What do you want to do today? */}
+        <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5">
+          <CardContent className="p-8">
+            <div className="text-center space-y-6">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2">What do you want to do today?</h1>
+                <p className="text-muted-foreground text-lg">Choose your path to productivity</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                {/* Start Focus Session - Primary CTA */}
+                <Card className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 border-2 border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5" onClick={() => navigate('/focus-timer')}>
+                  <CardContent className="p-6 text-center space-y-3">
+                    <div className="h-12 w-12 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                      <Zap className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg">Start Focus Session</h3>
+                    <p className="text-sm text-muted-foreground">Solo study with ambient sounds</p>
+                  </CardContent>
+                </Card>
+
+                {/* Join Study Group */}
+                <Card className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 border-2 border-border" onClick={() => navigate('/study-group')}>
+                  <CardContent className="p-6 text-center space-y-3">
+                    <div className="h-12 w-12 mx-auto rounded-full bg-accent/20 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-accent" />
+                    </div>
+                    <h3 className="font-semibold text-lg">Join Study Group</h3>
+                    <p className="text-sm text-muted-foreground">Study with friends for accountability</p>
+                  </CardContent>
+                </Card>
+
+                {/* Create Playlist */}
+                <Card className="cursor-pointer hover:shadow-lg transition-all hover:scale-105 border-2 border-border" onClick={() => navigate('/playlist-maker')}>
+                  <CardContent className="p-6 text-center space-y-3">
+                    <div className="h-12 w-12 mx-auto rounded-full bg-secondary/20 flex items-center justify-center">
+                      <Music className="h-6 w-6 text-secondary" />
+                    </div>
+                    <h3 className="font-semibold text-lg">Create Playlist</h3>
+                    <p className="text-sm text-muted-foreground">Ad-free study music</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* User Profile with Leveling System */}
         <div className="max-w-2xl mx-auto">

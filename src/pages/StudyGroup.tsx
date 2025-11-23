@@ -5,7 +5,7 @@ import { useTimerContext } from '@/contexts/TimerContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2, MessageSquare } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2, MessageSquare, Users, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AdBanner } from '@/components/AdBanner';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
@@ -132,6 +132,19 @@ const StudyGroup = () => {
       <div className={cn("p-6 space-y-6 transition-all mt-16 min-h-screen", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
         {/* Top Banner Ad */}
         <AdBanner format="horizontal" />
+
+        {/* Contextual Onboarding Info */}
+        <Card className="border-l-4 border-l-primary bg-primary/5">
+          <CardContent className="p-4 flex gap-3">
+            <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold mb-1">Study with Friends for Accountability 🤝</h3>
+              <p className="text-sm text-muted-foreground">
+                Join or create study rooms to see who's online and stay motivated together. Use the group timer to track your sessions and chat with your study buddies!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Study Rooms */}
         <StudyGroupManagerNew
