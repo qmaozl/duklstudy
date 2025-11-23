@@ -3,8 +3,10 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import PlaylistMaker from '@/components/PlaylistMaker';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
-import { Music } from 'lucide-react';
+import { Music, Info } from 'lucide-react';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 const PlaylistMakerPage: React.FC = () => {
   const { user, loading } = useAuth();
@@ -165,10 +167,31 @@ const PlaylistMakerPage: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="space-y-8 px-4 py-8 max-w-7xl mx-auto circular-bleed-bg min-h-screen">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-foreground drop-shadow-sm">Playlist Maker</h1>
-          <p className="text-foreground/80">Create and manage your study music playlists</p>
+        {/* Page Header */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <Music className="h-10 w-10 text-primary" />
+            <h1 className="text-4xl font-bold text-foreground drop-shadow-sm">Playlist Maker</h1>
+          </div>
+          <p className="text-foreground/80 text-lg max-w-2xl mx-auto">
+            Create and manage your ad-free study music playlists. Search YouTube videos and enjoy uninterrupted playback.
+          </p>
         </div>
+
+        {/* Contextual Info */}
+        <Card className="border-l-4 border-l-primary bg-primary/5 max-w-3xl mx-auto">
+          <CardContent className="p-4 flex gap-3">
+            <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold mb-1">Build Your Focus Soundtrack 🎵</h3>
+              <p className="text-sm text-muted-foreground">
+                Search for songs, add them to your playlist, and enjoy background playback while you study. Your playlists are saved automatically!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Separator className="my-8" />
 
         {/* MilkDrop Visualizer */}
         <div className="flex flex-col items-center gap-4 my-8">

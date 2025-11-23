@@ -11,6 +11,7 @@ import { AdBanner } from '@/components/AdBanner';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
 import TwitchStyleChat from '@/components/TwitchStyleChat';
 import ActiveStudiersPanel from '@/components/ActiveStudiersPanel';
+import { Separator } from '@/components/ui/separator';
 
 const StudyGroup = () => {
   const { user, loading } = useAuth();
@@ -146,6 +147,8 @@ const StudyGroup = () => {
           </CardContent>
         </Card>
 
+        <Separator className="my-6" />
+
         {/* Study Rooms */}
         <StudyGroupManagerNew
           ref={studyGroupManagerRef}
@@ -155,7 +158,10 @@ const StudyGroup = () => {
 
         {/* Active Studiers Panel */}
         {selectedGroupId && (
-          <ActiveStudiersPanel groupId={selectedGroupId} />
+          <>
+            <ActiveStudiersPanel groupId={selectedGroupId} />
+            <Separator className="my-6" />
+          </>
         )}
 
         {/* Group Timer */}

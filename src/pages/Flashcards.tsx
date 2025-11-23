@@ -7,9 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { BookOpen, Plus, Trash2, Eye, Edit } from 'lucide-react';
+import { BookOpen, Plus, Trash2, Eye, Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 interface Flashcard {
   id: string;
@@ -166,21 +167,41 @@ export default function Flashcards() {
     <DashboardLayout>
       <div className="p-6 circular-bleed-bg min-h-screen">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold flex items-center gap-3 text-foreground drop-shadow-sm">
-                <BookOpen className="h-10 w-10 text-primary" />
+          {/* Page Header */}
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-3">
+              <BookOpen className="h-10 w-10 text-primary" />
+              <h1 className="text-4xl font-bold text-foreground drop-shadow-sm">
                 Flashcard Hub
               </h1>
-              <p className="text-foreground/80 mt-2">Create and study your flashcards</p>
             </div>
+            <p className="text-foreground/80 text-lg max-w-2xl mx-auto">
+              Create custom flashcards to master any topic. Build your sets and study at your own pace.
+            </p>
+          </div>
 
+          {/* Contextual Info */}
+          <Card className="border-l-4 border-l-primary bg-primary/5 max-w-3xl mx-auto">
+            <CardContent className="p-4 flex gap-3">
+              <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold mb-1">Master Any Subject 📚</h3>
+                <p className="text-sm text-muted-foreground">
+                  Create flashcard sets for any topic, flip through them to test your knowledge, and track your progress. Perfect for exam prep and memorization!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Separator className="my-6" />
+
+          {/* Primary Action */}
+          <div className="flex justify-center">
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Set
+                <Button size="lg" className="gap-2">
+                  <Plus className="h-5 w-5" />
+                  Create New Flashcard Set
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -266,6 +287,8 @@ export default function Flashcards() {
               </DialogContent>
             </Dialog>
           </div>
+
+          <Separator className="my-6" />
 
           {/* Flashcard Sets Grid */}
           {sets.length === 0 ? (

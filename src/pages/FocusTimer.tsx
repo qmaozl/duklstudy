@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Separator } from '@/components/ui/separator';
 
 const ambientSounds: Record<StudyMode, { videoId: string; name: string }> = {
   ocean: { videoId: 'bn9F19Hi1Lk', name: 'Ocean Waves' },
@@ -171,6 +172,8 @@ const FocusTimer = () => {
               </div>
             </CardContent>
           </Card>
+
+          <Separator className="my-6" />
 
           {/* Timer Card */}
           <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
