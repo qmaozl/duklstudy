@@ -9,7 +9,13 @@ import { cn } from '@/lib/utils';
 import { useTimer } from '@/hooks/useTimer';
 import StudyModeSelector, { StudyMode } from '@/components/StudyModeSelector';
 import FullscreenStudyMode from '@/components/FullscreenStudyMode';
-import { AmbientSoundSelector } from '@/components/AmbientSoundSelector';
+import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
+
+const ambientSounds = [
+  { id: 'ocean', name: 'Ocean Waves', description: 'Calm sea sounds', videoId: 'bn9F19Hi1Lk', icon: '🌊' },
+  { id: 'rain', name: 'Rain', description: 'Gentle rainfall', videoId: 'q76bMs-NwRk', icon: '🌧️' },
+  { id: 'whitenoise', name: 'White Noise', description: 'Pure focus', videoId: 'nMfPqeZjc2c', icon: '📻' }
+];
 
 const FocusTimer = () => {
   const { user, loading } = useAuth();
@@ -17,8 +23,10 @@ const FocusTimer = () => {
   const [selectedMode, setSelectedMode] = useState<StudyMode>('ocean');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showMinimized, setShowMinimized] = useState(false);
+  const [selectedAmbient, setSelectedAmbient] = useState<string | null>(null);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
+  const { setCurrentVideo, setIsPlaying, setIsLooping } = useMediaPlayerContext();
 
   // Set page title
   useEffect(() => {
@@ -84,6 +92,24 @@ const FocusTimer = () => {
     setIsFullscreen(true);
   };
 
+  const handleAmbientSelect = (soundId: string) => {
+    if (selectedAmbient === soundId) {
+      // Stop ambient sound
+      setIsPlaying(false);
+      setCurrentVideo(null);
+      setSelectedAmbient(null);
+    } else {
+      // Play new ambient sound
+      const sound = ambientSounds.find(s => s.id === soundId);
+      if (sound) {
+        setCurrentVideo(sound.videoId);
+        setIsLooping(true);
+        setIsPlaying(true);
+        setSelectedAmbient(soundId);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -100,9 +126,6 @@ const FocusTimer = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6 mt-16 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Ambient Sounds */}
-          <AmbientSoundSelector />
-
           {/* Timer Card */}
           <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
           <CardHeader className="text-center pb-2">
@@ -122,6 +145,29 @@ const FocusTimer = () => {
                 {state === 'stopped' && 'Ready to lock in? 🚀'}
               </p>
             </div>
+
+            {/* Ambient Sound Selection */}
+            {state === 'stopped' && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium text-center">Choose Your Study Environment</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  {ambientSounds.map(sound => (
+                    <Button
+                      key={sound.id}
+                      variant={selectedAmbient === sound.id ? "default" : "outline"}
+                      onClick={() => handleAmbientSelect(sound.id)}
+                      className="h-auto py-4 px-3 flex flex-col items-center gap-2"
+                    >
+                      <span className="text-3xl">{sound.icon}</span>
+                      <div className="text-center">
+                        <div className="text-sm font-semibold">{sound.name}</div>
+                        <div className="text-xs opacity-70">{sound.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Study Mode Selection */}
             {state === 'stopped' && (
