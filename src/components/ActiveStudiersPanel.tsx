@@ -132,8 +132,16 @@ const ActiveStudiersPanel: React.FC<ActiveStudiersPanelProps> = ({ groupId, clas
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Active Studiers ({activeUsers.length})
+          Study Together 🤝
         </CardTitle>
+        <div className="text-sm text-muted-foreground space-y-1">
+          <p className="font-medium text-foreground">
+            {activeUsers.length === 0 ? 'No one studying yet' : `${activeUsers.length} ${activeUsers.length === 1 ? 'person is' : 'people are'} studying right now`}
+          </p>
+          <p className="text-xs">
+            {activeUsers.length === 0 ? 'Be the first to join and start studying!' : 'Join them to stay accountable and motivated together!'}
+          </p>
+        </div>
       </CardHeader>
       <CardContent>
         {activeUsers.length === 0 ? (
