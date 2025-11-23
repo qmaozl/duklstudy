@@ -36,7 +36,7 @@ const FocusTimer = () => {
   const [showStopDialog, setShowStopDialog] = useState(false);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
-  const { setCurrentVideo, setIsPlaying, setIsLooping, currentVideo } = useMediaPlayerContext();
+  const { setCurrentVideo, setIsPlaying, setIsLooping, currentVideo, playerRef } = useMediaPlayerContext();
 
   // Set page title
   useEffect(() => {
@@ -108,6 +108,10 @@ const FocusTimer = () => {
     stop();
     setShowStopDialog(false);
     if (stopAmbient) {
+      // Stop the YouTube player
+      if (playerRef.current) {
+        playerRef.current.stopVideo();
+      }
       setIsPlaying(false);
       setCurrentVideo(null);
       setIsLooping(false);
