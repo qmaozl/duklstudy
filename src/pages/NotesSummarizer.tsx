@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight, Languages, BookOpen, Calendar } from 'lucide-react';
+import { Upload, FileText, Loader2, CheckCircle, ChevronLeft, ChevronRight, Languages, BookOpen, Calendar, Info } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,7 @@ import { DashboardLayout } from '@/components/DashboardLayout';
 import { Skeleton } from '@/components/ui/skeleton';
 import KahootStyleQuiz from '@/components/KahootStyleQuiz';
 import HKDSEQuiz from '@/components/HKDSEQuiz';
+import { Separator } from '@/components/ui/separator';
 
 interface ProcessedFile {
   file: File;
@@ -223,29 +224,49 @@ const NotesSummarizer = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto p-6 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Notes Summarizer</h1>
-          <p className="text-muted-foreground">
-            Upload your notes in PDF or image format to generate summaries, flashcards, and mind maps
-          </p>
-          
-          <div className="mt-4 max-w-xs">
-            <Label htmlFor="language-select" className="flex items-center gap-2 mb-2">
-              <Languages className="h-4 w-4" />
-              Summary Language
-            </Label>
-            <Select value={language} onValueChange={(value: 'english' | 'chinese') => setLanguage(value)}>
-              <SelectTrigger id="language-select">
-                <SelectValue placeholder="Select language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="english">English</SelectItem>
-                <SelectItem value="chinese">Traditional Chinese (繁體中文)</SelectItem>
-              </SelectContent>
-            </Select>
+      <div className="container mx-auto p-6 max-w-6xl circular-bleed-bg min-h-screen">
+        {/* Page Header */}
+        <div className="mb-8 text-center space-y-4">
+          <div className="flex items-center justify-center gap-3">
+            <FileText className="h-10 w-10 text-primary" />
+            <h1 className="text-4xl font-bold">Notes Summarizer</h1>
           </div>
+          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+            Upload your notes in PDF or image format to generate AI-powered summaries, flashcards, quizzes, and mind maps.
+          </p>
         </div>
+
+        {/* Contextual Info */}
+        <Card className="border-l-4 border-l-primary bg-primary/5 max-w-3xl mx-auto mb-6">
+          <CardContent className="p-4 flex gap-3">
+            <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold mb-1">Turn Your Notes Into Study Materials 📝</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload PDFs or images of your notes and let AI do the heavy lifting. Get instant summaries, flashcards, practice quizzes, and visual mind maps!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Language Selection */}
+        <div className="max-w-xs mx-auto mb-6">
+          <Label htmlFor="language-select" className="flex items-center gap-2 mb-2">
+            <Languages className="h-4 w-4" />
+            Summary Language
+          </Label>
+          <Select value={language} onValueChange={(value: 'english' | 'chinese') => setLanguage(value)}>
+            <SelectTrigger id="language-select">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="english">English</SelectItem>
+              <SelectItem value="chinese">Traditional Chinese (繁體中文)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Separator className="my-8" />
 
         {isProcessing ? (
           <Card>

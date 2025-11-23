@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/DashboardLayout';
-import { Youtube, Sparkles, Loader2, Trophy, BookX, Plus, ExternalLink } from 'lucide-react';
+import { Youtube, Sparkles, Loader2, Trophy, BookX, Plus, ExternalLink, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import FlashCard from '@/components/FlashCard';
 import { SubscriptionButton } from '@/components/SubscriptionButton';
 import { checkGenerationLimit } from '@/utils/generationLimits';
 import SummarySection from '@/components/SummarySection';
+import { Separator } from '@/components/ui/separator';
 
 interface StudyMaterial {
   id?: string;
@@ -430,27 +431,43 @@ const VideoSummarizer = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 circular-bleed-bg min-h-screen">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Top Banner Ad */}
           <AdBanner format="horizontal" />
 
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Youtube className="h-6 w-6 text-red-500" />
-              <h1 className="text-2xl font-bold">AI Video Study Hub</h1>
+          {/* Page Header */}
+          <div className="text-center space-y-4">
+            <div className="flex items-center justify-center gap-3">
+              <Youtube className="h-10 w-10 text-red-500" />
+              <h1 className="text-4xl font-bold">AI Video Study Hub</h1>
             </div>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Transform any YouTube video into comprehensive study materials with AI-powered summaries, flashcards, and quizzes.
+            </p>
             
-            <div className="flex items-center gap-3">
-              {totalPointsEarned > 0 && (
-                <Badge className="bg-yellow-500 text-white">
-                  <Trophy className="h-4 w-4 mr-1" />
-                  {totalPointsEarned} Total Points Earned
-                </Badge>
-              )}
-            </div>
+            {totalPointsEarned > 0 && (
+              <Badge className="bg-yellow-500 text-white">
+                <Trophy className="h-4 w-4 mr-1" />
+                {totalPointsEarned} Total Points Earned
+              </Badge>
+            )}
           </div>
+
+          {/* Contextual Info */}
+          <Card className="border-l-4 border-l-primary bg-primary/5 max-w-3xl mx-auto">
+            <CardContent className="p-4 flex gap-3">
+              <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold mb-1">Learn From Any Video 🎥</h3>
+                <p className="text-sm text-muted-foreground">
+                  Paste a YouTube URL and let AI extract the transcript, generate summaries, create flashcards, and build quizzes. Perfect for lectures, tutorials, and educational content!
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Separator className="my-6" />
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
