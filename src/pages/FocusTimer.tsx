@@ -98,11 +98,12 @@ const FocusTimer = () => {
 
   const handleStopConfirm = (stopAmbient: boolean) => {
     stop();
+    setShowStopDialog(false);
     if (stopAmbient) {
       setIsPlaying(false);
       setCurrentVideo(null);
+      setIsLooping(false);
     }
-    setShowStopDialog(false);
   };
 
   const handleExitFullscreen = () => {

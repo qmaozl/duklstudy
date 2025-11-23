@@ -33,11 +33,11 @@ const FullscreenStudyMode = ({
 
   const modeConfig = {
     ocean: {
-      className: 'ocean-animated',
+      className: 'white-noise-stars',
       audio: { mp3: '/audio/ocean-waves.mp3' }
     },
     rain: {
-      className: 'rain-animated',
+      className: 'white-noise-stars',
       audio: { mp3: '/audio/rain.mp3' }
     },
     whitenoise: {
@@ -48,32 +48,6 @@ const FullscreenStudyMode = ({
 
   const config = modeConfig[mode];
   const progress = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0;
-  
-  const getBackgroundStyle = () => {
-    if (mode === 'ocean') {
-      return {
-        backgroundImage: "url(/images/sea.jpg)",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        width: '100vw',
-        height: '100vh'
-      };
-    } else if (mode === 'rain') {
-      return {
-        backgroundImage: "url(/images/rain.jpg)",
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        width: '100vw',
-        height: '100vh'
-      };
-    }
-    return {
-      width: '100vw',
-      height: '100vh'
-    };
-  };
 
   useEffect(() => {
     const audio = mediaRef.current;
@@ -177,7 +151,6 @@ const FullscreenStudyMode = ({
         "fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden",
         config.className
       )}
-      style={getBackgroundStyle()}
     >
       {!audioRef && (
         <audio ref={internalAudioRef} preload="auto" autoPlay playsInline>
@@ -190,12 +163,7 @@ const FullscreenStudyMode = ({
         onClick={toggleFullscreen}
         variant="ghost"
         size="icon"
-        className={cn(
-          "absolute top-8 right-8",
-          mode === 'whitenoise'
-            ? "text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
-            : "text-white/80 hover:text-white hover:bg-white/10"
-        )}
+        className="absolute top-8 right-8 text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
       >
         {isFullscreenMode ? <Minimize className="h-6 w-6" /> : <Maximize className="h-6 w-6" />}
       </Button>
@@ -205,29 +173,18 @@ const FullscreenStudyMode = ({
         onClick={onExit}
         variant="ghost"
         size="lg"
-        className={cn(
-          "absolute top-8 left-8 text-lg font-semibold",
-          mode === 'whitenoise'
-            ? "text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
-            : "text-white/80 hover:text-white hover:bg-white/10"
-        )}
+        className="absolute top-8 left-8 text-lg font-semibold text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
       >
         Exit
       </Button>
 
       {/* Timer Display */}
       <div className="text-center mb-8 animate-scale-in">
-        <div className={cn(
-          "text-9xl font-geo font-light drop-shadow-2xl mb-6 transition-all duration-500",
-          mode === 'whitenoise' ? "text-[hsl(0_0%_0%)]" : "text-white"
-        )}>
+        <div className="text-9xl font-geo font-light drop-shadow-2xl mb-6 transition-all duration-500 text-[hsl(0_0%_0%)]">
           {formatTime(seconds)}
         </div>
         {totalSeconds > 0 && (
-          <div className={cn(
-            "text-2xl font-medium animate-fade-in", 
-            mode === 'whitenoise' ? "text-[hsl(0_0%_15%)]" : "text-white/80"
-          )}>
+          <div className="text-2xl font-medium animate-fade-in text-[hsl(0_0%_15%)]">
             Target: {formatTime(totalSeconds)}
           </div>
         )}
