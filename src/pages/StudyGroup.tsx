@@ -130,7 +130,7 @@ const StudyGroup = () => {
         </Button>
       )}
 
-      <div className={cn("p-6 space-y-6 transition-all mt-16 circular-bleed-bg min-h-screen", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
+      <div className={cn("p-6 space-y-6 transition-all mt-16 min-h-screen", isChatOpen && selectedGroupId ? "pr-[22rem]" : "")}>
         {/* Top Banner Ad */}
         <AdBanner format="horizontal" />
 
