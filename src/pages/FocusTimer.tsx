@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2 } from 'lucide-react';
+import { Play, Pause, Square, RotateCcw, Clock, Zap, Minimize2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTimer } from '@/hooks/useTimer';
 import StudyModeSelector, { StudyMode } from '@/components/StudyModeSelector';
@@ -159,6 +159,19 @@ const FocusTimer = () => {
     <DashboardLayout>
       <div className="p-6 space-y-6 mt-16 min-h-screen">
         <div className="max-w-4xl mx-auto space-y-6">
+          {/* Contextual Onboarding Info */}
+          <Card className="border-l-4 border-l-primary bg-primary/5">
+            <CardContent className="p-4 flex gap-3">
+              <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold mb-1">Solo Focus Sessions 🎯</h3>
+                <p className="text-sm text-muted-foreground">
+                  Choose your study environment with ambient sounds, then lock in! Your focus sessions are automatically tracked and saved to your study history.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Timer Card */}
           <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
           <CardHeader className="text-center pb-2">
