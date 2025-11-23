@@ -5,8 +5,6 @@ import Navigation from "@/components/Navigation";
 
 import TypingAnimation from "@/components/TypingAnimation";
 import { PricingSection } from "@/components/PricingSection";
-import { BackgroundOrbs } from "@/components/BackgroundOrbs";
-import { MountainSilhouette } from "@/components/MountainSilhouette";
 import { StickyInputBar } from "@/components/StickyInputBar";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { FAQSection } from "@/components/FAQSection";
@@ -22,19 +20,6 @@ const HomePage = () => {
 
     // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = 'smooth';
-
-    // Parallax effect for hero background
-    const handleParallax = () => {
-      const scrolled = window.scrollY;
-      const heroSection = document.querySelector('.circular-bleed-bg');
-      if (heroSection) {
-        const bgElement = heroSection as HTMLElement;
-        bgElement.style.setProperty('--parallax-offset', `${scrolled * 0.5}px`);
-      }
-    };
-
-    window.addEventListener('scroll', handleParallax, { passive: true });
-    handleParallax(); // Initial call
 
     // Intersection Observer for fade-up animations
     const observer = new IntersectionObserver(
@@ -60,15 +45,12 @@ const HomePage = () => {
 
     return () => {
       observer.disconnect();
-      window.removeEventListener('scroll', handleParallax);
       document.documentElement.style.scrollBehavior = 'auto';
     };
   }, []);
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <BackgroundOrbs />
-      <MountainSilhouette />
       <Navigation />
       <OnboardingTour />
 

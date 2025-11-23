@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BackgroundOrbs } from "@/components/BackgroundOrbs";
+import { MountainSilhouette } from "@/components/MountainSilhouette";
 import { ThemeProvider } from "next-themes";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -201,6 +203,21 @@ function FloatingComponents() {
 }
 
 const App = () => {
+  useEffect(() => {
+    // Global parallax effect
+    const handleParallax = () => {
+      const scrolled = window.scrollY;
+      document.body.style.setProperty('--parallax-offset', `${scrolled * 0.5}px`);
+    };
+
+    window.addEventListener('scroll', handleParallax, { passive: true });
+    handleParallax(); // Initial call
+
+    return () => {
+      window.removeEventListener('scroll', handleParallax);
+    };
+  }, []);
+
   return (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
       <AuthProvider>
@@ -209,6 +226,8 @@ const App = () => {
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
+                <BackgroundOrbs />
+                <MountainSilhouette />
                 <BrowserRouter basename={getBasename()}>
                   <AuthPromptProvider>
                     <RedirectHandler />
