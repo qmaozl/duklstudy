@@ -146,14 +146,39 @@
 
   body {
     @apply bg-background text-foreground;
+    --parallax-offset: 0px;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateY(var(--parallax-offset));
     background: 
       radial-gradient(circle at 50% 20%, hsl(217 91% 60% / 0.15) 0%, transparent 50%),
       radial-gradient(circle at 80% 50%, hsl(217 91% 60% / 0.08) 0%, transparent 50%),
       radial-gradient(circle at 20% 80%, hsl(217 91% 60% / 0.12) 0%, transparent 50%),
-      linear-gradient(180deg, hsl(217 91% 97%), hsl(0 0% 100%));
-    min-height: 100vh;
+      linear-gradient(180deg, hsl(217 91% 97%), hsl(0 0% 100%)),
+      url('/images/hero-background.avif');
+    background-size: auto, auto, auto, auto, cover;
+    background-position: center, center, center, center, center;
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: -1;
+    will-change: transform;
+    transition: transform 0.1s ease-out;
+  }
+
+  body > * {
     position: relative;
-    overflow-x: hidden;
+    z-index: 1;
   }
 
   /* Hide typing cursor by default, show on focus */
