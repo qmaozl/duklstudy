@@ -1,4 +1,4 @@
-import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, Settings as SettingsIcon, FileText, Library, Music } from "lucide-react";
+import { Home, Clock, Brain, Video, Calendar, BookOpen, Crown, Settings as SettingsIcon, FileText, Library, Music, Timer, Users } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthPrompt } from "@/contexts/AuthPromptContext";
@@ -17,16 +17,19 @@ import {
 import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/logo-new.png";
 
-const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: Home, isAI: false },
-  { title: "Study Group", url: "/focus-timer", icon: Clock, isAI: false },
-  { title: "Playlist Maker", url: "/playlist-maker", icon: Music, isAI: false },
-  { title: "Memorise Pro", url: "/memorise-pro", icon: Brain, isAI: false },
-  { title: "Video Summarizer", url: "/video-summarizer", icon: Video, isAI: true },
-  { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText, isAI: true },
-  { title: "Flashcards", url: "/flashcards", icon: BookOpen, isAI: false },
-  { title: "Calendar", url: "/calendar", icon: Calendar, isAI: true },
-  { title: "Settings", url: "/settings", icon: SettingsIcon, isAI: false },
+const mainMenuItems = [
+  { title: "Dashboard", url: "/dashboard", icon: Home },
+  { title: "Focus Timer", url: "/focus-timer", icon: Timer },
+  { title: "Study Group", url: "/study-group", icon: Users },
+  { title: "Playlist Maker", url: "/playlist-maker", icon: Music },
+  { title: "Memorise Pro", url: "/memorise-pro", icon: Brain },
+  { title: "Flashcards", url: "/flashcards", icon: BookOpen },
+];
+
+const aiMenuItems = [
+  { title: "Video Summarizer", url: "/video-summarizer", icon: Video },
+  { title: "Notes Summarizer", url: "/notes-summarizer", icon: FileText },
+  { title: "Calendar", url: "/calendar", icon: Calendar },
 ];
 
 export function AppSidebar() {
@@ -79,10 +82,10 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => handleNavigation(item.url)}
@@ -90,25 +93,60 @@ export function AppSidebar() {
                     className="w-full"
                   >
                     <item.icon className="h-4 w-4" />
-                    {!collapsed && (
-                      <div className="flex items-center gap-2 flex-1">
-                        <span>{item.title}</span>
-                        {item.isAI && (
-                          <Badge 
-                            className="text-[10px] px-1.5 py-0 h-4 bg-pink-500/20 text-pink-500 border-pink-500/50 hover:bg-pink-500/30"
-                            style={{ 
-                              boxShadow: '0 0 10px rgba(236, 72, 153, 0.5)',
-                              borderRadius: '6px'
-                            }}
-                          >
-                            AI
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                    {!collapsed && <span>{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>
+            <div className="flex items-center gap-2">
+              AI Features
+              <Badge 
+                className="text-[10px] px-1.5 py-0 h-4 bg-pink-500/20 text-pink-500 border-pink-500/50"
+                style={{ 
+                  boxShadow: '0 0 10px rgba(236, 72, 153, 0.5)',
+                  borderRadius: '6px'
+                }}
+              >
+                AI
+              </Badge>
+            </div>
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {aiMenuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation(item.url)}
+                    isActive={isActive(item.url)}
+                    className="w-full"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {!collapsed && <span>{item.title}</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => handleNavigation('/settings')}
+                  isActive={isActive('/settings')}
+                  className="w-full"
+                >
+                  <SettingsIcon className="h-4 w-4" />
+                  {!collapsed && <span>Settings</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
