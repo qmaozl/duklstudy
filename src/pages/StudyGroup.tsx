@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 import { AdBanner } from '@/components/AdBanner';
 import StudyGroupManagerNew from '@/components/StudyGroupManagerNew';
 import TwitchStyleChat from '@/components/TwitchStyleChat';
-import PlaylistMaker from '@/components/PlaylistMaker';
 import ActiveStudiersPanel from '@/components/ActiveStudiersPanel';
 
 const StudyGroup = () => {
@@ -146,16 +145,16 @@ const StudyGroup = () => {
           <ActiveStudiersPanel groupId={selectedGroupId} />
         )}
 
-        {/* Playlist Maker */}
-        <PlaylistMaker />
-
-        {/* Timer */}
+        {/* Group Timer */}
         <Card className={cn("transition-all duration-300 shadow-soft", getTimerBorderColor())}>
           <CardHeader className="text-center pb-2">
             <CardTitle className="flex items-center justify-center gap-2 text-lg">
               <Clock className="h-5 w-5" />
-              Focus Timer
+              Group Study Timer
             </CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">
+              Track your study time with your group
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
