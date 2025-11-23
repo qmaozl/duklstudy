@@ -8,13 +8,13 @@
   :root {
     /* SaaS Light Theme - Primary Colors */
     --background: 0 0% 100%; /* Pure white */
-    --foreground: 0 0% 5%; /* Almost black for maximum contrast */
+    --foreground: 222 47% 11%; /* Deep charcoal #0F172A */
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 7%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 7%;
+    --popover-foreground: 222 47% 11%;
 
     /* SaaS Blue Accent System */
     --primary: 217 91% 60%; /* Vibrant blue #3B82F6 */
@@ -25,7 +25,7 @@
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 40% 96%;
-    --muted-foreground: 0 0% 25%;
+    --muted-foreground: 215 16% 47%;
 
     --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
@@ -64,7 +64,7 @@
     --timer-stopped: 240 5% 64%;
 
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 10%;
+    --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
@@ -582,22 +582,34 @@
       transition: transform 0.1s ease-out;
     }
 
-    /* Dashboard Light Background - Unified with Homepage */
-    .dashboard-light-bg {
-      background: hsl(var(--background));
+    /* Dashboard Starry Background */
+    .dashboard-starry-bg {
+      background: linear-gradient(180deg, hsl(240 10% 8%) 0%, hsl(240 10% 3.9%) 100%);
       position: relative;
     }
     
-    .dashboard-light-bg::before {
+    .dashboard-starry-bg::before {
       content: '';
       position: absolute;
       inset: 0;
-      background: 
-        radial-gradient(circle at 30% 20%, hsl(217 91% 60% / 0.12) 0%, transparent 50%),
-        radial-gradient(circle at 70% 60%, hsl(217 91% 60% / 0.08) 0%, transparent 50%),
-        linear-gradient(180deg, hsl(217 91% 97%), hsl(0 0% 100%));
+      background-image: 
+        radial-gradient(1px 1px at 20% 30%, white, transparent),
+        radial-gradient(1px 1px at 60% 70%, white, transparent),
+        radial-gradient(2px 2px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent),
+        radial-gradient(1px 1px at 90% 60%, white, transparent),
+        radial-gradient(2px 2px at 33% 80%, white, transparent),
+        radial-gradient(1px 1px at 15% 90%, white, transparent);
+      background-size: 200px 200px, 300px 300px, 400px 400px, 250px 250px, 350px 350px, 450px 450px, 280px 280px;
+      background-position: 0 0, 40px 60px, 130px 270px, 70px 100px, 150px 40px, 200px 150px, 90px 220px;
+      opacity: 0.4;
+      animation: twinkleStars 60s linear infinite;
       pointer-events: none;
-      z-index: 0;
+    }
+
+    @keyframes twinkleStars {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.7; }
     }
 
     /* Tour highlight effect */
