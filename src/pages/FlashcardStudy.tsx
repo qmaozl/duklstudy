@@ -100,8 +100,9 @@ export default function FlashcardStudy() {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="circular-bleed-bg min-h-screen">
+        <div className="p-6">
+          <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -200,6 +201,7 @@ export default function FlashcardStudy() {
             </Button>
           </div>
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

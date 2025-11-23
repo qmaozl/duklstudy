@@ -113,8 +113,9 @@ const Subscription = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6 lg:p-8">
-        <div className="max-w-6xl mx-auto space-y-8">
+      <div className="circular-bleed-bg min-h-screen">
+        <div className="p-4 md:p-6 lg:p-8">
+          <div className="max-w-6xl mx-auto space-y-8">
 
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent">
@@ -282,8 +283,9 @@ const Subscription = () => {
               </CardContent>
             </Card>
           </div>
+          </div>
         </div>
-        </div>
+      </div>
       </div>
     </DashboardLayout>
   );
