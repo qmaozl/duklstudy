@@ -14,6 +14,7 @@ import Index from "./pages/Index";
 import HomePage from "./pages/HomePage";
 import DashboardOverview from "./pages/DashboardOverview";
 import FocusTimer from "./pages/FocusTimer";
+import StudyGroup from "./pages/StudyGroup";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 
@@ -250,6 +251,7 @@ const App = () => {
                           <Route path="/auth" element={<Auth />} />
                           <Route path="/reset-password" element={<ResetPassword />} />
                           <Route path="/focus-timer" element={<FocusTimer />} />
+                          <Route path="/study-group" element={<StudyGroup />} />
                           <Route path="/video-summarizer" element={<VideoSummarizer />} />
                           <Route path="/calendar" element={<Calendar />} />
                           <Route path="/settings" element={<Settings />} />
