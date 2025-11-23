@@ -534,24 +534,27 @@
     /* Circular Bleed Background */
     .circular-bleed-bg {
       position: relative;
+      --parallax-offset: 0px;
     }
     .circular-bleed-bg::before {
       content: '';
       position: absolute;
       top: -10%;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateY(var(--parallax-offset));
       width: 120%;
-      height: 120%;
+      height: 130%;
       background: 
         radial-gradient(circle, hsl(217 91% 70% / 0.2) 0%, hsl(217 91% 85% / 0.1) 30%, transparent 70%),
         url('/images/hero-background.avif');
       background-size: cover, cover;
       background-position: center, center;
       background-repeat: no-repeat, no-repeat;
-      opacity: 0.6;
+      opacity: 0.3;
       pointer-events: none;
       z-index: -1;
+      will-change: transform;
+      transition: transform 0.1s ease-out;
     }
 
     /* Dashboard Starry Background */

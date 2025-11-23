@@ -23,6 +23,19 @@ const HomePage = () => {
     // Add smooth scroll behavior
     document.documentElement.style.scrollBehavior = 'smooth';
 
+    // Parallax effect for hero background
+    const handleParallax = () => {
+      const scrolled = window.scrollY;
+      const heroSection = document.querySelector('.circular-bleed-bg');
+      if (heroSection) {
+        const bgElement = heroSection as HTMLElement;
+        bgElement.style.setProperty('--parallax-offset', `${scrolled * 0.5}px`);
+      }
+    };
+
+    window.addEventListener('scroll', handleParallax, { passive: true });
+    handleParallax(); // Initial call
+
     // Intersection Observer for fade-up animations
     const observer = new IntersectionObserver(
       (entries) => {
@@ -47,6 +60,7 @@ const HomePage = () => {
 
     return () => {
       observer.disconnect();
+      window.removeEventListener('scroll', handleParallax);
       document.documentElement.style.scrollBehavior = 'auto';
     };
   }, []);
