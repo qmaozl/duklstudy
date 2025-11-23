@@ -27,8 +27,9 @@ const Settings = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <div className="container mx-auto max-w-2xl">
+      <div className="circular-bleed-bg min-h-screen">
+        <div className="p-6">
+          <div className="container mx-auto max-w-2xl">
           <h1 className="text-3xl font-bold mb-8">Settings</h1>
 
           <Tabs defaultValue="profile" className="w-full">
@@ -55,6 +56,7 @@ const Settings = () => {
             </TabsContent>
           </Tabs>
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

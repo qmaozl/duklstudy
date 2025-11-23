@@ -280,8 +280,9 @@ const StudyMaterials = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-4 md:p-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="circular-bleed-bg min-h-screen">
+        <div className="p-4 md:p-6">
+          <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">

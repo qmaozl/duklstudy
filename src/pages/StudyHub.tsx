@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
-import { ArrowLeft, Book, Calendar, Search, Eye, Trash2, Folder, FileText, Youtube, Upload } from 'lucide-react';
+import { DashboardLayout } from '@/components/DashboardLayout';
+import { Book, Calendar, Search, Eye, Trash2, Folder, FileText, Youtube, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -120,12 +120,12 @@ const StudyHub = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <Navigation />
-      <div className="pt-20 p-4 md:p-6">
-        <div className="max-w-6xl mx-auto space-y-6">
-        {/* Top Banner Ad */}
-        <AdBanner format="horizontal" />
+    <DashboardLayout>
+      <div className="circular-bleed-bg min-h-screen">
+        <div className="p-4 md:p-6">
+          <div className="max-w-6xl mx-auto space-y-6">
+            {/* Top Banner Ad */}
+            <AdBanner format="horizontal" />
 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -138,14 +138,6 @@ const StudyHub = () => {
               All your study materials organized by subject
             </p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Dashboard
-          </Button>
         </div>
 
         {/* Search and Filters */}
@@ -467,11 +459,12 @@ const StudyHub = () => {
                 </CardContent>
               </Card>
             ))}
+            </div>
+          )}
           </div>
-        )}
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
 

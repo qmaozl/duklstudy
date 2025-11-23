@@ -53,8 +53,9 @@ const MemorisePro = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <div className="max-w-6xl mx-auto space-y-8">
+      <div className="circular-bleed-bg min-h-screen">
+        <div className="p-6">
+          <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-2">
             <div className="flex items-center justify-center gap-3">
@@ -123,6 +124,7 @@ const MemorisePro = () => {
             </CardContent>
           </Card>
         </div>
+      </div>
       </div>
     </DashboardLayout>
   );

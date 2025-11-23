@@ -78,7 +78,10 @@ const FocusTimer = () => {
   const handleLockIn = () => {
     start();
     setIsFullscreen(true);
-    startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
+    startSoundRef.current?.play().catch(e => {
+      console.error('Timer start audio failed to play:', e);
+      // Continue anyway - audio is nice to have but not essential
+    });
     
     // Start ambient sound playback
     const sound = ambientSounds[selectedMode];

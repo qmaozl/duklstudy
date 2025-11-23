@@ -177,7 +177,7 @@ const StudyGroup = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
-              <div className={cn("text-6xl font-geo font-bold transition-colors duration-300", getTimerColor())}>
+              <div className={cn("text-4xl sm:text-5xl md:text-6xl font-geo font-bold transition-colors duration-300", getTimerColor())}>
                 {timer.formattedTime}
               </div>
               <p className="text-sm text-muted-foreground mt-2">
@@ -187,12 +187,12 @@ const StudyGroup = () => {
               </p>
             </div>
 
-            <div className="flex justify-center gap-2">
+            <div className="flex flex-col sm:flex-row justify-center gap-2">
               {timer.state === 'stopped' && (
                 <Button 
                   onClick={handleLockIn} 
                   size="lg" 
-                  className="gradient-primary px-8 py-3 text-lg font-semibold"
+                  className="gradient-primary px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold w-full sm:w-auto"
                 >
                   <Zap className="h-5 w-5 mr-2" />
                   Lock In!
@@ -201,34 +201,34 @@ const StudyGroup = () => {
 
               {timer.state === 'running' && (
                 <>
-                  <Button onClick={handlePause} variant="outline" size="lg">
-                    <Pause className="h-4 w-4 mr-2" />
-                    Pause
+                  <Button onClick={handlePause} variant="outline" size="lg" className="flex-1 sm:flex-none">
+                    <Pause className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Pause</span>
                   </Button>
-                  <Button onClick={handleStop} variant="destructive" size="lg">
-                    <Square className="h-4 w-4 mr-2" />
-                    Stop
+                  <Button onClick={handleStop} variant="destructive" size="lg" className="flex-1 sm:flex-none">
+                    <Square className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Stop</span>
                   </Button>
-                  <Button onClick={() => setIsMinimized(true)} variant="ghost" size="lg">
-                    <Minimize2 className="h-4 w-4 mr-2" />
-                    Minimize
+                  <Button onClick={() => setIsMinimized(true)} variant="ghost" size="lg" className="flex-1 sm:flex-none">
+                    <Minimize2 className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Minimize</span>
                   </Button>
                 </>
               )}
 
               {timer.state === 'paused' && (
                 <>
-                  <Button onClick={handleResume} size="lg" className="gradient-primary">
-                    <Play className="h-4 w-4 mr-2" />
-                    Resume
+                  <Button onClick={handleResume} size="lg" className="gradient-primary flex-1 sm:flex-none">
+                    <Play className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Resume</span>
                   </Button>
-                  <Button onClick={handleStop} variant="destructive" size="lg">
-                    <Square className="h-4 w-4 mr-2" />
-                    Stop
+                  <Button onClick={handleStop} variant="destructive" size="lg" className="flex-1 sm:flex-none">
+                    <Square className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Stop</span>
                   </Button>
-                  <Button onClick={() => setIsMinimized(true)} variant="ghost" size="lg">
-                    <Minimize2 className="h-4 w-4 mr-2" />
-                    Minimize
+                  <Button onClick={() => setIsMinimized(true)} variant="ghost" size="lg" className="flex-1 sm:flex-none">
+                    <Minimize2 className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Minimize</span>
                   </Button>
                 </>
               )}
