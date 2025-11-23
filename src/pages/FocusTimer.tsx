@@ -78,6 +78,14 @@ const FocusTimer = () => {
     start();
     setIsFullscreen(true);
     startSoundRef.current?.play().catch(e => console.error('Audio play failed:', e));
+    
+    // Start ambient sound playback
+    const sound = ambientSounds[selectedMode];
+    if (sound) {
+      setCurrentVideo(sound.videoId);
+      setIsLooping(true);
+      setIsPlaying(true);
+    }
   };
 
   const handlePlayPause = () => {
@@ -171,7 +179,7 @@ const FocusTimer = () => {
             {state === 'stopped' && (
               <StudyModeSelector 
                 selectedMode={selectedMode}
-                onModeSelect={handleModeSelect}
+                onModeSelect={setSelectedMode}
               />
             )}
 
