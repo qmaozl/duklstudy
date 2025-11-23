@@ -10,6 +10,16 @@ import { useTimer } from '@/hooks/useTimer';
 import StudyModeSelector, { StudyMode } from '@/components/StudyModeSelector';
 import FullscreenStudyMode from '@/components/FullscreenStudyMode';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ambientSounds: Record<StudyMode, { videoId: string; name: string }> = {
   ocean: { videoId: 'bn9F19Hi1Lk', name: 'Ocean Waves' },
@@ -23,9 +33,10 @@ const FocusTimer = () => {
   const [selectedMode, setSelectedMode] = useState<StudyMode>('ocean');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showMinimized, setShowMinimized] = useState(false);
+  const [showStopDialog, setShowStopDialog] = useState(false);
   const startSoundRef = useRef<HTMLAudioElement | null>(null);
   const endSoundRef = useRef<HTMLAudioElement | null>(null);
-  const { setCurrentVideo, setIsPlaying, setIsLooping } = useMediaPlayerContext();
+  const { setCurrentVideo, setIsPlaying, setIsLooping, currentVideo } = useMediaPlayerContext();
 
   // Set page title
   useEffect(() => {
@@ -75,6 +86,23 @@ const FocusTimer = () => {
     } else {
       start();
     }
+  };
+
+  const handleStop = () => {
+    if (currentVideo) {
+      setShowStopDialog(true);
+    } else {
+      stop();
+    }
+  };
+
+  const handleStopConfirm = (stopAmbient: boolean) => {
+    stop();
+    if (stopAmbient) {
+      setIsPlaying(false);
+      setCurrentVideo(null);
+    }
+    setShowStopDialog(false);
   };
 
   const handleExitFullscreen = () => {
@@ -165,7 +193,7 @@ const FocusTimer = () => {
                     <Pause className="h-5 w-5 mr-2" />
                     Pause
                   </Button>
-                  <Button onClick={stop} variant="destructive" size="lg">
+                  <Button onClick={handleStop} variant="destructive" size="lg">
                     <Square className="h-5 w-5 mr-2" />
                     Stop
                   </Button>
@@ -182,7 +210,7 @@ const FocusTimer = () => {
                     <Play className="h-5 w-5 mr-2" />
                     Resume
                   </Button>
-                  <Button onClick={stop} variant="destructive" size="lg">
+                  <Button onClick={handleStop} variant="destructive" size="lg">
                     <Square className="h-5 w-5 mr-2" />
                     Stop
                   </Button>
@@ -235,7 +263,7 @@ const FocusTimer = () => {
                 <Button size="sm" variant="outline" onClick={handlePlayPause}>
                   {state === 'running' ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
                 </Button>
-                <Button size="sm" variant="outline" onClick={stop}>
+                <Button size="sm" variant="outline" onClick={handleStop}>
                   <Square className="h-3 w-3" />
                 </Button>
                 <Button size="sm" variant="outline" onClick={handleMaximize}>
@@ -246,6 +274,26 @@ const FocusTimer = () => {
           </Card>
         </div>
       )}
+
+      {/* Stop Confirmation Dialog */}
+      <AlertDialog open={showStopDialog} onOpenChange={setShowStopDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Stop Timer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Would you like to stop the ambient sounds as well?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleStopConfirm(false)}>
+              Keep Playing
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => handleStopConfirm(true)}>
+              Stop Sounds
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };

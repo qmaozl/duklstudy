@@ -48,12 +48,32 @@ const FullscreenStudyMode = ({
 
   const config = modeConfig[mode];
   const progress = totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0;
-  const backgroundStyle =
-    mode === 'ocean'
-      ? { backgroundImage: "url(/images/sea.jpg)" }
-      : mode === 'rain'
-      ? { backgroundImage: "url(/images/rain.jpg)" }
-      : undefined;
+  
+  const getBackgroundStyle = () => {
+    if (mode === 'ocean') {
+      return {
+        backgroundImage: "url(/images/sea.jpg)",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        width: '100vw',
+        height: '100vh'
+      };
+    } else if (mode === 'rain') {
+      return {
+        backgroundImage: "url(/images/rain.jpg)",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        width: '100vw',
+        height: '100vh'
+      };
+    }
+    return {
+      width: '100vw',
+      height: '100vh'
+    };
+  };
 
   useEffect(() => {
     const audio = mediaRef.current;
@@ -157,14 +177,7 @@ const FullscreenStudyMode = ({
         "fixed inset-0 z-50 flex flex-col items-center justify-center overflow-hidden",
         config.className
       )}
-      style={{
-        ...backgroundStyle,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        width: '100vw',
-        height: '100vh'
-      }}
+      style={getBackgroundStyle()}
     >
       {!audioRef && (
         <audio ref={internalAudioRef} preload="auto" autoPlay playsInline>
