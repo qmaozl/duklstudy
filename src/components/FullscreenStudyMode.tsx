@@ -173,7 +173,7 @@ const FullscreenStudyMode = ({
         onClick={onExit}
         variant="ghost"
         size="lg"
-        className="absolute top-8 left-8 text-lg font-semibold text-[hsl(0_0%_0%)]/80 hover:text-[hsl(0_0%_0%)] hover:bg-black/10"
+        className="absolute top-8 left-8 text-lg font-semibold text-[hsl(0_0%_0%)] hover:bg-black/10"
       >
         Exit
       </Button>
