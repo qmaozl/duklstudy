@@ -530,8 +530,9 @@ const StudyMaterials = () => {
             )}
           </div>
         </div>
-        </div>
       </div>
+      </div>
+    </div>
     </DashboardLayout>
   );
 };
