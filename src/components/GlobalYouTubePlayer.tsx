@@ -168,10 +168,11 @@ export function GlobalYouTubePlayer() {
     }
   }, [currentVideo]);
 
+  // Hide player on all devices - audio plays in background
   if (isMobile) {
     return (
-      <div className="fixed bottom-4 right-4 z-50 w-64 h-36 rounded-lg overflow-hidden shadow-lg bg-black/80">
-        <div id="global-youtube-player" className="w-full h-full"></div>
+      <div className="fixed pointer-events-none opacity-0 w-px h-px overflow-hidden">
+        <div id="global-youtube-player"></div>
       </div>
     );
   }

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2, Share2, Copy, Globe, Lock } from 'lucide-react';
+import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2, Share2, Copy, Globe, Lock, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
@@ -33,6 +33,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const [shareId, setShareId] = useState<string | null>(null);
   const [playlistName, setPlaylistName] = useState('My Playlist');
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const {
     playerRef,
@@ -301,6 +302,11 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     });
   };
 
+  // Filter playlist by search query
+  const filteredPlaylist = localPlaylist.filter(item =>
+    item.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex flex-col gap-4">
       {/* Video Display Overlay - Only shows when not minimized */}
@@ -390,23 +396,38 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
       {/* Playlist Section - Takes remaining space */}
       <Card className="flex-1">
         <CardHeader className="py-3">
-          <CardTitle className="text-lg">Your Playlist ({localPlaylist.length})</CardTitle>
+          <div className="flex items-center justify-between gap-4">
+            <CardTitle className="text-lg">Your Playlist ({localPlaylist.length})</CardTitle>
+            <div className="relative flex-1 max-w-xs">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search videos..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 h-8 text-sm"
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="pb-4">
           <ScrollArea className="min-h-[500px] h-[calc(100vh-400px)]">
-            {localPlaylist.length === 0 ? (
+            {filteredPlaylist.length === 0 ? (
               <div className="text-center py-16 text-sm text-muted-foreground">
-                No videos in playlist. Add some to get started!
+                {localPlaylist.length === 0 
+                  ? "No videos in playlist. Add some to get started!"
+                  : "No videos match your search."}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
-                {localPlaylist.map((item, index) => (
+                {filteredPlaylist.map((item) => {
+                  const originalIndex = localPlaylist.findIndex(p => p.id === item.id);
+                  return (
                   <div
                     key={item.id}
                     className="flex flex-col rounded-lg border bg-card hover:bg-muted/50 active:bg-muted transition-colors cursor-pointer overflow-hidden group"
                     onClick={(e) => {
                       if (!(e.target as HTMLElement).closest('button')) {
-                        playVideo(item.videoId, index);
+                        playVideo(item.videoId, originalIndex);
                       }
                     }}
                   >
@@ -436,10 +457,11 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                     {/* Text below thumbnail */}
                     <div className="p-2 text-center">
                       <p className="text-xs font-medium line-clamp-2">{item.title}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Track #{index + 1}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Track #{originalIndex + 1}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </ScrollArea>
