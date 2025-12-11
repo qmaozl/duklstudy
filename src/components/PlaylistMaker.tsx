@@ -302,7 +302,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Video Display Overlay - Only shows when not minimized */}
       {currentVideoId && showVideo && (
         <div className="fixed bottom-6 right-[21rem] z-50 w-[28rem] bg-background border-2 border-primary rounded-lg shadow-2xl overflow-hidden">
@@ -338,123 +338,113 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
         </div>
       )}
 
-      {/* Main Playlist Maker */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Add Video Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Playlist Maker</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
+      {/* Compact Add Video Section */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Input
+              placeholder="Playlist name"
+              value={playlistName}
+              onChange={(e) => setPlaylistName(e.target.value)}
+              className="w-40 font-medium"
+            />
+            <div className="flex-1 flex gap-2 min-w-[280px]">
               <Input
-                placeholder="Playlist name..."
-                value={playlistName}
-                onChange={(e) => setPlaylistName(e.target.value)}
-                className="font-medium"
+                placeholder="Paste YouTube URL..."
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addToPlaylist()}
+                className="flex-1"
               />
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Paste YouTube Music URL..."
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addToPlaylist()}
-                  className="flex-1"
-                />
-                <Button onClick={addToPlaylist} disabled={!youtubeUrl.trim()}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add
-                </Button>
-              </div>
+              <Button onClick={addToPlaylist} disabled={!youtubeUrl.trim()} size="sm">
+                <Plus className="h-4 w-4 mr-1" />
+                Add
+              </Button>
             </div>
-            
-            {/* Share Controls */}
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                {isPublic ? <Globe className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                <span className="text-sm font-medium">
-                  {isPublic ? 'Public Playlist' : 'Private Playlist'}
-                </span>
-              </div>
-              <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={togglePublic}
+                className="gap-1"
+              >
+                {isPublic ? <Globe className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
+                {isPublic ? 'Public' : 'Private'}
+              </Button>
+              {isPublic && shareId && (
                 <Button
-                  variant="outline"
+                  variant="default"
                   size="sm"
-                  onClick={togglePublic}
+                  onClick={copyShareLink}
+                  className="gap-1"
                 >
-                  {isPublic ? 'Make Private' : 'Make Public'}
+                  <Share2 className="h-3 w-3" />
+                  Share
                 </Button>
-                {isPublic && shareId && (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={copyShareLink}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share Link
-                  </Button>
-                )}
-              </div>
+              )}
             </div>
-            
-            {currentVideoId && !showVideo && (
-              <p className="text-sm text-muted-foreground">
-                Click a video from your playlist to play
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Playlist Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Playlist ({localPlaylist.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-64">
-              {localPlaylist.length === 0 ? (
-                <div className="text-center py-8 text-sm text-muted-foreground">
-                  No videos in playlist. Add some to get started!
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {localPlaylist.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 active:bg-muted transition-colors relative group cursor-pointer"
-                      onClick={(e) => {
-                        if (!(e.target as HTMLElement).closest('button')) {
-                          playVideo(item.videoId, index);
-                        }
-                      }}
-                    >
+      {/* Playlist Section - Takes remaining space */}
+      <Card className="flex-1">
+        <CardHeader className="py-3">
+          <CardTitle className="text-lg">Your Playlist ({localPlaylist.length})</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <ScrollArea className="min-h-[500px] h-[calc(100vh-400px)]">
+            {localPlaylist.length === 0 ? (
+              <div className="text-center py-16 text-sm text-muted-foreground">
+                No videos in playlist. Add some to get started!
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
+                {localPlaylist.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col rounded-lg border bg-card hover:bg-muted/50 active:bg-muted transition-colors cursor-pointer overflow-hidden group"
+                    onClick={(e) => {
+                      if (!(e.target as HTMLElement).closest('button')) {
+                        playVideo(item.videoId, index);
+                      }
+                    }}
+                  >
+                    {/* Thumbnail with delete button overlay */}
+                    <div className="relative aspect-video">
                       <img 
                         src={item.thumbnail} 
                         alt={item.title}
-                        className="w-24 h-16 object-cover rounded"
+                        className="w-full h-full object-cover"
                       />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium truncate">{item.title}</p>
-                        <p className="text-[10px] text-muted-foreground">Track #{index + 1}</p>
-                      </div>
                       <Button
-                        variant="ghost"
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        variant="destructive"
+                        className="absolute top-2 right-2 h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={(e) => {
                           e.stopPropagation();
                           removeFromPlaylist(item.id);
                         }}
                       >
-                        <Trash2 className="h-3 w-3" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
+                      {currentVideoId === item.videoId && (
+                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                          <Play className="h-8 w-8 text-primary" />
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
+                    {/* Text below thumbnail */}
+                    <div className="p-2 text-center">
+                      <p className="text-xs font-medium line-clamp-2">{item.title}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Track #{index + 1}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </CardContent>
+      </Card>
     </div>
   );
 };
