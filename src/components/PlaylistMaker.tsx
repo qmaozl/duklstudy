@@ -421,7 +421,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                   {localPlaylist.map((item, index) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 active:bg-muted transition-colors relative group cursor-pointer"
+                      className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 active:bg-muted transition-colors relative group cursor-pointer"
                       onClick={(e) => {
                         if (!(e.target as HTMLElement).closest('button')) {
                           playVideo(item.videoId, index);
@@ -431,24 +431,22 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                       <img 
                         src={item.thumbnail} 
                         alt={item.title}
-                        className="w-16 h-12 object-cover rounded"
+                        className="w-24 h-16 object-cover rounded"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">Track #{index + 1}</p>
+                        <p className="text-xs font-medium truncate">{item.title}</p>
+                        <p className="text-[10px] text-muted-foreground">Track #{index + 1}</p>
                       </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFromPlaylist(item.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFromPlaylist(item.id);
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
                     </div>
                   ))}
                 </div>
