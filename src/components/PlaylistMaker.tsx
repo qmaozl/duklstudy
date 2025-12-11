@@ -410,7 +410,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
           </div>
         </CardHeader>
         <CardContent className="pb-4">
-          <ScrollArea className="min-h-[500px] h-[calc(100vh-400px)]">
+          <div>
             {filteredPlaylist.length === 0 ? (
               <div className="text-center py-16 text-sm text-muted-foreground">
                 {localPlaylist.length === 0 
@@ -418,7 +418,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                   : "No videos match your search."}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredPlaylist.map((item) => {
                   const originalIndex = localPlaylist.findIndex(p => p.id === item.id);
                   return (
@@ -464,7 +464,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                 })}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
     </div>
