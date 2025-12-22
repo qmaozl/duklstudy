@@ -51,6 +51,8 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const [ytSearchQuery, setYtSearchQuery] = useState('');
   const [ytSearchResults, setYtSearchResults] = useState<YouTubeSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextPageToken, setNextPageToken] = useState<string | null>(null);
   
   const {
     playerRef,
@@ -320,20 +322,38 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   };
 
   // YouTube search function
-  const searchYouTube = async () => {
+  const searchYouTube = async (loadMore = false) => {
     if (!ytSearchQuery.trim()) return;
     
-    setIsSearching(true);
+    if (loadMore) {
+      setIsLoadingMore(true);
+    } else {
+      setIsSearching(true);
+      setYtSearchResults([]);
+      setNextPageToken(null);
+    }
+    
     try {
       const { data, error } = await supabase.functions.invoke('youtube-search', {
-        body: { query: ytSearchQuery, maxResults: 12, type: 'video' }
+        body: { 
+          query: ytSearchQuery, 
+          maxResults: 8, 
+          type: 'video',
+          ...(loadMore && nextPageToken ? { pageToken: nextPageToken } : {})
+        }
       });
 
       if (error) throw error;
 
       if (data?.success && data.videos) {
-        setYtSearchResults(data.videos);
-        if (data.videos.length === 0) {
+        if (loadMore) {
+          setYtSearchResults(prev => [...prev, ...data.videos]);
+        } else {
+          setYtSearchResults(data.videos);
+        }
+        setNextPageToken(data.nextPageToken || null);
+        
+        if (data.videos.length === 0 && !loadMore) {
           toast({
             title: "No results",
             description: "No videos found for your search"
@@ -349,6 +369,7 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
       });
     } finally {
       setIsSearching(false);
+      setIsLoadingMore(false);
     }
   };
 
@@ -486,56 +507,71 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
                 className="pl-9"
               />
             </div>
-            <Button onClick={searchYouTube} disabled={isSearching || !ytSearchQuery.trim()}>
+            <Button onClick={() => searchYouTube()} disabled={isSearching || !ytSearchQuery.trim()}>
               {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               <span className="ml-2 hidden sm:inline">Search</span>
             </Button>
           </div>
           
           {ytSearchResults.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {ytSearchResults.map((video) => {
-                const isInPlaylist = localPlaylist.some(item => item.videoId === video.id);
-                return (
-                  <div
-                    key={video.id}
-                    className="flex flex-col rounded-lg border bg-card hover:bg-muted/50 transition-colors overflow-hidden group"
-                  >
-                    <div className="relative aspect-video">
-                      <img
-                        src={video.thumbnails?.medium?.url || video.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/default.jpg`}
-                        alt={video.title}
-                        className="w-full h-full object-cover"
-                      />
+            <ScrollArea className="w-full">
+              <div className="flex gap-2 pb-3">
+                {ytSearchResults.map((video) => {
+                  const isInPlaylist = localPlaylist.some(item => item.videoId === video.id);
+                  return (
+                    <div
+                      key={video.id}
+                      className="flex-shrink-0 w-48 flex items-center gap-2 rounded-lg border bg-card hover:bg-muted/50 transition-colors overflow-hidden p-2 group"
+                    >
+                      <div className="relative w-16 h-12 flex-shrink-0 rounded overflow-hidden">
+                        <img
+                          src={video.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/default.jpg`}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-medium line-clamp-2 leading-tight">{video.title}</p>
+                        <p className="text-[9px] text-muted-foreground truncate">{video.channelTitle}</p>
+                      </div>
                       <Button
                         variant={isInPlaylist ? "secondary" : "default"}
                         size="sm"
-                        className="absolute bottom-2 right-2 h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-6 w-6 p-0 flex-shrink-0"
                         onClick={() => addSearchResultToPlaylist(video)}
                         disabled={isInPlaylist}
                       >
                         {isInPlaylist ? (
-                          <>Added</>
+                          <span className="text-[8px]">✓</span>
                         ) : (
-                          <>
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add
-                          </>
+                          <Plus className="h-3 w-3" />
                         )}
                       </Button>
                     </div>
-                    <div className="p-2">
-                      <p className="text-xs font-medium line-clamp-2">{video.title}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{video.channelTitle}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+                
+                {/* Load More button at the end */}
+                {nextPageToken && (
+                  <Button
+                    variant="outline"
+                    className="flex-shrink-0 h-auto py-4 px-4"
+                    onClick={() => searchYouTube(true)}
+                    disabled={isLoadingMore}
+                  >
+                    {isLoadingMore ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <span className="text-xs">More</span>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </ScrollArea>
           )}
           
           {ytSearchResults.length === 0 && !isSearching && (
-            <div className="text-center py-8 text-sm text-muted-foreground">
+            <div className="text-center py-4 text-sm text-muted-foreground">
               Search for songs, artists, or videos to add to your playlist
             </div>
           )}
