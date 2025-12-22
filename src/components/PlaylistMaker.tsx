@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2, Share2, Copy, Globe, Lock, Search } from 'lucide-react';
+import { Play, Pause, X, Maximize2, Trash2, Plus, SkipForward, SkipBack, Repeat, Shuffle, Minimize2, Share2, Copy, Globe, Lock, Search, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useMediaPlayerContext } from '@/contexts/MediaPlayerContext';
@@ -16,6 +16,18 @@ interface PlaylistItem {
   videoId: string;
   title: string;
   thumbnail: string;
+}
+
+interface YouTubeSearchResult {
+  id: string;
+  title: string;
+  channelTitle: string;
+  thumbnails: {
+    default?: { url: string };
+    medium?: { url: string };
+    high?: { url: string };
+  };
+  url: string;
 }
 
 interface PlaylistMakerProps {
@@ -34,6 +46,11 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
   const [playlistName, setPlaylistName] = useState('My Playlist');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // YouTube search state
+  const [ytSearchQuery, setYtSearchQuery] = useState('');
+  const [ytSearchResults, setYtSearchResults] = useState<YouTubeSearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   
   const {
     playerRef,
@@ -302,6 +319,65 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
     });
   };
 
+  // YouTube search function
+  const searchYouTube = async () => {
+    if (!ytSearchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('youtube-search', {
+        body: { query: ytSearchQuery, maxResults: 12, type: 'video' }
+      });
+
+      if (error) throw error;
+
+      if (data?.success && data.videos) {
+        setYtSearchResults(data.videos);
+        if (data.videos.length === 0) {
+          toast({
+            title: "No results",
+            description: "No videos found for your search"
+          });
+        }
+      }
+    } catch (error) {
+      console.error('YouTube search error:', error);
+      toast({
+        title: "Search failed",
+        description: "Could not search YouTube. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const addSearchResultToPlaylist = (video: YouTubeSearchResult) => {
+    // Check if already in playlist
+    if (localPlaylist.some(item => item.videoId === video.id)) {
+      toast({
+        title: "Already in playlist",
+        description: "This video is already in your playlist",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newItem: PlaylistItem = {
+      id: Date.now().toString(),
+      videoId: video.id,
+      title: video.title,
+      thumbnail: video.thumbnails?.medium?.url || video.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/default.jpg`
+    };
+
+    setLocalPlaylist([...localPlaylist, newItem]);
+    
+    toast({
+      title: "Added to playlist",
+      description: video.title.substring(0, 50) + (video.title.length > 50 ? '...' : '')
+    });
+  };
+
   // Filter playlist by search query
   const filteredPlaylist = localPlaylist.filter(item =>
     item.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -390,6 +466,79 @@ const PlaylistMaker: React.FC<PlaylistMakerProps> = ({ onVideoPlay }) => {
               )}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* YouTube Search Section */}
+      <Card>
+        <CardHeader className="py-3">
+          <CardTitle className="text-lg">Search YouTube</CardTitle>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <div className="flex gap-2 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by song title, artist name..."
+                value={ytSearchQuery}
+                onChange={(e) => setYtSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && searchYouTube()}
+                className="pl-9"
+              />
+            </div>
+            <Button onClick={searchYouTube} disabled={isSearching || !ytSearchQuery.trim()}>
+              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              <span className="ml-2 hidden sm:inline">Search</span>
+            </Button>
+          </div>
+          
+          {ytSearchResults.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {ytSearchResults.map((video) => {
+                const isInPlaylist = localPlaylist.some(item => item.videoId === video.id);
+                return (
+                  <div
+                    key={video.id}
+                    className="flex flex-col rounded-lg border bg-card hover:bg-muted/50 transition-colors overflow-hidden group"
+                  >
+                    <div className="relative aspect-video">
+                      <img
+                        src={video.thumbnails?.medium?.url || video.thumbnails?.default?.url || `https://img.youtube.com/vi/${video.id}/default.jpg`}
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        variant={isInPlaylist ? "secondary" : "default"}
+                        size="sm"
+                        className="absolute bottom-2 right-2 h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => addSearchResultToPlaylist(video)}
+                        disabled={isInPlaylist}
+                      >
+                        {isInPlaylist ? (
+                          <>Added</>
+                        ) : (
+                          <>
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs font-medium line-clamp-2">{video.title}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{video.channelTitle}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          
+          {ytSearchResults.length === 0 && !isSearching && (
+            <div className="text-center py-8 text-sm text-muted-foreground">
+              Search for songs, artists, or videos to add to your playlist
+            </div>
+          )}
         </CardContent>
       </Card>
 
